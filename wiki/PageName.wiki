@@ -1,0 +1,10 @@
+#summary Pocket Gnome
+
+= Introduction =
+
+Welcome to the new Pocket Gnome repository/wiki.
+
+
+= Details =
+
+There is really nothing here yet (except the source code o.O)
