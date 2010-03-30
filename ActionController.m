@@ -24,7 +24,6 @@
 #import "VendorActionController.h"
 #import "MailActionController.h"
 #import "ReverseRouteActionController.h"
-#import "JumpToWaypointActionController.h"
 
 @implementation ActionController
 
@@ -76,8 +75,6 @@
 		newController = [[MailActionController alloc] init];
 	else if ( [action type] == ActionType_ReverseRoute )
 		newController = [[ReverseRouteActionController alloc] init];
-	else if ( [action type] == ActionType_JumpToWaypoint )
-		newController = [[JumpToWaypointActionController alloc] init];
 	
     if(newController) {
         [newController setStateFromAction: action];

@@ -19,15 +19,11 @@
 - (id) init{
     self = [super init];
     if (self != nil) {
-		self.changed = NO;
+		_changed = NO;
 		
 		// create a new UUID
 		self.UUID = [self generateUUID];
-		
-		PGLog(@" %@ new", self);
-		
-		// start observing! (so we can detect changes)
-		[self performSelector:@selector(addObservers) withObject:nil afterDelay:1.0f];
+		//PGLog(@"created a NEW UUID %@", self.UUID);
 	}
 		
     return self;
@@ -36,7 +32,6 @@
 @synthesize changed = _changed;
 @synthesize UUID = _UUID;
 
-// called when loading from disk!
 - (id)initWithCoder:(NSCoder *)decoder{
 	self = [super init];
 	if ( self ) {
@@ -45,14 +40,13 @@
 		// create a new UUID?
 		if ( !self.UUID || [self.UUID length] == 0 ){
 			self.UUID = [self generateUUID];
-			self.changed = YES;
+			//PGLog(@"created a NEW UUID2 %@", self.UUID);
+			_changed = YES;
 		}
 	}
-	
 	return self;
 }
 
-// called when we're saving a file
 - (void)encodeWithCoder:(NSCoder *)coder{
 	[coder encodeObject: self.UUID forKey: @"UUID"];
 }
@@ -67,17 +61,6 @@
 	CFRelease(uuidObj);
 	
 	return [uuid retain];
-}
-
-- (void)setChanged:(BOOL)val{
-	//PGLog(@"[Changed] Set from %d to %d for %@", _changed, val, self);
-	_changed = val;
-}
-
-// Observations (to detect when an object changes)
-
-- (void)addObservers{
-	
 }
 
 @end

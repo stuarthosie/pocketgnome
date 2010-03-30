@@ -82,7 +82,7 @@
 	NSMutableArray *_routeCollectionList;
 	RouteCollection *_currentRouteCollection;
 	BOOL _validRouteSelection;
-	BOOL _myHackVariableToLoadOldData;	// cry
+	BOOL _myHackVariable;	// cry
 	IBOutlet NSButton *startingRouteButton;
 	IBOutlet NSTabView *waypointTabView;
 	
@@ -116,7 +116,6 @@
 
 - (NSArray*)routeCollections;
 - (NSArray*)routes;
-- (RouteCollection*)routeCollectionForUUID: (NSString*)UUID;
 
 // route actions
 - (IBAction)setRouteType: (id)sender;

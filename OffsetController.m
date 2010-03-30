@@ -195,7 +195,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			}
 				
 			[offsets setObject: [NSNumber numberWithUnsignedLong:offset] forKey:key];
-			//if ( offset > 0x0 )
+			if ( offset > 0x0 )
 				PGLog(@"%@: 0x%X", key, offset);
 		}
 		
@@ -219,6 +219,11 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 		[offsets setObject:[NSNumber numberWithUnsignedLong:0xD2D240 + 0x24] forKey:@"PLAYER_NAME_LIST"];
 		[offsets setObject:[NSNumber numberWithUnsignedLong:0xC8EA60] forKey:@"KEYBINDINGS_PTR"];
 		[offsets setObject:[NSNumber numberWithUnsignedLong:0xDBAB14] forKey:@"MOUNT_LIST_NUM"];
+		
+		
+		
+		
+		
 		
 		// 0xD8BD20 - charselect, login, charcreate, patchdownload
 		

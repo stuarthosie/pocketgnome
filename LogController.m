@@ -13,34 +13,11 @@
 
 + (BOOL) canLog:(char*)type_s, ...
 {
-	// Check to see whether or not extended logging is even on
-	if ([[[NSUserDefaults standardUserDefaults] objectForKey: @"ExtendedLoggingEnable"] boolValue]) {
-		// Extended logging is on so lets see if we're supposed to log the requested type
-
-		// Check to see if we have a setting for it in the interface.
-		NSString* type = [NSString stringWithFormat:@"ExtendedLogging%s", type_s];
-		if ([[NSUserDefaults standardUserDefaults] objectForKey: type])
-			return([[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey: type] boolValue]);
-
-	} else {
-		// These are the types we supress when Extended Logging isn't enabled
-		// We'll most likely need to add more to this list as we further the roll out of this logging
-		if (type_s == LOG_CONDITION) return NO;
-		if (type_s == LOG_RULE) return NO;
-		if (type_s == LOG_MOVEMENT) return NO;
-		if (type_s == LOG_DEV) return NO;
-		if (type_s == LOG_WAYPOINT) return NO;
-		if (type_s == LOG_BINDINGS) return NO;
-		if (type_s == LOG_STATISTICS) return NO;
-		if (type_s == LOG_MACRO) return NO;
-		if (type_s == LOG_EVALUATE) return NO;
-		if (type_s == LOG_BLACKLIST) return NO;
-
-	}
-
-	// If it's not been supressed let's allow it
-	return YES;
+	NSString* type = [NSString stringWithFormat:@"log_%s", type_s];
 	
+	
+	return YES;
+	//return([[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey: type] boolValue]);
 }
 
 + (NSString*) log:(char*)type_s, ...

@@ -47,7 +47,6 @@
 	IBOutlet NSTableView *combatTable;
 	
 	BOOL _inCombat;
-	BOOL _hasStepped;
 	
 	NSDate *_enteredCombat;
 	
@@ -55,7 +54,6 @@
 	NSMutableArray *_unitsAllCombat;		// meant for the display table ONLY!
 	
 	NSMutableDictionary *_unitLeftCombatCount;
-	NSMutableDictionary *_unitLeftCombatTargetCount;
 }
 
 @property BOOL inCombat;
@@ -63,7 +61,6 @@
 @property (readonly, retain) Unit *castingUnit;
 @property (readonly, retain) Unit *addUnit;
 
-// @property (readonly) NSString *unitHealthBar:(Unit*)unit;
 
 // weighted units we're in combat with
 - (NSArray*)combatList;
@@ -90,8 +87,6 @@
 // INPUT: from PlayerDataController when a user enters combat
 - (void)doCombatSearch;
 
-- (NSArray*)friendlyUnits;
-
 // OUPUT: could also be using [playerController isInCombat]
 - (BOOL)combatEnabled;
 
@@ -104,7 +99,5 @@
 // UI
 - (void)showCombatPanel;
 - (void)updateCombatTable;
-
-- (NSString*)unitHealthBar: (Unit*)unit;
 
 @end

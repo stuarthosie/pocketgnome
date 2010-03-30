@@ -2,161 +2,141 @@
 //  MovementController.h
 //  Pocket Gnome
 //
-//  Created by Josh on 2/16/10.
-//  Copyright 2010 Savory Software, LLC. All rights reserved.
+//  Created by Jon Drummond on 12/16/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
+//#import "Position.h"
+//#import "Route.h"
+//#import "Waypoint.h"
+//#import "Mob.h"
 
-@class Controller;
-@class BotController;
-@class OffsetController;
+@class Mob;
+@class Unit;
+@class Route;
+@class WoWObject;
+@class Waypoint;
+@class Position;
+
 @class PlayerDataController;
+@class OffsetController;
 @class AuraController;
 @class MacroController;
 @class BlacklistController;
+@class BotController;
 @class WaypointController;
-@class MobController;
-@class StatisticsController;
 @class CombatProfileEditor;
-@class Unit;
+@class StatisticsController;
 
-@class Route;
-@class Waypoint;
-@class RouteSet;
-@class WoWObject;
-@class Position;
-
-#define ReachedObjectNotification      @"ReachedObjectNotification"
-
+#define MobReachedNotification      @"MobReachedNotification"
+//#define RouteFinishedNotification   @"RouteFinishedNotification"
 // How close do we need to be to a node before we dismount?
-#define DistanceUntilDismountByNode	4.5f
-
+#define NODE_DISTANCE_UNTIL_DISMOUNT	4.5f
 // how close do we need to be to a school to fish?
 #define NODE_DISTANCE_UNTIL_FISH		17.0f
 
-typedef enum MovementType {
-	MovementType_Mouse		= 0,
-	MovementType_Keyboard	= 1,
-	MovementType_CTM		= 2,
-} MovementType;
-
 @interface MovementController : NSObject {
+    IBOutlet id controller;
+    IBOutlet id mobController;
+    IBOutlet id chatController;
+    IBOutlet id combatController;
 	
-	IBOutlet Controller				*controller;
 	IBOutlet BotController			*botController;
-	IBOutlet OffsetController		*offsetController;
-	IBOutlet PlayerDataController	*playerData;
 	IBOutlet AuraController			*auraController;
-	IBOutlet MacroController		*macroController;
+    IBOutlet PlayerDataController	*playerData;
+	IBOutlet OffsetController		*offsetController;
+    IBOutlet MacroController		*macroController;
 	IBOutlet BlacklistController	*blacklistController;
 	IBOutlet WaypointController		*waypointController;
-	IBOutlet MobController			*mobController;
-	IBOutlet StatisticsController	*statisticsController;
 	IBOutlet CombatProfileEditor	*combatProfileEditor;
+	IBOutlet StatisticsController	*statisticsController;
 	
 	IBOutlet NSTextField	*logOutStuckAttemptsTextField;
-	IBOutlet NSPopUpButton	*movementTypePopUp;
+	IBOutlet NSPopUpButton	*movementType;
 
-	NSMutableArray *_backtrack;			// this will contain a list of positions we must move through to get back to our route!
-	NSMutableDictionary *_stuckDictionary;
+    BOOL _shouldJump;
+    BOOL _isMoving;
+    BOOL _isPaused;
+    BOOL _isPatrolling;
+    BOOL _stopAtEnd;
+    BOOL _notifyForObjectMove;
+    int _patrolCount, _jumpCooldown, _waypointDoneCount;
+	int _lastInteraction;
+    NSDate *_lastJumpTime, *_lastDirectionCorrection, *movementExpiration;
+    Position *lastSavedPosition;
+    NSTimer *_movementTimer;
+    Waypoint *_destination;
+    Unit *_unit;
+    Route *_route;
 	
-	NSString *_currentRouteKey;
-	RouteSet *_currentRouteSet;			// current route set
-	Waypoint *_destinationWaypoint;
-	Route *_currentRoute;				// current route we're running
+	// New error correction stuff
+	int _movementChecks;							// This keeps track of the number of movement checks we have (every 0.1 second) to the same position (while attempting to moveToPosition)
+													//	if this number gets too high (it tracks the number of attempts to hit one position), we can be sure we're stuck!
+													//	for safe measure checkSpeedDistance checks the average speed and average distance traveled as well
+	float _totalMovementSpeed, _totalDistance;
+	Position *lastAttemptedPosition;				// Keeps track of the last position we tried to go to
+	Position *lastPlayerPosition;					// Stores the last known player position (used in checkSpeedDistance to determine the average distance traveled)
+	int _isStuck;									// Every time we're stuck this is incremented by 1
+	int _unstickAttempt;							// Tracks how many times we've tried to "unstick" ourselves from the same spot!
+	int _successfulMoves;							// How many times are we moving through our route correctly?
+	Waypoint * _lastTriedWaypoint;
+	float _averageSpeed;
+	float _averageDistance;
+	NSDate *_lastResumeCorrection;					// this is for when we start to fly too far away from our WP!
 	
-	int _movementState;
+	// new waypoint action/conditions
+	Waypoint *_lastWaypointToTakeAction;
 	
-	WoWObject *_moveToObject;			// current object we're moving to
-	
-	BOOL _isMovingFromKeyboard;
-	
-	NSTimer *_movementTimer;			// this just checks to see if we reached our position!
-	
-	// stuck checking
-	Position	*_lastAttemptedPosition;
-	NSDate		*_lastAttemptedPositionTime;
-	NSDate		*_lastDirectionCorrection;
-	Position	*_lastPlayerPosition;
-	int			_positionCheck;
-	float		_lastDistanceToDestination;
-	int			_stuckCounter;
-	id			_unstickifyTarget;
-	int			_unstickifyTry;
-	
-	NSDate *_movementExpiration;
-	NSDate *_lastJumpTime;
-	
-	int _jumpCooldown;
-	
-	BOOL _movingUp;
-	BOOL _afkPressForward;
-	BOOL _lastCorrectionForward;
+	// new melee movement method
+	Position *_lastMeleePosition;
 }
 
-@property (readwrite, retain) RouteSet *currentRouteSet;
+@property BOOL isMoving;
+@property BOOL isPatrolling;
+@property BOOL shouldJump;
+@property (readonly) int movementType;
+@property float averageSpeed;
+@property float averageDistance;
 
+- (void)resetMovementState;     // reset ALL movement state, completely
+- (void)resetUnit;				// just sets the unit to nil
+
+- (void)pauseMovement;
+- (void)resumeMovement;
+- (void)resumeMovementToNearestWaypoint;
+
+- (WoWObject*)moveToObject;
+- (void)finishMovingToObject: (WoWObject*)unit;
+
+- (Route*)patrolRoute;
+- (void)setPatrolRoute: (Route*)route;
+- (void)beginPatrol: (unsigned)count;
+- (void)beginPatrolAndStopAtLastPoint;
+- (void)establishPosition;
+- (void)backEstablishPosition;
+
+- (void)moveNearPosition: (Position*)position andCloseness: (float)closeness;
+- (void)moveToObject: (WoWObject*)unit andNotify: (BOOL)notifyBotController;
+- (void)moveToWaypoint: (Waypoint*)waypoint;
+
+- (void)moveToMelee: (WoWObject*)unit;
+
+- (void)turnTowardObject: (WoWObject*)unit;
+
+- (void)followObject: (WoWObject*)unit;
+
+- (void)moveBackwardStop;
 - (void)moveForwardStart;
 - (void)moveForwardStop;
 
-// move to an object (takes priority over a route)
-- (BOOL)moveToObject: (WoWObject*)object;
+- (BOOL)useSmoothTurning;
+- (BOOL)useClickToMove;
 
-// move to a position (I'd prefer we don't do this often, but it is sometimes needed :()
-- (void)moveToPosition: (Position*)position;
+- (BOOL)dismount;		// dismount the player
 
-// the object we're moving to
-- (WoWObject*)moveToObject;
+// CTM
+- (void)setClickToMove:(Position*)position andType:(UInt32)type andGUID:(UInt64)guid;
 
-// reset the move to object and returns true on success
-- (BOOL)resetMoveToObject;
-
-// begin patrolling with this routeset
-- (void)setPatrolRouteSet: (RouteSet*)route;
-
-// stop all movement
-- (void)stopMovement;
-
-// resume movement if we stopped
-- (void)resumeMovement;
-
-// what type of movement are we operating in?  
-- (int)movementType;
-
-// turn toward the object
-- (void)turnTowardObject:(WoWObject*)obj;
-
-// Unbug a caster
-- (void)stepForward;
-
-// check unit for range adjustments
-- (BOOL)checkUnitOutOfRange: (Unit*)target;
-
-// dismount the player
-- (BOOL)dismount;
-
-// is the player currently moving?
-- (BOOL)isMoving;
-
-// jump
-- (void)jump;
-
-// are we currently patrolling?
-- (BOOL)isPatrolling;
-
-// reset our movement state
-- (void)resetMovementState;
-
-// just presses forward or backward
-- (void)antiAFK;
-
-// establish the player's position
-- (void)establishPlayerPosition;
-
-// for now
-- (float)averageSpeed;
-- (float)averageDistance;
-- (BOOL)shouldJump;
-
+- (IBAction)prefsChanged: (id)sender;
 @end

@@ -25,7 +25,6 @@ typedef enum ActionType {
 	ActionType_ReverseRoute		= 13,
 	ActionType_CombatProfile	= 14,
     ActionType_InteractObject	= 15,
-	ActionType_JumpToWaypoint	= 16,
     ActionType_Max,
 } ActionType;
 

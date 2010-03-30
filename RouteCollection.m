@@ -67,7 +67,6 @@
 - (id)copyWithZone:(NSZone *)zone{
     RouteCollection *copy = [[[self class] allocWithZone: zone] initWithName: self.name];
     
-	PGLog(@"copy is changed?");
 	copy.changed = YES;
 	copy.startUUID = self.startUUID;
 	copy.startRouteOnDeath = self.startRouteOnDeath;
@@ -188,19 +187,6 @@
 - (void)setStartRouteOnDeath:(BOOL)val{
 	self.changed = YES;
 	_startRouteOnDeath = val;
-}
-
-#pragma mark SaveDataObject
-
-- (void)addObservers{
-	[self addObserver: self forKeyPath: @"startRouteOnDeath" options: NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context: nil];
-	[self addObserver: self forKeyPath: @"routes" options: NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context: nil];
-	[self addObserver: self forKeyPath: @"name" options: NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context: nil];
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context{
-	PGLog(@"%@ changed! %@ %@", self, keyPath, change);
-	self.changed = YES;
 }
 
 @end

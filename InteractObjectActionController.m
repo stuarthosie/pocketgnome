@@ -28,7 +28,7 @@
     return self;
 }
 
-- (id)initWithZeObjects: (NSArray*)objects{
+- (id)initWithObjects: (NSArray*)objects{
     self = [self init];
     if (self != nil) {
         self.objects = objects;
@@ -49,7 +49,7 @@
 }
 
 + (id)interactObjectActionControllerWithObjects: (NSArray*)objects{
-	return [[[InteractObjectActionController alloc] initWithZeObjects: objects] autorelease];
+	return [[[InteractObjectActionController alloc] initWithObjects: objects] autorelease];
 }
 
 // if we don't remove bindings, it won't leave!

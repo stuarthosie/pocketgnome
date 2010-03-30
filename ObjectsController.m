@@ -159,20 +159,9 @@
 }
 
 - (BOOL)isTabVisible:(int)tab{
+	if ( tab == _currentTab )
+		return YES;
 	
-	if ( _currentTab == Tab_Players && [[playersTable window] isVisible] ){
-		return YES;
-	}
-	else if ( _currentTab == Tab_Mobs && [[mobTable window] isVisible] ){
-		return YES;
-	}
-	else if ( _currentTab == Tab_Items && [[itemTable window] isVisible] ){
-		return YES;
-	}
-	else if ( _currentTab == Tab_Nodes && [[nodeTable window] isVisible] ){
-		return YES;
-	}
-
 	return NO;
 }
 
@@ -484,7 +473,7 @@
 			WoWObject *obj = [self selectedObject];
 			
 			if ( obj ){
-				[movementController moveToObject:obj];	//andNotify:NO
+				[movementController moveToObject:obj andNotify:NO];
 			}
 		}
 		
@@ -492,7 +481,7 @@
 		else{
 			WoWObject *obj = [mobController closestMobWithName:[[moveToMobPopUpButton selectedItem] representedObject]];
 			if ( obj ){
-				[movementController moveToObject:obj];	// andNotify:NO
+				[movementController moveToObject:obj andNotify:NO];
 			}
 		}		
 	}
@@ -503,7 +492,7 @@
 			WoWObject *obj = [self selectedObject];
 			
 			if ( obj ){
-				[movementController moveToObject:obj];	// andNotify:NO
+				[movementController moveToObject:obj andNotify:NO];
 			}
 		}
 		
@@ -511,14 +500,14 @@
 		else{
 			WoWObject *obj = [nodeController closestNodeWithName:[[moveToNodePopUpButton selectedItem] representedObject]];
 			if ( obj ){
-				[movementController moveToObject:obj];	// andNotify:NO
+				[movementController moveToObject:obj andNotify:NO];
 			}
 		}	
 	}	
 }
 
 - (IBAction)moveToStop: (id)sender{
-	[movementController resetMovementState];
+	[movementController setPatrolRoute: nil];
 }
 
 - (IBAction)resetObjects: (id)sender{

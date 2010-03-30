@@ -182,7 +182,7 @@ typedef struct WoWBinding {
 		// loop through all structs!
 		while ( [memory loadDataForObject: self atAddress: structPointer Buffer: (Byte*)&bindingStruct BufLength: sizeof(bindingStruct)] && bindingStruct.nextBinding > 0x0 && !(bindingStruct.nextBinding & 0x1) ){
 
-			//log(LOG_BINDINGS, @"[Bindings] Struct found at 0x%X", structPointer);
+			//PGLog(@"[Bindings] Struct found at 0x%X", structPointer);
 
 			// initiate our variables
 			NSString *key = nil;
@@ -194,21 +194,21 @@ typedef struct WoWBinding {
 			
 			if ( [memory loadDataForObject: self atAddress: bindingStruct.keyPointer Buffer: (Byte *)&tmpKey BufLength: sizeof(tmpKey)-1] ){
 				key = [NSString stringWithUTF8String: tmpKey];  // will stop after it's first encounter with '\0'
-				//log(LOG_BINDINGS, @"[Bindings] Key %@ found at 0x%X", key, bindingStruct.keyPointer);
+				//PGLog(@"[Bindings] Key %@ found at 0x%X", key, bindingStruct.keyPointer);
 			}
 			
 			if ( [memory loadDataForObject: self atAddress: bindingStruct.cmdPointer Buffer: (Byte *)&tmpCmd BufLength: sizeof(tmpCmd)-1] ){
 				cmd = [NSString stringWithUTF8String: tmpCmd];  // will stop after it's first encounter with '\0'
-				//log(LOG_BINDINGS, @"[Bindings] Command %@ found at 0x%X", cmd, bindingStruct.cmdPointer);
+				//PGLog(@"[Bindings] Command %@ found at 0x%X", cmd, bindingStruct.cmdPointer);
 			}
 			
 			// add it
 			if ( [key length] && [cmd length] ){
-				//log(LOG_BINDINGS, @"%@ -> %@", key, cmd);
+				//PGLog(@"%@ -> %@", key, cmd);
 				[_bindings setObject:cmd forKey:key];
 			}
 			
-			//log(LOG_BINDINGS, @"[Bindings] Code %d for %@", [chatController keyCodeForCharacter:key], key);
+			//PGLog(@"[Bindings] Code %d for %@", [chatController keyCodeForCharacter:key], key);
 			
 			// we already made it through the list! break!
 			if ( firstStruct == bindingStruct.nextBinding ){
@@ -267,7 +267,7 @@ typedef struct WoWBinding {
 		// remove the previous commands
 		[allCodes removeAllObjects];
 		
-		//log(LOG_BINDINGS, @"[Bindings] Command: %@ %@", [_bindings objectForKey:key], key);
+		//PGLog(@"[Bindings] Command: %@ %@", [_bindings objectForKey:key], key);
 		
 		// this will tell us where the "-" is in our string!
 		int i, splitIndex = -1;
@@ -290,7 +290,7 @@ typedef struct WoWBinding {
 
 			/*NSString *binding = [[_bindings objectForKey:key] lowercaseString];
 			if ( [binding isEqualToString:[[NSString stringWithFormat:@"MULTIACTIONBAR1BUTTON1"] lowercaseString]] ){
-				log(LOG_BINDINGS, @" %@", command1);
+				PGLog(@" %@", command1);
 			}*/
 		}
 		// 2 commands
@@ -373,9 +373,9 @@ typedef struct WoWBinding {
 	if ( [unknownCodes count] ){
 		for ( NSString *cmd in unknownCodes ){
 			if ( ![_commandToAscii objectForKey:cmd] ){
-				log(LOG_BINDINGS, @"[Bindings] Unable to find code for %@, report it to Tanaris4!", cmd);
+				PGLog(@"[Bindings] Unable to find code for %@, report it to Tanaris4!", cmd);
 			}
-			//log(LOG_BINDINGS, @" \@\"%@\",", cmd);
+			//PGLog(@" \@\"%@\",", cmd);
 		}
 	}
 }
@@ -464,7 +464,7 @@ typedef struct WoWBinding {
 		modifier = [self modifierForBinding:@"MULTIACTIONBAR1BUTTON1"];
 		offset = BAR6_OFFSET;
 		
-		log(LOG_BINDINGS, @"[Bindings] Found binding for lower left action bar: %d 0x%X 0x%X", code, modifier, offset);
+		PGLog(@"[Bindings] Found binding for lower left action bar: %d 0x%X 0x%X", code, modifier, offset);
 	}
 	// try normal bar (I could try more after this, but if they don't have either bound, they shouldn't be using this bot)
 	else if ( [self codeForBinding:@"ACTIONBUTTON1"] >= 0 ){
@@ -472,7 +472,7 @@ typedef struct WoWBinding {
 		modifier = [self modifierForBinding:@"ACTIONBUTTON1"];
 		offset = BAR1_OFFSET;
 		
-		log(LOG_BINDINGS, @"[Bindings] Found binding for action bar 1: %d 0x%X 0x%X", code, modifier, offset);
+		PGLog(@"[Bindings] Found binding for action bar 1: %d 0x%X 0x%X", code, modifier, offset);
 	}
 			 
 	if ( code != -1 ){
@@ -485,7 +485,7 @@ typedef struct WoWBinding {
 							 forKey:BindingPrimaryHotkey];
 	}
 	else{
-		log(LOG_BINDINGS, @"[Bindings] No Primary Hotkey found! Bind a key to lower left action bar 1 or bar 1");
+		PGLog(@"[Bindings] No Primary Hotkey found! Bind a key to lower left action bar 1 or bar 1");
 	}	
 	
 	//
@@ -501,7 +501,7 @@ typedef struct WoWBinding {
 		modifier = [self modifierForBinding:@"PETATTACK"];
 		offset = BAR6_OFFSET;
 		
-		log(LOG_BINDINGS, @"[Bindings] Found binding for pet attack: %d 0x%X 0x%X", code, modifier, offset);
+		PGLog(@"[Bindings] Found binding for pet attack: %d 0x%X 0x%X", code, modifier, offset);
 	}
 	
 	if ( code != -1 ){
@@ -514,7 +514,7 @@ typedef struct WoWBinding {
 							 forKey:BindingPetAttack];
 	}
 	else{
-		log(LOG_BINDINGS, @"[Bindings] No Pet Attack key found! Bind a key to pet attack!");
+		PGLog(@"[Bindings] No Pet Attack key found! Bind a key to pet attack!");
 	}
 	
 	//
@@ -530,7 +530,7 @@ typedef struct WoWBinding {
 		modifier = [self modifierForBinding:@"INTERACTMOUSEOVER"];
 		offset = BAR6_OFFSET;
 		
-		log(LOG_BINDINGS, @"[Bindings] Found binding for interact with mouseover: %d 0x%X 0x%X", code, modifier, offset);
+		PGLog(@"[Bindings] Found binding for interact with mouseover: %d 0x%X 0x%X", code, modifier, offset);
 	}
 	
 	if ( code != -1 ){
@@ -543,13 +543,13 @@ typedef struct WoWBinding {
 							 forKey:BindingInteractMouseover];
 	}
 	else{
-		log(LOG_BINDINGS, @"[Bindings] No Interact with Mouseover key found! Bind a key to 'Interact with Mouseover'!");
+		PGLog(@"[Bindings] No Interact with Mouseover key found! Bind a key to 'Interact with Mouseover'!");
 	}
 }
 
 - (BOOL)executeBindingForKey:(NSString*)key{
 	
-	log(LOG_BINDINGS, @"[Bindings] Executing %@", key);
+	PGLog(@"[Bindings] Executing %@", key);
 	
 	NSDictionary *dict = [_bindingsToCodes objectForKey:key];
 	
@@ -569,7 +569,7 @@ typedef struct WoWBinding {
 		return YES;
 	}
 	else{
-		log(LOG_BINDINGS, @"[Bindings] Unable to find binding for %@", key);
+		PGLog(@"[Bindings] Unable to find binding for %@", key);
 	}
 	
 	return NO;

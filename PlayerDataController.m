@@ -20,8 +20,6 @@
 #import "NodeController.h"
 #import "OffsetController.h"
 #import "MobController.h"
-#import "MacroController.h"
-#import "ChatController.h"
 
 #import "Spell.h"
 #import "Player.h"
@@ -104,7 +102,7 @@ static PlayerDataController* sharedController = nil;
 
 - (void)viewLoaded: (NSNotification*)notification {
     //if( [notification object] == self.view ) {
-    //    log(LOG_DEV, @"loaded");
+    //    PGLog(@"loaded");
     //    [[AuraController sharedController] aurasForUnit: [self player]];
     //} 
 }
@@ -237,7 +235,7 @@ static PlayerDataController* sharedController = nil;
 #pragma mark -
 
 - (BOOL)playerIsValid{
-	//log(LOG_DEV, @"UI UI UI");
+	//PGLog(@"UI UI UI");
 	return [self playerIsValid:nil];	
 }
 // 4 reads
@@ -262,7 +260,7 @@ static PlayerDataController* sharedController = nil;
 	// is the player still valid?
     if ( GUID_LOW32(globalGUID) == selfGUID && objectType == TYPEID_PLAYER && previousPtr > 0x0 ) {
 		if ( !_lastState ) {
-			log(LOG_DEV, @"[Player] Player is valid. %@", [sender class]);
+			PGLog(@"[Player] Player is valid. %@", [sender class]);
 			
 			[self loadState];
 			
@@ -272,7 +270,7 @@ static PlayerDataController* sharedController = nil;
 	}
 
     if ( _lastState ) {
-        log(LOG_DEV, @"[Player] Player is invalid. %@", [sender class]);
+        PGLog(@"[Player] Player is invalid. %@", [sender class]);
         [self resetState];
     }
     return NO;
@@ -312,7 +310,7 @@ static PlayerDataController* sharedController = nil;
     if(memory && _baselineAddress && [self baselineAddress]) {
         [memory loadDataForObject: self atAddress: ([self baselineAddress] + OBJECT_TYPE_ID) Buffer: (Byte*)&objectType BufLength: sizeof(objectType)];
         [memory loadDataForObject: self atAddress: ([self baselineAddress] + OBJECT_FIELDS_PTR) Buffer: (Byte*)&playerAddress BufLength: sizeof(playerAddress)];
-		log(LOG_DEV, @"[PlayerData] Type: %d Address: 0x%X  BaselineAddress: 0x%X", objectType, playerAddress, [self baselineAddress]);
+		PGLog(@"[PlayerData] Type: %d Address: 0x%X  BaselineAddress: 0x%X", objectType, playerAddress, [self baselineAddress]);
     }
 
     // if we got a ~~~~
@@ -339,7 +337,7 @@ static PlayerDataController* sharedController = nil;
         return;
     }
     
-    log(LOG_DEV, @"Error: Attemping to load invalid player; bailing. Address: 0x%X Type: %d", playerAddress, objectType);
+    PGLog(@"Error: Attemping to load invalid player; bailing. Address: 0x%X Type: %d", playerAddress, objectType);
     [self resetState];
 }
 
@@ -518,7 +516,7 @@ static PlayerDataController* sharedController = nil;
 		return runesAvailable;
 	}
 
-	log(LOG_DEV, @"[Rune] No rune state found");
+	PGLog(@"[Rune] No rune state found");
 	
 	return 0;	
 }
@@ -659,31 +657,11 @@ static PlayerDataController* sharedController = nil;
         // and to the player table
         ret3 = [memory saveDataForAddress: ([self infoAddress] + UnitField_Target) Buffer: (Byte *)&targetID BufLength: sizeof(targetID)];
 		
-        if (ret1 && ret3) {
-/* 
-// An attempt at target fix
-// This is where it should be implemented, no joy as of yet though
-			// Start Target Fix
-			log(LOG_COMBAT, @"Resetting target...");
-			usleep(200000);
-			[chatController sendKeySequence: [NSString stringWithFormat: @"%c", '\n']];
-			usleep(100000);
-
-			[chatController sendKeySequence: [NSString stringWithFormat: @"/cleartarget%c", '\n']];
-			usleep(100000);
-
-			[chatController sendKeySequence: [NSString stringWithFormat: @"%c", '\n']];
-			usleep(100000);
-
-			[chatController sendKeySequence: [NSString stringWithFormat: @"/targetlasttarget%c", '\n']];
-			usleep(100000);
-
- */
+        if(ret1 && ret3)    
             return YES;
-        } else {
+        else
             return NO;
-		}
-	}
+    }
     return NO;
 	
 }
@@ -692,19 +670,18 @@ static PlayerDataController* sharedController = nil;
 	
 	// is target valid
 	if ( !target || ![target isValid] ){
-		log(LOG_ERROR, @"[Player] Unable to target %@", target);
+		PGLog(@"[Player] Unable to target %@", target);
 		[mobController clearTargets];
 		return [self setTarget:0];
 	}
 	
 	// need to make sure we hit the mob selection variable as well!
-	if ( [target isNPC] ) {
+	if ( [target isNPC] ){
 		Mob *mob = (Mob*)target;
 		[mob select];			
 	}
-
-	return [self setTarget:[target GUID]];
 	
+	return [self setTarget:[target GUID]];
 }
 
 
@@ -855,7 +832,7 @@ static PlayerDataController* sharedController = nil;
             // sometimes it's simply 0x500, moreoften 0x80500
             // 0x90500 seems to be the default state, but often isn't (wtf)
             // 0x--100 on a gryphon
-            log(LOG_DEV, @"toCast = %d, castID = %d, channelID = %d", toCastID, castID, channelID);
+            PGLog(@"toCast = %d, castID = %d, channelID = %d", toCastID, castID, channelID);
             return YES;
         }*/
     }
@@ -951,9 +928,9 @@ static PlayerDataController* sharedController = nil;
         UInt32 endTime = 0;
         [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_TimeEnd Buffer: (Byte *)&endTime BufLength: sizeof(endTime)];
         if(endTime) { // we are casting and it has a designated end time
-            //log(LOG_DEV, @"[cast] %d vs. %d", endTime, currentTime);
+            //PGLog(@"[cast] %d vs. %d", endTime, currentTime);
             if(endTime >= currentTime) {
-                //log(LOG_DEV, @"[cast] %f", ((endTime - currentTime) / 1000.0f));
+                //PGLog(@"[cast] %f", ((endTime - currentTime) / 1000.0f));
                 return ((endTime - currentTime) / 1000.0f);
             }
         }
@@ -966,7 +943,7 @@ static PlayerDataController* sharedController = nil;
                 return ((endTime - currentTime) / 1000.0f);
         }
     }
-    // log(LOG_DEV, @"nothing from castTimeRemaining");
+    // PGLog(@"nothing from castTimeRemaining");
     return 0;
 }
 
@@ -1005,7 +982,7 @@ static PlayerDataController* sharedController = nil;
 
 - (IBAction)showPlayerStructure: (id)sender {
     
-    //log(LOG_DEV, @"%@", NSStringFromPoint(NSPointFromCGPoint([controller screenPointForGamePosition: [self position]])));
+    //PGLog(@"%@", NSStringFromPoint(NSPointFromCGPoint([controller screenPointForGamePosition: [self position]])));
     
     [memoryViewController showObjectMemory: [self player]];
     [controller showMemoryView];
@@ -1078,7 +1055,7 @@ static PlayerDataController* sharedController = nil;
         // check pet
         if( self.pet && (![self.pet isValid] || ([player petGUID] == 0))) {
             self.pet = nil;
-            log(LOG_DEV, @"[Player] Pet is no longer valid.");
+            PGLog(@"[Player] Pet is no longer valid.");
         }
         
         // player has a pet, but we don't know which mob it is
@@ -1089,7 +1066,7 @@ static PlayerDataController* sharedController = nil;
             // this mob is really our pet, right?
             if( [pet isValid] && ((playerGUID == [pet summonedBy]) || (playerGUID == [pet createdBy]) || (playerGUID == [pet charmedBy]))) {
                 self.pet = pet;
-                log(LOG_DEV, @"[Player] Found pet: %@", pet);
+                PGLog(@"[Player] Found pet: %@", pet);
             } else {
                 // [[MobController sharedController] enumerateAllMobs];
             }
@@ -1100,7 +1077,7 @@ static PlayerDataController* sharedController = nil;
             savedLevel = level;
         } else {
             if(level == (savedLevel+1)) {
-                log(LOG_DEV, @"[Player] Level up! You have reached level %d", level);
+                PGLog(@"[Player] Level up! You have reached level %d", level);
                 savedLevel = level;
                 
                 if( [controller sendGrowlNotifications] && [GrowlApplicationBridge isGrowlInstalled] && [GrowlApplicationBridge isGrowlRunning]) {
@@ -1188,12 +1165,12 @@ static PlayerDataController* sharedController = nil;
         BOOL combatState = [self isInCombat];
         if( !_lastCombatState && combatState) {
             // we were not in combat, now we are
-            log(LOG_DEV, @"[PlayerData] ------ Player Entering Combat ------");
+            PGLog(@"[PlayerData] ------ Player Entering Combat ------");
             [[NSNotificationCenter defaultCenter] postNotificationName: PlayerEnteringCombatNotification object: nil];
         }
         if( _lastCombatState && !combatState) {
             // we were in combat, now we are not
-			log(LOG_DEV, @"[PlayerData] ------ Player Leaving Combat ------");
+			PGLog(@"[PlayerData] ------ Player Leaving Combat ------");
             [[NSNotificationCenter defaultCenter] postNotificationName: PlayerLeavingCombatNotification object: nil];
         }
         _lastCombatState = combatState;

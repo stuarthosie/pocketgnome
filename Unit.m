@@ -165,19 +165,6 @@ enum NPCFlags
 	return NO;
 }
 
-
-- (BOOL)isFlyingMounted{
-	UInt32 movementFlags = [self movementFlags];
-	
-	if ( movementFlags & MovementFlag_Flying1 ){
-		return YES;
-	}
-	else if ( movementFlags & MovementFlag_Flying2 ){
-		return YES;
-	}
-	return NO;
-}
-
 - (BOOL)isElite {
     return NO;
 }
