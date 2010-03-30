@@ -25,8 +25,6 @@
 @class OffsetController;
 @class MovementController;
 @class MobController;
-@class MacroController;
-@class ChatController;
 
 #define PlayerIsValidNotification           @"PlayerIsValidNotification"
 #define PlayerIsInvalidNotification         @"PlayerIsInvalidNotification"
@@ -37,6 +35,8 @@
 
 #define PlayerEnteringCombatNotification    @"PlayerEnteringCombatNotification"
 #define PlayerLeavingCombatNotification     @"PlayerLeavingCombatNotification"
+
+#define ZoneStrandOfTheAncients		4384
 
 #define StrandGateOfTheBlueSapphire		190724
 #define StrandGateOfTheGreenEmerald		190722
@@ -67,8 +67,6 @@ enum ePlayer_RuneTypes {
 	IBOutlet OffsetController		*offsetController;
 	IBOutlet MovementController		*movementController;
 	IBOutlet MobController			*mobController;
-	IBOutlet MacroController		*macroController;
-	IBOutlet ChatController			*chatController;
 	
     IBOutlet NSView *view;
     IBOutlet NSTextField *powerNameText;
@@ -143,7 +141,7 @@ enum ePlayer_RuneTypes {
 - (Position*)deathPosition;
 - (float)directionFacing;
 - (void)setDirectionFacing: (float)direction;
-- (void)setMovementFlags:(UInt8)movementFlags;
+- (void)setMovementFlags:(UInt32)movementFlags;
 - (UInt32)movementFlags;
 - (UInt64)movementFlags64;
 - (void)faceToward: (Position*)position;

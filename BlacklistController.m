@@ -16,30 +16,8 @@
 #import "Player.h"
 #import "Mob.h"
 
-// how long should the object remain blacklisted? (fallback)
-#define BLACKLIST_TIME		45.0f
-
-// We got a line of sight error
-#define BLACKLIST_TIME_NOT_IN_LOS		20.0f
-
-// We got a line of sight error
-#define BLACKLIST_TIME_OUT_OF_RANGE		2.0f
-
-// We got an Invalid Target error
-#define BLACKLIST_TIME_INVALID_TARGET		45.0f
-
-// This should be just long enough to move and not instantly retarget the mob
-#define BLACKLIST_TIME_NOT_IN_COMBAT_TEMP		3.0f
-
-// The never entered combat after a decent amount of time
-#define BLACKLIST_TIME_NOT_IN_COMBAT_PERM		45.0f
-
-// After we res them we don't want to instanty try to res them again
-#define BLACKLIST_TIME_RECENTLY_RESURRECTED		10.0f
-
-// This is meant as a GCD for friends so we don't double buff/heal.  It's not applied to tanks/assists
-// Basically this should be long enough for the unit to refresh.
-#define BLACKLIST_TIME_RECENTLY_HELPED_FRIEND		0.2f
+// how long should the object remain blacklisted?
+#define BLACKLIST_TIME		45.0f		
 
 @interface BlacklistController (Internal)
 
@@ -51,7 +29,6 @@
     self = [super init];
     if (self != nil) {
 		_blacklist = [[NSMutableDictionary alloc] init];
-		_attemptList = [[NSMutableDictionary alloc] init];
 		
 		[[NSNotificationCenter defaultCenter] addObserver: self
                                                  selector: @selector(unitDied:) 
@@ -68,19 +45,21 @@
 
 #pragma mark Blacklisting
 
-- (void)blacklistObject:(WoWObject *)obj withReason:(int)reason {
+- (void)blacklistObject:(WoWObject *)obj withReason:(int)reason{
 	
-	log(LOG_BLACKLIST, @"Blacklisting %@ for reason %d with retain count %d", obj, reason, [obj retainCount]);
+	PGLog(@"[Blacklist] Obj %@ with retain count %d", obj, [obj retainCount]);
 	
 	NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[obj cachedGUID]];
 	NSMutableArray *infractions = [_blacklist objectForKey:guid];
 	
-	if ( [infractions count] == 0 ) infractions = [NSMutableArray array];
+	if ( [infractions count] == 0 ){
+		infractions = [NSMutableArray array];
+	}
 
 	[infractions addObject:[NSDictionary dictionaryWithObjectsAndKeys: 
 							  [NSNumber numberWithInt:reason],			@"Reason",
 							  [NSDate date],							@"Date", nil]];	
-
+	
 	[_blacklist setObject:infractions forKey:guid];
 }
 
@@ -88,74 +67,45 @@
 - (void)blacklistObject: (WoWObject*)obj{
 	
 	[self blacklistObject:obj withReason:Reason_None];
-	
 }
 
 // remove old objects from the blacklist
 - (void)refreshBlacklist{
-	if ( ![_blacklist count] ) return;
-	NSArray *allKeys = [_blacklist allKeys];
 	
-	for ( NSNumber *guid in allKeys ) {
+	if ( [_blacklist count] ){
+		NSArray *allKeys = [_blacklist allKeys];
 		
-		NSArray *infractions = [_blacklist objectForKey:guid];
-		NSMutableArray *infractionsToKeep = [NSMutableArray array];
+		for ( NSNumber *guid in allKeys ){
+		
+			NSArray *infractions = [_blacklist objectForKey:guid];
+			NSMutableArray *infractionsToKeep = [NSMutableArray array];
 			
-		// Count the Infractions
-		for ( NSDictionary *infraction in infractions ){
+			for ( NSDictionary *infraction in infractions ){
 				
-			int reason		= [[infraction objectForKey:@"Reason"] intValue];
-			NSDate *date	= [infraction objectForKey:@"Date"];
-			float timeSinceBlacklisted = [date timeIntervalSinceNow] * -1.0f;
+				//int reason		= [[infraction objectForKey:@"Reason"] intValue];
+				NSDate *date	= [infraction objectForKey:@"Date"];
 				
-			// length varies based on reason
-			if ( reason == Reason_NotInCombatTemp) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_NOT_IN_COMBAT_TEMP) [infractionsToKeep addObject:infraction];
-					else log(LOG_BLACKLIST, @"Expired: %@", infraction);
-
-			} else if ( reason == Reason_InvalidTarget) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_INVALID_TARGET ) [infractionsToKeep addObject:infraction];
-				else log(LOG_BLACKLIST, @"Expired: %@", infraction);
+				// length varies based on reason
 				
-			} else if ( reason == Reason_NotInLoS) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_NOT_IN_LOS ) [infractionsToKeep addObject:infraction];
-				else log(LOG_BLACKLIST, @"Expired: %@", infraction);
+				float timeSinceBlacklisted = [date timeIntervalSinceNow] * -1.0f;
 				
-			} else if ( reason == Reason_OutOfRange) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_OUT_OF_RANGE ) [infractionsToKeep addObject:infraction];
-				else log(LOG_BLACKLIST, @"Expired: %@", infraction);
+				if ( timeSinceBlacklisted < BLACKLIST_TIME ){
+					[infractionsToKeep addObject:infraction];
+				}
+				else{
+					PGLog(@"[Blacklist] Infraction expired: %@", infraction);
+				}
 				
-			} else if ( reason == Reason_NotInCombatPerm) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_NOT_IN_COMBAT_PERM ) [infractionsToKeep addObject:infraction];
-					else log(LOG_BLACKLIST, @"Expired: %@", infraction);
-
-			} else if ( reason == Reason_RecentlyResurrected) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_RECENTLY_RESURRECTED ) [infractionsToKeep addObject:infraction];
-					else log(LOG_BLACKLIST, @"Expired: %@", infraction);
-
-			} else if ( reason == Reason_RecentlyHelpedFriend) {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME_RECENTLY_HELPED_FRIEND ) [infractionsToKeep addObject:infraction];
-					else log(LOG_BLACKLIST, @"Expired: %@", infraction);
-
-			} else {
-				if ( timeSinceBlacklisted < BLACKLIST_TIME ) [infractionsToKeep addObject:infraction];
-					else log(LOG_BLACKLIST, @"Expired: %@", infraction);
+				// should we check for dead or alive if they are a player/NPC?  I say NO!
 			}
-		}
-
-		// Either unblacklist or update the number of infractions
-		if ([infractionsToKeep count]) {
+			
 			[_blacklist setObject:infractionsToKeep forKey:guid];
-		} else {
-			log(LOG_BLACKLIST, @"Removing %@", (Unit*)guid);
-			[_blacklist removeObjectForKey:guid];
 		}
 	}
-
 }
 
 - (BOOL)isBlacklisted: (WoWObject*)obj {
-		
+	
 	// refresh the blacklist (we could do this on a timer to be more "efficient"
 	[self refreshBlacklist];
 	
@@ -170,88 +120,43 @@
 	// check each infraction, based on the reason we may not care!
 	//  making the assumption that ALL infractions are w/in the time frame since we refreshed above
 	int totalNone = 0;
-	int totalFailedToReach = 0;
-	int totalLos = 0;
 	for ( NSDictionary *infraction in infractions ){
 		
 		int reason		= [[infraction objectForKey:@"Reason"] intValue];
 		NSDate *date	= [infraction objectForKey:@"Date"];
-		float timeSinceBlacklisted = [date timeIntervalSinceNow] * -1.0f;
 		
-		if ( reason == Reason_NotInLoS){
-			log(LOG_BLACKLIST, @"%@ was blacklisted for not being in LoS.", obj, timeSinceBlacklisted);
-			totalLos++;
-			return YES;
+		if ( reason == Reason_None ){
+			totalNone++;
 		}
-
-		if ( reason == Reason_OutOfRange ) {
-			log(LOG_BLACKLIST, @"%@ was blacklisted for not being in range.", obj, timeSinceBlacklisted);
-			return YES;
+		else if ( reason == Reason_NotInLoS ){
+			float timeSinceBlacklisted = [date timeIntervalSinceNow] * -1.0f;
+			
+			// only blacklisted for 5 seconds, since we'll now move, and could potentially get out of LOS?
+			if ( timeSinceBlacklisted <= 5.0f ){
+				PGLog(@"[Blacklist] LOS still blacklisted, has only been %0.2f seconds", timeSinceBlacklisted);
+				return YES;
+			}
 		}
-		
 		// fucker made me fall and almost die? Yea, psh, your ass is blacklisted
 		else if ( reason == Reason_NodeMadeMeFall ){
-			log(LOG_BLACKLIST, @"%@ was blacklisted for making us fall!", obj);
+			PGLog(@"[Blacklist] Blacklisted %@ for making us fall!", obj);
 			return YES;
-		}
-
-		else if ( reason == Reason_CantReachObject ){
-			totalFailedToReach++;
-		}
-
-		else if ( reason == Reason_NotInCombatTemp ){
-			log(LOG_BLACKLIST, @"%@ was temp blacklisted for not entering entering combat when I tried to engage.", obj);
-			return YES;
-		}
-
-		else if ( reason == Reason_NotInCombatPerm ){
-			log(LOG_BLACKLIST, @"%@ was perm blacklisted for not entering combat when I tried to engage.", obj);
-			return YES;
-		}		
-
-		else if ( reason == Reason_RecentlyResurrected ){
-			log(LOG_BLACKLIST, @"%@ was blacklisted because I just resurrected them.", obj);
-			return YES;
-		}
-		
-		else if ( reason == Reason_RecentlyHelpedFriend ){
-			log(LOG_BLACKLIST, @"%@ was blacklisted because I just helped them and I'm allowing their unit to refresh.", obj);
-			return YES;
-		}
-		
-		else{
-			totalNone++;
 		}
 	}
 	
 	// general blacklisting
-	if ( totalNone >= 3 ) {
-		log(LOG_BLACKLIST, @"Unit %@ blacklisted for total count!", obj);
+	if ( totalNone >= 3 ){
+		PGLog(@"[Blacklist] Unit %@ blacklisted for total count!", obj);
 		return YES;
 	}
-	else if ( totalFailedToReach >= 3 ){
-		log(LOG_BLACKLIST, @"%@ was blacklisted because we couldn't reach it!", obj);
-		return YES;
-	}
-	/*else if ( totalLos >= 2 ){
-		log(LOG_BLACKLIST, @"[Blacklist] Blacklisted due to LOS");
-		return YES;
-	}*/
 	
-	log(LOG_BLACKLIST, @"Not blacklisted but %d infractions", [infractions count]);
+	PGLog(@"[Blacklist] Not blacklisted but %d infractions", [infractions count]);
 
     return NO;
 }
 
-- (void)clearAll{
-	[_blacklist removeAllObjects];
-	[_attemptList removeAllObjects];
-}
-
 - (void)removeAllUnits{
-	if ( ![_blacklist count] ) return;
-	
-	log(LOG_BLACKLIST, @"Removing all units from the blacklist.");
+	PGLog(@"[Blacklist] Removing all units...");
 	
 	// only remove objects of type Player/Mob/Unit
 	NSArray *allKeys = [_blacklist allKeys];
@@ -270,16 +175,7 @@
 		}
 	}
 	
-	log(LOG_BLACKLIST, @"Removed %d units.", removedObjects);
-}
-
-- (void)removeUnit: (Unit*)unit{
-	NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[unit GUID]];
-
-	if ( [_blacklist objectForKey:guid] ) {
-		log(LOG_BLACKLIST, @"Removing %@ from blacklist.", unit);
-		[_blacklist removeObjectForKey:guid];
-	}
+	PGLog(@"[Blacklist] Removed %d objects of type Unit/Mob/Player", removedObjects);
 }
 
 #pragma mark Notifications
@@ -290,46 +186,10 @@
 	// remove the object from the blacklist!
 	if ( unit ){
 		NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[unit GUID]];
-		if ( [_blacklist objectForKey:guid] ) {
-			log(LOG_BLACKLIST, @"%@ died, removing from blacklist.", unit);
+	
+		if ( [_blacklist objectForKey:guid] )
 			[_blacklist removeObjectForKey:guid];
-		}
 	}
-}
-
-#pragma mark Attempts
-
-- (int)attemptsForObject:(WoWObject*)obj{
-	NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[obj cachedGUID]];
-	NSNumber *count = [_attemptList objectForKey:guid];
-	if ( count ){
-		return [count intValue];
-	}
-	
-	return 0;
-}
-
-- (void)incrementAttemptForObject:(WoWObject*)obj{
-	NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[obj cachedGUID]];
-	NSNumber *count = [_attemptList objectForKey:guid];
-	if ( count ){
-		count = [NSNumber numberWithInt:[count intValue] + 1];
-	}
-	else{
-		count = [NSNumber numberWithInt:1];
-	}
-	
-	log(LOG_BLACKLIST, @"Incremented to %@ for %@", count, obj);
-	[_attemptList setObject:count forKey:guid];
-}
-
-- (void)clearAttemptsForObject:(WoWObject*)obj{
-	NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[obj cachedGUID]];
-	[_attemptList removeObjectForKey:guid];
-}
-
-- (void)clearAttempts{
-	[_attemptList removeAllObjects];
 }
 
 @end

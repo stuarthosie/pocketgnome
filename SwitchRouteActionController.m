@@ -67,10 +67,10 @@
 	
 	for ( NSMenuItem *item in [routePopUp itemArray] ){
 		
-		PGLog(@"not equal? %@ %@", [(RouteSet*)[item representedObject] UUID], action.value);
+		//PGLog(@"not equal? %@ %@", [(RouteSet*)[item representedObject] UUID], action.value);
 		
 		if ( [[(RouteSet*)[item representedObject] UUID] isEqualToString:action.value] ){
-			PGLog(@"ZOMG EQUAL!");
+			//PGLog(@"ZOMG EQUAL!");
 			[routePopUp selectItem:item];
 			break;
 		}
@@ -86,8 +86,6 @@
 	
 	[action setEnabled: self.enabled];
 	[action setValue: [[[routePopUp selectedItem] representedObject] UUID]];
-	
-	PGLog(@" saving %d %@ for %@", self.enabled, [[[routePopUp selectedItem] representedObject] UUID], self);
     
     return action;
 }

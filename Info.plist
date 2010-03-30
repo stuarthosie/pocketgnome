@@ -83,29 +83,11 @@
 			<key>NSPersistentStoreTypeKey</key>
 			<string>XML</string>
 		</dict>
-		<dict>
-			<key>CFBundleTypeExtensions</key>
-			<array>
-				<string>pvpbehavior</string>
-			</array>
-			<key>CFBundleTypeIconFile</key>
-			<string>pgBehavior</string>
-			<key>CFBundleTypeName</key>
-			<string>PvP Behavior</string>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>LSTypeIsPackage</key>
-			<false/>
-			<key>NSDocumentClass</key>
-			<string>PvPBehavior</string>
-			<key>NSPersistentStoreTypeKey</key>
-			<string>XML</string>
-		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleGetInfoString</key>
-	<string>${PRODUCT_NAME} 1.4.4</string>
+	<string>${PRODUCT_NAME} 1.4.4f</string>
 	<key>CFBundleIconFile</key>
 	<string>gnome2</string>
 	<key>CFBundleIdentifier</key>
@@ -117,7 +99,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4.4</string>
+	<string>1.4.4f</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>

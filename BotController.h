@@ -18,8 +18,6 @@
 @class RouteSet;
 @class RouteCollection;
 @class CombatProfile;
-@class PvPBehavior;
-@class Position;
 
 @class PTHotKey;
 @class SRRecorderControl;
@@ -50,16 +48,14 @@
 @class BlacklistController;
 @class StatisticsController;
 @class BindingsController;
-@class PvPController;
 
 @class ScanGridView;
 
-#define ErrorSpellNotReady				@"ErrorSpellNotReady"
-#define ErrorTargetNotInLOS				@"ErrorTargetNotInLOS"
-#define ErrorInvalidTarget				@"ErrorInvalidTarget"
-#define ErrorTargetOutOfRange			@"ErrorTargetOutOfRange"
-#define ErrorTargetNotInFront			@"ErrorTargetNotInFront"
-#define ErrorMorePowerfullSpellActive	@"ErrorMorePowerfullSpellActive"
+#define ErrorSpellNotReady			@"ErrorSpellNotReady"
+#define ErrorTargetNotInLOS			@"ErrorTargetNotInLOS"
+#define ErrorInvalidTarget			@"ErrorInvalidTarget"
+#define ErrorOutOfRange				@"ErrorOutOfRange"
+#define ErrorTargetNotInFront		@"ErrorTargetNotInFront"
 
 // Hotkey set flags
 #define	HotKeyStartStop				0x1
@@ -91,7 +87,6 @@
 	IBOutlet BlacklistController	*blacklistController;
 	IBOutlet StatisticsController	*statisticsController;
 	IBOutlet BindingsController		*bindingsController;
-	IBOutlet PvPController			*pvpController;
 
 	IBOutlet QuestController		*questController;
 	IBOutlet CorpseController		*corpseController;
@@ -99,25 +94,24 @@
     IBOutlet NSView *view;
     
 	RouteCollection *_theRouteCollection;
-    RouteSet *theRouteSet;
+    RouteSet *theRoute;
     Behavior *theBehavior;
     CombatProfile *theCombatProfile;
-	PvPBehavior *_pvpBehavior;
     //BOOL attackPlayers, attackNeutralNPCs, attackHostileNPCs, _ignoreElite;
     //int _currentAttackDistance, _minLevel, _maxLevel, _attackAnyLevel;
     
 	UInt32 _lastSpellCastGameTime;
 	UInt32 _lastSpellCast;
-    BOOL _doMining, _doHerbalism, _doSkinning, _doNinjaSkin, _doLooting, _doNetherwingEgg, _doFishing;
+    BOOL _doMining, _doHerbalism, _doSkinning, _doLooting, _doNetherwingEgg, _doFishing;
     int _miningLevel, _herbLevel, _skinLevel;
     float _gatherDist;
     BOOL _isBotting;
     BOOL _didPreCombatProcedure;
+	int _doRegenProcedure;
     NSString *_procedureInProgress;
 	NSString *_lastProcedureExecuted;
     Mob *_mobToSkin;
     Unit *preCombatUnit;
-	Unit *castingUnit;		// the unit we're casting on!
     NSMutableArray *_mobsToLoot;
     int _reviveAttempt, _skinAttempt;
     NSSize minSectionSize, maxSectionSize;
@@ -130,11 +124,11 @@
 	BOOL _shouldFollow;
 	Unit *_lastUnitAttemptedToHealed;
 	BOOL _includeFriendly;
-	BOOL _includeFriendlyPatrol;
 	
 	// improved loot shit
 	WoWObject *_lastAttemptedUnitToLoot;
-	NSMutableDictionary *_lootDismountCount;
+	int _lootAttempt;
+	NSDictionary *_lootDismountAttempt;
 	int _lootMacroAttempt;
 	WoWObject *_unitToLoot;
 	NSDate *lootStartTime;
@@ -162,7 +156,6 @@
 	
 	// new flying shit
 	int _jumpAttempt;
-	Position *_lastGoodFollowPosition;
 	
 	// mount correction (sometimes we can't mount)
 	int _mountAttempt;
@@ -171,13 +164,16 @@
     // pvp shit
     BOOL _isPvPing;
     BOOL _pvpPlayWarning, _pvpLeaveInactive;
-    int _pvpAntiAFKCounter;
-    IBOutlet NSButton *pvpPlayWarningCheckbox, *pvpLeaveInactiveCheckbox;
+    int _pvpCheckCount;
+    IBOutlet NSButton *pvpStartStopButton;
+    IBOutlet NSPanel *pvpBMSelectPanel;
+    IBOutlet NSImageView *pvpBannerImage;
+    IBOutlet NSButton *pvpPlayWarningCheckbox, *pvpLeaveInactiveCheckbox, *pvpWaitForPreparationBuff;
 	BOOL _pvpIsInBG;
 	NSTimer *_pvpTimer;
+	int _pvpMarks;
 	BOOL _attackingInStrand;
 	BOOL _strandDelay;
-	int _pvpLastBattleground;
 	
 	// auto join WG options
 	NSTimer *_wgTimer;
@@ -203,7 +199,6 @@
     IBOutlet id combatProfilePopup;
     IBOutlet id minLevelPopup;
     IBOutlet id maxLevelPopup;
-	IBOutlet NSPopUpButton *pvpBehaviorPopUp;
     IBOutlet NSTextField *minLevelText, *maxLevelText;
     IBOutlet NSButton *anyLevelCheckbox;
     
@@ -222,10 +217,11 @@
     IBOutlet id miningSkillText;
     IBOutlet id herbalismSkillText;
     IBOutlet NSButton *skinningCheckbox;
-	IBOutlet NSButton *ninjaSkinCheckbox;
     IBOutlet id skinningSkillText;
     IBOutlet id gatherDistText;
     IBOutlet NSButton *lootCheckbox;
+	IBOutlet NSButton *mountCheckbox;
+	IBOutlet NSPopUpButton *mountType;
 	
 	IBOutlet NSTextField *fishingGatherDistanceText;
 	IBOutlet NSButton *fishingCheckbox;
@@ -271,44 +267,27 @@
 @property (retain) NSString *procedureInProgress;
 
 @property (readonly, retain) RouteCollection *theRouteCollection;
-@property (readwrite, retain) RouteSet *theRouteSet;
+@property (readwrite, retain) RouteSet *theRoute;
 @property (readonly, retain) Behavior *theBehavior;
-@property (readonly, retain) PvPBehavior *pvpBehavior;
 @property (readwrite, retain) CombatProfile *theCombatProfile;
 @property (readonly, retain) Unit *preCombatUnit;
 @property (readonly, retain) NSDate *lootStartTime;
 @property (readonly, retain) NSDate *skinStartTime;
-@property (readonly, retain) Unit *castingUnit;
+
 
 - (void)testRule: (Rule*)rule;
 
-- (BOOL)performProcedureMobCheck: (Unit*)target;
-- (void)lootScan;
-
 // Input from CombatController
-//- (void)addingUnit: (Unit*)unit;
+- (void)addingUnit: (Unit*)unit;
 
 // Input from CombatController
 - (void)actOnUnit: (Unit*)unit;
 
 // Input from MovementController;
-//- (void)reachedUnit: (WoWObject*)unit;
-- (void)cancelCurrentProcedure;
+- (void)reachedUnit: (WoWObject*)unit;
+- (BOOL)shouldProceedFromWaypoint: (Waypoint*)waypoint;
 - (void)finishedRoute: (Route*)route;
 - (BOOL)evaluateSituation;
-- (BOOL)evaluateForPVP;
-- (BOOL)evaluateForGhost;
-- (void)jumpIfAirMountOnGround;
-- (BOOL)evaluateForPartyFollow;
-- (BOOL)evaluateForCombatContinuation;
-- (BOOL)evaluateForRegen;
-- (BOOL)evaluateForLoot;
-- (BOOL)evaluateForCombatStart;
-- (BOOL)evaluateForMiningAndHerbalism;
-- (BOOL)evaluateForFishing;
-- (BOOL)evaluateForPatrol;
-- (BOOL)mountNow;
-- (BOOL)mountNowParty;
 
 - (IBAction)startBot: (id)sender;
 - (IBAction)stopBot: (id)sender;
@@ -325,6 +304,11 @@
 - (IBAction)closeLootHotkeyHelp: (id)sender;
 - (IBAction)gatheringLootingOptions: (id)sender;
 - (IBAction)gatheringLootingSelectAction: (id)sender;
+
+// PvP shit
+- (IBAction)pvpStartStop: (id)sender;
+- (IBAction)pvpBMSelectAction: (id)sender;
+- (IBAction)pvpTestWarning: (id)sender;
 
 // test stuff
 - (IBAction)test: (id)sender;
@@ -350,5 +334,6 @@
 
 // from movement controller (for new WP actions!)
 - (void)changeCombatProfile:(CombatProfile*)profile;
+- (void)changeRouteSet:(RouteSet*)route;
 
 @end
