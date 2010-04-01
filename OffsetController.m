@@ -1,10 +1,27 @@
-//
-//  OffsetController.m
-//  Pocket Gnome
-//
-//  Created by Josh on 9/1/09.
-//  Copyright 2009 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import "OffsetController.h"
 #import "MemoryAccess.h"
@@ -195,8 +212,12 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			}
 				
 			[offsets setObject: [NSNumber numberWithUnsignedLong:offset] forKey:key];
-			//if ( offset > 0x0 )
+			if ( offset > 0x0 ){
 				PGLog(@"%@: 0x%X", key, offset);
+			}
+			else{
+				PGLog(@"[Offset] Error! No offset found for key %@", key);
+			}
 		}
 		
 		// can hard code some here
@@ -212,17 +233,12 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 		// game loaded = 0
 		
 		//[offsets setObject:[NSNumber numberWithUnsignedLong:0xC7A350] forKey:@"WorldState"];				// 3.3.2
-		//[offsets setObject:[NSNumber numberWithUnsignedLong:0xE06660] forKey:@"Lua_GetPartyMember"];		// 3.3.2
+        //[offsets setObject:[NSNumber numberWithUnsignedLong:0xE06660] forKey:@"Lua_GetPartyMember"];		// 3.3.2
+ 		
+
+        // 0xD8BD20 - charselect, login, charcreate, patchdownload		
 		
-		[offsets setObject:[NSNumber numberWithUnsignedLong:0xC88F58] forKey:@"PLAYER_GUID_STATIC"];
-		[offsets setObject:[NSNumber numberWithUnsignedLong:0xEA5914] forKey:@"LAST_SPELL_THAT_DIDNT_CAST_STATIC"];
-		[offsets setObject:[NSNumber numberWithUnsignedLong:0xD2D240 + 0x24] forKey:@"PLAYER_NAME_LIST"];
-		[offsets setObject:[NSNumber numberWithUnsignedLong:0xC8EA60] forKey:@"KEYBINDINGS_PTR"];
-		[offsets setObject:[NSNumber numberWithUnsignedLong:0xDBAB14] forKey:@"MOUNT_LIST_NUM"];
-		
-		// 0xD8BD20 - charselect, login, charcreate, patchdownload
-		
-		_offsetsLoaded = YES;
+        _offsetsLoaded = YES;
 	}
 	// technically should never be here
 	else{
@@ -260,7 +276,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
             while(KERN_SUCCESS == (KernelResult = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName))) {
 
 				
-				PGLog(@"[Offset] Success for reading from 0x%X to 0x%X  SourceInfo: 0x%X 0x%X", SourceAddress, SourceSize, SourceInfo, SourceInfoSize);
+				//PGLog(@"[Offset] Success for reading from 0x%X to 0x%X  SourceInfo: 0x%X 0x%X", SourceAddress, SourceSize, SourceInfo, SourceInfoSize);
                 // ensure we have access to this block
                 if ((SourceInfo.protection & VM_PROT_READ)) {
                     NS_DURING {
@@ -274,7 +290,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 								ReturnedBufferContentSize = TEXT_SEGMENT_MAX_ADDRESS;
 							}
 							
-							PGLog(@"Reading from %d to %d", SourceAddress, SourceAddress + SourceSize);
+							//PGLog(@"Reading from %d to %d", SourceAddress, SourceAddress + SourceSize);
 							
 							// Lets grab all our offsets!
 							[self findOffsets: ReturnedBuffer Len:SourceSize StartAddress: SourceAddress];
@@ -616,5 +632,26 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 	return [[list retain] autorelease];
 }
 
-
 @end
+
+/*
+ 
+ Official place for notes on offsets!!
+ 
+ GetNumCompanions
+	0x0		- Number of Pets
+	0x4		- Pointers to list of pets
+	0x10	- Number of mounts
+	0x14	- Pointer to list of mounts
+ 
+ PLAYER_NAME_LIST	- Basically you have a bunch of linked lists here, wish I understand some calling functions better
+	0x10	- Friends list
+	0x14	- Guildies
+	0x24	- People within range
+ 
+ PLAYER_GUID_NAME	- This has the player's 64-bit GUID + name!
+	0x0		- 64-bit GUID
+	0x8		- Player name
+ 
+ 
+ */

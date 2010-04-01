@@ -1,10 +1,27 @@
-//
-//  BotController.h
-//  Pocket Gnome
-//
-//  Created by Jon Drummond on 1/14/08.
-//  Copyright 2008 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import <Cocoa/Cocoa.h>
 
@@ -19,7 +36,6 @@
 @class RouteCollection;
 @class CombatProfile;
 @class PvPBehavior;
-@class Position;
 
 @class PTHotKey;
 @class SRRecorderControl;
@@ -54,12 +70,11 @@
 
 @class ScanGridView;
 
-#define ErrorSpellNotReady				@"ErrorSpellNotReady"
-#define ErrorTargetNotInLOS				@"ErrorTargetNotInLOS"
-#define ErrorInvalidTarget				@"ErrorInvalidTarget"
-#define ErrorTargetOutOfRange			@"ErrorTargetOutOfRange"
-#define ErrorTargetNotInFront			@"ErrorTargetNotInFront"
-#define ErrorMorePowerfullSpellActive	@"ErrorMorePowerfullSpellActive"
+#define ErrorSpellNotReady			@"ErrorSpellNotReady"
+#define ErrorTargetNotInLOS			@"ErrorTargetNotInLOS"
+#define ErrorInvalidTarget			@"ErrorInvalidTarget"
+#define ErrorOutOfRange				@"ErrorOutOfRange"
+#define ErrorTargetNotInFront		@"ErrorTargetNotInFront"
 
 // Hotkey set flags
 #define	HotKeyStartStop				0x1
@@ -108,16 +123,16 @@
     
 	UInt32 _lastSpellCastGameTime;
 	UInt32 _lastSpellCast;
-    BOOL _doMining, _doHerbalism, _doSkinning, _doNinjaSkin, _doLooting, _doNetherwingEgg, _doFishing;
+    BOOL _doMining, _doHerbalism, _doSkinning, _doLooting, _doNetherwingEgg, _doFishing;
     int _miningLevel, _herbLevel, _skinLevel;
     float _gatherDist;
     BOOL _isBotting;
     BOOL _didPreCombatProcedure;
+	int _doRegenProcedure;
     NSString *_procedureInProgress;
 	NSString *_lastProcedureExecuted;
     Mob *_mobToSkin;
     Unit *preCombatUnit;
-	Unit *castingUnit;		// the unit we're casting on!
     NSMutableArray *_mobsToLoot;
     int _reviveAttempt, _skinAttempt;
     NSSize minSectionSize, maxSectionSize;
@@ -130,7 +145,6 @@
 	BOOL _shouldFollow;
 	Unit *_lastUnitAttemptedToHealed;
 	BOOL _includeFriendly;
-	BOOL _includeFriendlyPatrol;
 	
 	// improved loot shit
 	WoWObject *_lastAttemptedUnitToLoot;
@@ -162,7 +176,6 @@
 	
 	// new flying shit
 	int _jumpAttempt;
-	Position *_lastGoodFollowPosition;
 	
 	// mount correction (sometimes we can't mount)
 	int _mountAttempt;
@@ -171,13 +184,16 @@
     // pvp shit
     BOOL _isPvPing;
     BOOL _pvpPlayWarning, _pvpLeaveInactive;
-    int _pvpAntiAFKCounter;
-    IBOutlet NSButton *pvpPlayWarningCheckbox, *pvpLeaveInactiveCheckbox;
+    int _pvpCheckCount;
+    IBOutlet NSButton *pvpStartStopButton;
+    IBOutlet NSPanel *pvpBMSelectPanel;
+    IBOutlet NSImageView *pvpBannerImage;
+    IBOutlet NSButton *pvpPlayWarningCheckbox, *pvpLeaveInactiveCheckbox, *pvpWaitForPreparationBuff;
 	BOOL _pvpIsInBG;
 	NSTimer *_pvpTimer;
+	int _pvpMarks;
 	BOOL _attackingInStrand;
 	BOOL _strandDelay;
-	int _pvpLastBattleground;
 	
 	// auto join WG options
 	NSTimer *_wgTimer;
@@ -222,10 +238,11 @@
     IBOutlet id miningSkillText;
     IBOutlet id herbalismSkillText;
     IBOutlet NSButton *skinningCheckbox;
-	IBOutlet NSButton *ninjaSkinCheckbox;
     IBOutlet id skinningSkillText;
     IBOutlet id gatherDistText;
     IBOutlet NSButton *lootCheckbox;
+	IBOutlet NSButton *mountCheckbox;
+	IBOutlet NSPopUpButton *mountType;
 	
 	IBOutlet NSTextField *fishingGatherDistanceText;
 	IBOutlet NSButton *fishingCheckbox;
@@ -278,37 +295,21 @@
 @property (readonly, retain) Unit *preCombatUnit;
 @property (readonly, retain) NSDate *lootStartTime;
 @property (readonly, retain) NSDate *skinStartTime;
-@property (readonly, retain) Unit *castingUnit;
+
 
 - (void)testRule: (Rule*)rule;
 
-- (BOOL)performProcedureMobCheck: (Unit*)target;
-- (void)lootScan;
-
 // Input from CombatController
-//- (void)addingUnit: (Unit*)unit;
+- (void)addingUnit: (Unit*)unit;
 
 // Input from CombatController
 - (void)actOnUnit: (Unit*)unit;
 
 // Input from MovementController;
 //- (void)reachedUnit: (WoWObject*)unit;
-- (void)cancelCurrentProcedure;
+- (BOOL)shouldProceedFromWaypoint: (Waypoint*)waypoint;
 - (void)finishedRoute: (Route*)route;
 - (BOOL)evaluateSituation;
-- (BOOL)evaluateForPVP;
-- (BOOL)evaluateForGhost;
-- (void)jumpIfAirMountOnGround;
-- (BOOL)evaluateForPartyFollow;
-- (BOOL)evaluateForCombatContinuation;
-- (BOOL)evaluateForRegen;
-- (BOOL)evaluateForLoot;
-- (BOOL)evaluateForCombatStart;
-- (BOOL)evaluateForMiningAndHerbalism;
-- (BOOL)evaluateForFishing;
-- (BOOL)evaluateForPatrol;
-- (BOOL)mountNow;
-- (BOOL)mountNowParty;
 
 - (IBAction)startBot: (id)sender;
 - (IBAction)stopBot: (id)sender;
@@ -326,12 +327,16 @@
 - (IBAction)gatheringLootingOptions: (id)sender;
 - (IBAction)gatheringLootingSelectAction: (id)sender;
 
+// PvP shit
+- (IBAction)pvpStartStop: (id)sender;
+- (IBAction)pvpBMSelectAction: (id)sender;
+- (IBAction)pvpTestWarning: (id)sender;
+
 // test stuff
 - (IBAction)test: (id)sender;
 - (IBAction)test2: (id)sender;
 - (IBAction)maltby: (id)sender;
 - (IBAction)login: (id)sender;
-- (IBAction)doTheRelicEmanation: (id)sender;
 
 // Little more flexibility - casts spells! Uses items/macros!
 - (BOOL)performAction: (int32_t)actionID;

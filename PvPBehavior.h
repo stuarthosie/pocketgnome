@@ -1,20 +1,30 @@
-//
-//  PvPBehavior.h
-//  Pocket Gnome
-//
-//  Created by Josh on 2/24/10.
-//  Copyright 2010 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import <Cocoa/Cocoa.h>
 #import "SaveDataObject.h"
-
-#define ZoneAlteracValley			2597
-#define ZoneArathiBasin				3358
-#define ZoneEyeOfTheStorm			3820
-#define ZoneIsleOfConquest			4710
-#define ZoneStrandOfTheAncients		4384
-#define ZoneWarsongGulch			3277
 
 @class Battleground;
 
@@ -27,10 +37,12 @@
 
 	// options
 	BOOL _random;
+	BOOL _stop;
+	int _stopNumOfMarks;
+	int _stopMarkType;
 	BOOL _stopHonor;
 	int _stopHonorTotal;
 	BOOL _leaveIfInactive;
-	BOOL _preparationDelay;
 }
 
 @property (readwrite, retain) Battleground *AlteracValley;
@@ -42,16 +54,15 @@
 @property (readwrite, copy) NSString *name;
 
 @property (readwrite, assign) BOOL random;
+@property (readwrite, assign) BOOL stop;
+@property (readwrite, assign) int stopNumOfMarks;
+@property (readwrite, assign) int stopMarkType;
 @property (readwrite, assign) BOOL stopHonor;
 @property (readwrite, assign) int stopHonorTotal;
 @property (readwrite, assign) BOOL leaveIfInactive;
-@property (readwrite, assign) BOOL preparationDelay;
 
 + (id)pvpBehaviorWithName: (NSString*)name;
 
-- (Battleground*)battlegroundForIndex:(int)index;
-- (Battleground*)battlegroundForZone:(UInt32)zone;
 - (BOOL)isValid;
-- (BOOL)canDoRandom;
 
 @end
