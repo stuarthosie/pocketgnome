@@ -12,7 +12,7 @@
 
 ==Features:==
   * ~~ Working PVP tab with functional random battlegrounds (either user selected or using the WoW lvl 80 feature) ~~
-  * Sparkle upgrading system
+  * ~~ Sparkle upgrading system ~~
 
 =Roadmap for 1.4.6=
 
