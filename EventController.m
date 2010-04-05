@@ -1,15 +1,33 @@
-//
-//  EventController.m
-//  Pocket Gnome
-//
-//  Created by Josh on 11/23/09.
-//  Copyright 2009 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import "EventController.h"
 #import "Controller.h"
 #import "BotController.h"
 #import "PlayerDataController.h"
+#import "OffsetController.h"
 
 #import "Player.h"
 #import "MemoryAccess.h"
@@ -25,8 +43,14 @@
     if (self != nil) {
 		
 		_uberQuickTimer = nil;
+		_oneSecondTimer = nil;
+		_fiveSecondTimer = nil;
+		_twentySecondTimer = nil;
+		
 		_lastPlayerZone = -1;
 		_lastBGStatus = -1;
+		_lastBattlefieldWinnerStatus = -1;
+		_memory = nil;
 	
 		// Notifications
 		[[NSNotificationCenter defaultCenter] addObserver: self
@@ -37,11 +61,21 @@
                                                  selector: @selector(playerIsInvalid:) 
                                                      name: PlayerIsInvalidNotification 
                                                    object: nil];
+		[[NSNotificationCenter defaultCenter] addObserver: self
+                                                 selector: @selector(memoryValid:) 
+                                                     name: MemoryAccessValidNotification 
+                                                   object: nil];
+		[[NSNotificationCenter defaultCenter] addObserver: self
+                                                 selector: @selector(memoryInvalid:) 
+                                                     name: MemoryAccessInvalidNotification 
+                                                   object: nil];
+		
     }
     return self;
 }
 
 - (void) dealloc{
+	[_memory release]; _memory = nil;
     [super dealloc];
 }
 
@@ -49,25 +83,34 @@
 
 - (void)playerIsValid: (NSNotification*)not {
 	_uberQuickTimer = [NSTimer scheduledTimerWithTimeInterval: 0.1f target: self selector: @selector(uberQuickTimer:) userInfo: nil repeats: YES];
+	//_oneSecondTimer = [NSTimer scheduledTimerWithTimeInterval: 1.0f target: self selector: @selector(oneSecondTimer:) userInfo: nil repeats: YES];
 	//_fiveSecondTimer = [NSTimer scheduledTimerWithTimeInterval: 5.0f target: self selector: @selector(fiveSecondTimer:) userInfo: nil repeats: YES];
-	_twentySecondTimer = [NSTimer scheduledTimerWithTimeInterval: 10.0f target: self selector: @selector(twentySecondTimer:) userInfo: nil repeats: YES];
+	//_twentySecondTimer = [NSTimer scheduledTimerWithTimeInterval: 10.0f target: self selector: @selector(twentySecondTimer:) userInfo: nil repeats: YES];
 }
 
 - (void)playerIsInvalid: (NSNotification*)not {
 	[_uberQuickTimer invalidate]; _uberQuickTimer = nil;
 	[_fiveSecondTimer invalidate]; _fiveSecondTimer = nil;
+	[_oneSecondTimer invalidate]; _oneSecondTimer = nil;
 	[_twentySecondTimer invalidate]; _twentySecondTimer = nil;
+}
+
+- (void)memoryValid: (NSNotification*)not {
+	_memory = [[controller wowMemoryAccess] retain];
+}
+
+- (void)memoryInvalid: (NSNotification*)not {
+	[_memory release]; _memory = nil;
 }
 
 #pragma mark Timers
 
 - (void)twentySecondTimer: (NSTimer*)timer {
-		
-	// we will use this to auto-loot for us :-)
-	if ( [botController isBotting] ){
-		
-	}
 	
+}
+
+- (void)oneSecondTimer: (NSTimer*)timer {
+
 }
 
 - (void)fiveSecondTimer: (NSTimer*)timer {

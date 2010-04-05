@@ -1,10 +1,27 @@
-//
-//  Item.m
-//  Pocket Gnome
-//
-//  Created by Jon Drummond on 12/27/07.
-//  Copyright 2007 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import "Item.h"
 #import "ObjectConstants.h"
@@ -35,10 +52,10 @@ enum eItemFields {
         // size: 0x90; 12 enchant slots, each size 0xC
 	ITEM_FIELD_PROPERTY_SEED =          0xE8,
 	ITEM_FIELD_RANDOM_PROPERTIES_ID =   0xEC,
-//	ITEM_FIELD_ITEM_TEXT_ID =           0xF0,  // Removed in 3.3.3
-	ITEM_FIELD_DURABILITY =             0xF0,
-	ITEM_FIELD_MAXDURABILITY =          0xF4,
-	ITEM_FIELD_PADDING =                0xF8,
+    // ITEM_FIELD_ITEM_TEXT_ID =           0xF0,  // Removed in 3.3.3
+    ITEM_FIELD_DURABILITY =             0xF0,
+    ITEM_FIELD_MAXDURABILITY =          0xF4,
+    ITEM_FIELD_PADDING =                0xF8,
 	TOTAL_ITEM_FIELDS =                 0x26
 };
 

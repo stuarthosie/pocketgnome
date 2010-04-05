@@ -1,10 +1,27 @@
-//
-//  MovementController.h
-//  Pocket Gnome
-//
-//  Created by Josh on 2/16/10.
-//  Copyright 2010 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import <Cocoa/Cocoa.h>
 
@@ -19,7 +36,6 @@
 @class MobController;
 @class StatisticsController;
 @class CombatProfileEditor;
-@class Unit;
 
 @class Route;
 @class Waypoint;
@@ -58,7 +74,6 @@ typedef enum MovementType {
 	IBOutlet NSTextField	*logOutStuckAttemptsTextField;
 	IBOutlet NSPopUpButton	*movementTypePopUp;
 
-	NSMutableArray *_backtrack;			// this will contain a list of positions we must move through to get back to our route!
 	NSMutableDictionary *_stuckDictionary;
 	
 	NSString *_currentRouteKey;
@@ -76,7 +91,6 @@ typedef enum MovementType {
 	
 	// stuck checking
 	Position	*_lastAttemptedPosition;
-	Position	*_followNextPosition;
 	NSDate		*_lastAttemptedPositionTime;
 	NSDate		*_lastDirectionCorrection;
 	Position	*_lastPlayerPosition;
@@ -98,15 +112,11 @@ typedef enum MovementType {
 
 @property (readwrite, retain) RouteSet *currentRouteSet;
 
-- (void)moveForwardStart;
-- (void)moveForwardStop;
-
 // move to an object (takes priority over a route)
 - (BOOL)moveToObject: (WoWObject*)object;
 
 // move to a position (I'd prefer we don't do this often, but it is sometimes needed :()
 - (void)moveToPosition: (Position*)position;
-- (void)moveToFollowUnit: (Position*)position;
 
 // the object we're moving to
 - (WoWObject*)moveToObject;
@@ -128,12 +138,6 @@ typedef enum MovementType {
 
 // turn toward the object
 - (void)turnTowardObject:(WoWObject*)obj;
-
-// Unbug a caster
-- (void)stepForward;
-
-// check unit for range adjustments
-- (BOOL)checkUnitOutOfRange: (Unit*)target;
 
 // dismount the player
 - (BOOL)dismount;
