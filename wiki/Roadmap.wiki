@@ -1,19 +1,18 @@
 #summary Temporary page for the project's roadmap
 
-=Roadmap for 1.4.5=
+=Roadmap for 1.4.6=
+
+  * Fixing issue where PG stops engaging enemies after a while. It'll run right into mobs as if they weren't there and then start attacking them, all surprised it got "ambushed".
+
+=Roadmap for 1.4.5 (Released April 5th 2010) =
 
 ==Bugs:==
   * ~~ "Stay mounted" does not work (http://pg.savorydeviate.com/forum/viewtopic.php?f=39&t=4012&p=26228#p26246) ~~
   * ~~ Does not detect when battlegrounds end  (http://pg.savorydeviate.com/forum/viewtopic.php?f=39&t=4012&start=60#p26662) ~~
   * ~~ Does not ignore gathering nodes that it cannot reach/gather (http://pg.savorydeviate.com/forum/viewtopic.php?f=39&t=4012&start=70#p26757) ~~
-  * Fixing issue where PG stops engaging enemies after a while. It'll run right into mobs as if they weren't there and then start attacking them, all surprised it got "ambushed". (http://pg.savorydeviate.com/forum/viewtopic.php?f=39&t=4012&start=70#p26751)
-  * Fishing issue with bobber either never being detected (infinite casting) or not always being detected (http://pg.savorydeviate.com/forum/viewtopic.php?f=39&t=4012&hilit=fishing&start=40#p26457)
+  * ~~ Fishing issue with bobber either never being detected (infinite casting) or not always being detected (http://pg.savorydeviate.com/forum/viewtopic.php?f=39&t=4012&hilit=fishing&start=40#p26457) ~~ UNABLE TO REPRODUCE
   * ~~ Fixing offset signatures broken in 3.3.3/3.3.3a ~~
 
 ==Features:==
   * ~~ Working PVP tab with functional random battlegrounds (either user selected or using the WoW lvl 80 feature) ~~
   * ~~ Sparkle upgrading system ~~
-
-=Roadmap for 1.4.6=
-
-None yet
