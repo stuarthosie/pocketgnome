@@ -4,9 +4,9 @@
 
 ==Bugs:==
   * Fixing issue where PG stops engaging enemies after a while. It'll run right into mobs as if they weren't there and then start attacking them, all surprised it got "ambushed".
-  * Code what is needed for "Logout at 75K honor" (http://pg.savorydeviate.com/forum/viewtopic.php?f=61&t=4171)
-  * Fix bug where it will consolidate crystallized items/motes even if you don't check the option under "Gathering"
-  * Waypoint actions are not working anymore (http://pg.savorydeviate.com/forum/viewtopic.php?f=10&t=4151)
+  * ~~ Code what is needed for "Logout at 75K honor" (http://pg.savorydeviate.com/forum/viewtopic.php?f=61&t=4171) ~~ 
+  * ~~ Fix bug where it will consolidate crystallized items/motes even if you don't check the option under "Gathering" ~~ 
+  * ~~ Waypoint actions are not working anymore (http://pg.savorydeviate.com/forum/viewtopic.php?f=10&t=4151) ~~ 
   * Blacklisting issues with thrown weapons (http://pg.savorydeviate.com/forum/viewtopic.php?f=61&t=4158)
   * Character actions are delayed (http://pg.savorydeviate.com/forum/viewtopic.php?f=61&t=4152)
   * ~~ Not mounting between nodes if the nodes are close enough (http://pg.savorydeviate.com/forum/viewtopic.php?f=61&t=4150) ~~
