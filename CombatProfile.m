@@ -1,10 +1,27 @@
-//
-//  CombatProfileActionController.m
-//  Pocket Gnome
-//
-//  Created by Josh on 1/19/10.
-//  Copyright 2010 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import "CombatProfile.h"
 #import "Unit.h"
@@ -46,20 +63,6 @@
 		self.yardsBehindTargetStop = 15.0f;
 		self.followDistanceToMove = 20.0f;
 		self.disableRelease = NO;
-
-		// New additions
-		self.partyDoNotInitiate = YES;
-		self.partyIgnoreOtherFriendlies = YES;
-		self.partyEmotes = NO;
-		self.partyEmotesIdleTime = 30;
-		self.followEnabled = NO;
-		self.followStopFollowingOOR = NO;
-		self.followStopFollowingRange = 50.0f;
-		self.acceptResurrection = NO;
-		self.checkForCampers = NO;
-		self.checkForCampersRange = 50.0f;
-		self.avoidMobsWhenResurrecting = YES;
-		self.moveToCorpseRange = 35.0f;
 		
 		// Healing
 		self.healingEnabled = NO;
@@ -128,21 +131,7 @@
 	copy.engageRange = self.engageRange;
     copy.attackLevelMin = self.attackLevelMin;
     copy.attackLevelMax = self.attackLevelMax;
-
-	// New additions
-	copy.partyDoNotInitiate = self.partyDoNotInitiate;
-	copy.partyIgnoreOtherFriendlies = self.partyIgnoreOtherFriendlies;
-	copy.partyEmotes = self.partyEmotes;
-	copy.partyEmotesIdleTime = self.partyEmotesIdleTime;
-	copy.followEnabled = self.followEnabled;
-	copy.followStopFollowingOOR = self.followStopFollowingOOR;
-	copy.followStopFollowingRange = self.followStopFollowingRange;
-	copy.acceptResurrection = self.acceptResurrection;
-	copy.checkForCampers = self.checkForCampers;
-	copy.checkForCampersRange = self.checkForCampersRange;
-	copy.avoidMobsWhenResurrecting = self.avoidMobsWhenResurrecting;
-	copy.moveToCorpseRange = self.moveToCorpseRange;
-
+	
 	copy.changed = YES;
     
     return copy;
@@ -187,21 +176,6 @@
         self.attackRange = [[decoder decodeObjectForKey: @"AttackRange"] floatValue];
         self.attackLevelMin = [[decoder decodeObjectForKey: @"AttackLevelMin"] intValue];
         self.attackLevelMax = [[decoder decodeObjectForKey: @"AttackLevelMax"] intValue];
-
-		// New additions
-		self.partyDoNotInitiate = [[decoder decodeObjectForKey: @"PartyDoNotInitiate"] boolValue];
-		self.partyIgnoreOtherFriendlies = [[decoder decodeObjectForKey: @"PartyIgnoreOtherFriendlies"] boolValue];
-		self.partyEmotes = [[decoder decodeObjectForKey: @"PartyEmotes"] boolValue];
-		self.partyEmotesIdleTime = [[decoder decodeObjectForKey: @"PartyEmotesIdleTime"] intValue];
-		self.followEnabled = [[decoder decodeObjectForKey: @"FollowEnabled"] boolValue];
-		self.followStopFollowingOOR = [[decoder decodeObjectForKey: @"FollowStopFollowingOOR"] boolValue];
-		self.followStopFollowingRange = [[decoder decodeObjectForKey: @"FollowStopFollowingRange"] floatValue];
-		self.acceptResurrection = [[decoder decodeObjectForKey: @"AcceptResurrection"] boolValue];
-		self.checkForCampers = [[decoder decodeObjectForKey: @"CheckForCampers"] boolValue];
-		self.checkForCampersRange = [[decoder decodeObjectForKey: @"CheckForCampersRange"] floatValue];
-		self.avoidMobsWhenResurrecting = [[decoder decodeObjectForKey: @"AvoidMobsWhenResurrecting"] boolValue];
-		self.moveToCorpseRange = [[decoder decodeObjectForKey: @"MoveToCorpseRange"] floatValue];
-		
 	}
 	return self;
 }
@@ -244,20 +218,6 @@
     [coder encodeObject: [NSNumber numberWithInt: self.attackLevelMin] forKey: @"AttackLevelMin"];
     [coder encodeObject: [NSNumber numberWithInt: self.attackLevelMax] forKey: @"AttackLevelMax"];
 
-	// New additions
-	[coder encodeObject: [NSNumber numberWithBool: self.partyDoNotInitiate] forKey: @"PartyDoNotInitiate"];
-	[coder encodeObject: [NSNumber numberWithBool: self.partyIgnoreOtherFriendlies] forKey: @"PartyIgnoreOtherFriendlies"];
-	[coder encodeObject: [NSNumber numberWithBool: self.partyEmotes] forKey:@"PartyEmotes"];
-	[coder encodeObject: [NSNumber numberWithInt: self.partyEmotesIdleTime] forKey: @"PartyEmotesIdleTime"];
-	[coder encodeObject: [NSNumber numberWithBool: self.followEnabled] forKey: @"FollowEnabled"];
-	[coder encodeObject: [NSNumber numberWithBool: self.followStopFollowingOOR] forKey: @"FollowStopFollowingOOR"];
-	[coder encodeObject: [NSNumber numberWithFloat: self.followStopFollowingRange] forKey: @"FollowStopFollowingRange"];
-	[coder encodeObject: [NSNumber numberWithBool: self.acceptResurrection] forKey: @"AcceptResurrection"];
-	[coder encodeObject: [NSNumber numberWithBool: self.checkForCampers] forKey: @"CheckForCampers"];
-	[coder encodeObject: [NSNumber numberWithFloat: self.checkForCampersRange] forKey: @"CheckForCampersRange"];
-	[coder encodeObject: [NSNumber numberWithBool: self.avoidMobsWhenResurrecting] forKey: @"AvoidMobsWhenResurrecting"];
-	[coder encodeObject: [NSNumber numberWithFloat: self.moveToCorpseRange] forKey: @"MoveToCorpseRange"];
-	
     [coder encodeObject: self.entries forKey: @"IgnoreList"];
 }
 
@@ -302,20 +262,6 @@
 @synthesize attackRange;
 @synthesize attackLevelMin;
 @synthesize attackLevelMax;
-
-// New additions
-@synthesize partyDoNotInitiate;
-@synthesize partyIgnoreOtherFriendlies;
-@synthesize partyEmotes;
-@synthesize partyEmotesIdleTime;
-@synthesize followEnabled;
-@synthesize followStopFollowingOOR;
-@synthesize followStopFollowingRange;
-@synthesize acceptResurrection;
-@synthesize checkForCampers;
-@synthesize checkForCampersRange;
-@synthesize avoidMobsWhenResurrecting;
-@synthesize moveToCorpseRange;
 
 - (BOOL)unitShouldBeIgnored: (Unit*)unit{
 	

@@ -1,16 +1,32 @@
-//
-//  MovementController.h
-//  Pocket Gnome
-//
-//  Created by Josh on 2/16/10.
-//  Copyright 2010 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import <Cocoa/Cocoa.h>
 
 @class Controller;
 @class BotController;
-@class CombatController;
 @class OffsetController;
 @class PlayerDataController;
 @class AuraController;
@@ -20,7 +36,6 @@
 @class MobController;
 @class StatisticsController;
 @class CombatProfileEditor;
-@class Unit;
 
 @class Route;
 @class Waypoint;
@@ -29,10 +44,9 @@
 @class Position;
 
 #define ReachedObjectNotification      @"ReachedObjectNotification"
-#define ReachedFollowUnitNotification      @"ReachedFollowUnitNotification"
 
 // How close do we need to be to a node before we dismount?
-#define DistanceUntilDismountByNode	4.1f
+#define DistanceUntilDismountByNode	4.5f
 
 // how close do we need to be to a school to fish?
 #define NODE_DISTANCE_UNTIL_FISH		17.0f
@@ -47,7 +61,6 @@ typedef enum MovementType {
 	
 	IBOutlet Controller				*controller;
 	IBOutlet BotController			*botController;
-	IBOutlet CombatController		*combatController;
 	IBOutlet OffsetController		*offsetController;
 	IBOutlet PlayerDataController	*playerData;
 	IBOutlet AuraController			*auraController;
@@ -71,7 +84,6 @@ typedef enum MovementType {
 	int _movementState;
 	
 	WoWObject *_moveToObject;			// current object we're moving to
-	Position *_moveToPosition;
 	
 	BOOL _isMovingFromKeyboard;
 	
@@ -79,7 +91,6 @@ typedef enum MovementType {
 	
 	// stuck checking
 	Position	*_lastAttemptedPosition;
-	Position	*_followNextPosition;
 	NSDate		*_lastAttemptedPositionTime;
 	NSDate		*_lastDirectionCorrection;
 	Position	*_lastPlayerPosition;
@@ -97,17 +108,9 @@ typedef enum MovementType {
 	BOOL _movingUp;
 	BOOL _afkPressForward;
 	BOOL _lastCorrectionForward;
-	BOOL isFollowing;
 }
 
 @property (readwrite, retain) RouteSet *currentRouteSet;
-@property (readwrite, assign) BOOL isFollowing;
-
-- (void)moveForwardStart;
-- (void)moveForwardStop;
-
-- (void)moveBackwardStart;
-- (void)moveBackwardStop;
 
 // move to an object (takes priority over a route)
 - (BOOL)moveToObject: (WoWObject*)object;
@@ -115,12 +118,8 @@ typedef enum MovementType {
 // move to a position (I'd prefer we don't do this often, but it is sometimes needed :()
 - (void)moveToPosition: (Position*)position;
 
-// Start out follow
-- (void)startFollow;
-
 // the object we're moving to
 - (WoWObject*)moveToObject;
-- (Position*)moveToPosition;
 
 // reset the move to object and returns true on success
 - (BOOL)resetMoveToObject;
@@ -139,12 +138,6 @@ typedef enum MovementType {
 
 // turn toward the object
 - (void)turnTowardObject:(WoWObject*)obj;
-
-// Unbug a caster
-- (void)stepForward;
-
-// check unit for range adjustments
-- (BOOL)checkUnitOutOfRange: (Unit*)target;
 
 // dismount the player
 - (BOOL)dismount;

@@ -1,10 +1,27 @@
-//
-//  MemoryViewController.m
-//  Pocket Gnome
-//
-//  Created by Jon Drummond on 12/16/07.
-//  Copyright 2007 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import "MemoryViewController.h"
 #import "Controller.h"
@@ -199,7 +216,7 @@ typedef enum ViewTypes {
 	int clickedRow = [memoryTable clickedRow];
 	unsigned startAddress = [self.currentAddress unsignedIntValue];
 	
-	log(LOG_MEMORY, @"[Memory] Clicked with tag %d and row %d", [sender tag], clickedRow);
+	PGLog(@"[Memory] Clicked with tag %d and row %d", [sender tag], clickedRow);
 	
 	// jump to address
 	if ( [sender tag] == 0 ){
@@ -225,7 +242,7 @@ typedef enum ViewTypes {
 			NSString *num = [self formatNumber:nil WithAddress:addr DisplayFormat:[self displayFormat]];
 			[[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
 			[[NSPasteboard generalPasteboard] setString:num forType:NSStringPboardType];
-			log(LOG_MEMORY, @"[Memory] Put %@ on the clipboard 1", num);
+			PGLog(@"[Memory] Put %@ on the clipboard 1", num);
 		}
 	}
 	
@@ -238,7 +255,7 @@ typedef enum ViewTypes {
 			NSString *num = [self formatNumber:[NSNumber numberWithLong:addr] WithAddress:0 DisplayFormat:4];
 			[[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
 			[[NSPasteboard generalPasteboard] setString:num forType:NSStringPboardType];
-			log(LOG_MEMORY, @"[Memory] Put %@ on the clipboard 2", num);
+			PGLog(@"[Memory] Put %@ on the clipboard 2", num);
 		}
 	}
 	
@@ -253,7 +270,7 @@ typedef enum ViewTypes {
 		size_t size = sizeof(uint32_t);
 		uint32_t addr = startAddress + clickedRow*size;
 		NSNumber *address = [NSNumber numberWithInt:addr];
-		log(LOG_MEMORY, @"[Memory] Searching for pointers to 0x%X", addr);
+		PGLog(@"[Memory] Searching for pointers to 0x%X", addr);
 		_pointerScanThread = [[NSThread alloc] initWithTarget:self
 													 selector:@selector(pointerScan:)
 													   object:address];
@@ -595,7 +612,7 @@ typedef enum ViewTypes {
 			
 			if ( [savedNum longLongValue] != [currentNum longLongValue] ){
 				[aCell setTextColor: [NSColor redColor]];
-				//log(LOG_MEMORY, @"[Memory] Different values found at address 0x%X 0x%qX 0x%qX", addr, [currentNum longLongValue], [savedNum longLongValue] );
+				//PGLog(@"[Memory] Different values found at address 0x%X 0x%qX 0x%qX", addr, [currentNum longLongValue], [savedNum longLongValue] );
 				return;
 			}
 		}
@@ -616,7 +633,7 @@ typedef enum ViewTypes {
 		firstCall = YES;
 	}
 	
-	log(LOG_MEMORY, @"%@ %@", [objects className],   [[objects objectAtIndex:0] className]);
+	PGLog(@"%@ %@", [objects className],   [[objects objectAtIndex:0] className]);
 	// here is where we do our comparisons
 	if ( !firstCall ){
 		
@@ -627,7 +644,7 @@ typedef enum ViewTypes {
 			WoWObject *obj = [dict valueForKey:@"Object"];
 			
 			if ( [obj isStale] || ![obj isValid] ){
-				log(LOG_MEMORY, @"[Memory] Object no longer valid, aborting");
+				PGLog(@"[Memory] Object no longer valid, aborting");
 				totalInvalids++;
 				continue;		
 			}
@@ -687,17 +704,17 @@ typedef enum ViewTypes {
 				
 				UInt32 offset = addr - firstObjectStartAddress;
 				
-				log(LOG_MEMORY, @"[0x%X] 0x%X 0x%X", offset, value0, value1);
+				PGLog(@"[0x%X] 0x%X 0x%X", offset, value0, value1);
 			}
 			
 		}
 		
-		log(LOG_MEMORY, @"------------------------------");
+		PGLog(@"------------------------------");
 
 		
 		// all are invalid :(
 		if ( totalInvalids == [objects count] ){
-			log(LOG_MEMORY, @"[Memory] All monitored objects are invalid, quitting");
+			PGLog(@"[Memory] All monitored objects are invalid, quitting");
 			return;
 		}
 		
@@ -738,7 +755,7 @@ typedef enum ViewTypes {
 			WoWObject *obj = [object valueForKey:@"Object"];
 			
 			if ( [obj isStale] || ![obj isValid] ){
-				log(LOG_MEMORY, @"[Memory] Object no longer valid, aborting");
+				PGLog(@"[Memory] Object no longer valid, aborting");
 				return;				
 			}
 			
@@ -753,7 +770,7 @@ typedef enum ViewTypes {
 				NSNumber *start = [startValues objectForKey:key];
 				
 				if ( [start intValue] != [current intValue] ){
-					log(LOG_MEMORY, @"[Memory] %@ at 0x%X from 0x%X to 0x%X", obj, [key unsignedIntValue], [start intValue], [current intValue] );
+					PGLog(@"[Memory] %@ at 0x%X from 0x%X to 0x%X", obj, [key unsignedIntValue], [start intValue], [current intValue] );
 					[startValues setObject:current forKey:key];
 				}
 			}
@@ -774,7 +791,7 @@ typedef enum ViewTypes {
 								  startValues,@"StartValues",
 								  nil];
 			
-			log(LOG_MEMORY, @"[Memory] Starting to monitor %@ with base address 0x%X!", object, [object baseAddress]);
+			PGLog(@"[Memory] Starting to monitor %@ with base address 0x%X!", object, [object baseAddress]);
 			[self performSelector:@selector(monitorObject:) withObject:dict afterDelay:0.1f];
 		}
 	}
@@ -784,7 +801,7 @@ typedef enum ViewTypes {
 	unsigned startAddress = [(WoWObject*)object baseAddress];
 	size_t size = 4;
 	
-	//log(LOG_MEMORY, @"[Memory] Scanning object %@ starting at 0x%X with length %d", object, startAddress, addressSize);
+	//PGLog(@"[Memory] Scanning object %@ starting at 0x%X with length %d", object, startAddress, addressSize);
 	
 	NSMutableDictionary *dict = [[NSMutableDictionary dictionary] retain];
 	
@@ -802,7 +819,7 @@ typedef enum ViewTypes {
 		}
 	}
 	
-	//log(LOG_MEMORY, @"[Memory] Total found: %d", [dict count]);
+	//PGLog(@"[Memory] Total found: %d", [dict count]);
 	
 	return [dict autorelease];
 }
@@ -840,11 +857,11 @@ typedef enum SearchType{
 		
 		// only want to check what we've already searched
 		if ( [valueMatrix selectedTag] == Value_Last ){
-			log(LOG_MEMORY, @"updating latest...");
+			PGLog(@"updating latest...");
 		}
 		// current value
 		else{
-			log(LOG_MEMORY, @"searching for new values... %d %d", sizeof(float), sizeof(double));
+			PGLog(@"searching for new values... %d %d", sizeof(float), sizeof(double));
 			
 			/*NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys: 
 								[NSNumber numberWithInt:[signMatrix selectedTag]],		@"Sign",
@@ -925,7 +942,7 @@ typedef enum SearchType{
             
             while(KERN_SUCCESS == (KernelResult = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName))) {
                 // If we get here then we have a block of memory and we know how big it is... let's copy readable blocks and see what we've got!
-				//log(LOG_MEMORY, @"we have a block of memory!");
+				//PGLog(@"we have a block of memory!");
 				
                 // ensure we have access to this block
                 if ((SourceInfo.protection & VM_PROT_READ)) {
@@ -951,13 +968,13 @@ typedef enum SearchType{
 								 if ( [address unsignedIntValue] == *checkVal ){
 								 
 								 UInt32 foundAddress = SourceAddress + x;
-								 log(LOG_MEMORY, @"Match for 0x%X found at 0x%X", [address unsignedIntValue], foundAddress);
+								 PGLog(@"Match for 0x%X found at 0x%X", [address unsignedIntValue], foundAddress);
 								 }
 								 }*/
 								// is this our address?
 								/*if ( *checkVal == addressToFind ){
 									UInt32 foundAddress = SourceAddress + x;
-									log(LOG_MEMORY, @"Match for 0x%X found at 0x%X", addressToFind, foundAddress);
+									PGLog(@"Match for 0x%X found at 0x%X", addressToFind, foundAddress);
 									[addressesFound addObject:[NSNumber numberWithUnsignedInt:foundAddress]];
 								}*/
                             }
@@ -979,7 +996,7 @@ typedef enum SearchType{
         }
     }
     
-    log(LOG_MEMORY, @"[Memory] Pointer scan took %.4f seconds.", 0.0f-[date timeIntervalSinceNow]);
+    PGLog(@"[Memory] Pointer scan took %.4f seconds.", 0.0f-[date timeIntervalSinceNow]);
     /*
 	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
 						  address,				@"Address",
@@ -1068,7 +1085,7 @@ typedef enum SearchType{
 	if ( [sender tag] == NSCancelButton ){
 		
 		if ( _pointerScanThread != nil ){
-			log(LOG_MEMORY, @"[Memory] Cancelling pointer scan thread");
+			PGLog(@"[Memory] Cancelling pointer scan thread");
 			[_pointerScanThread cancel];
 			// we can safely release since the pointer will still have a retainCount of 1 (as it's in use)
 			[_pointerScanThread release]; _pointerScanThread = nil;
@@ -1116,7 +1133,7 @@ typedef enum SearchType{
 		
 		// find pointers
 		NSNumber *address = [NSNumber numberWithInt:[startAddress intValue] + i*4];
-		log(LOG_MEMORY, @"[Memory] Searching for pointers at 0x%X", [address unsignedIntValue]);
+		PGLog(@"[Memory] Searching for pointers at 0x%X", [address unsignedIntValue]);
 		[self findPointersToAddress:address];
 		
 		// increment progress indicator
@@ -1193,7 +1210,7 @@ typedef enum SearchType{
 								// is this our address?
 								if ( *checkVal == addressToFind ){
 									UInt32 foundAddress = SourceAddress + x;
-									log(LOG_MEMORY, @"Match for 0x%X found at 0x%X", addressToFind, foundAddress);
+									PGLog(@"Match for 0x%X found at 0x%X", addressToFind, foundAddress);
 									[addressesFound addObject:[NSNumber numberWithUnsignedInt:foundAddress]];
 								}
                             }
@@ -1214,7 +1231,7 @@ typedef enum SearchType{
         }
     }
     
-    log(LOG_MEMORY, @"[Memory] Pointer scan took %.4f seconds and found %d pointers.", 0.0f-[date timeIntervalSinceNow], [addressesFound count]);
+    PGLog(@"[Memory] Pointer scan took %.4f seconds and found %d pointers.", 0.0f-[date timeIntervalSinceNow], [addressesFound count]);
     
 	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
 						  address,				@"Address",

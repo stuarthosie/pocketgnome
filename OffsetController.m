@@ -1,10 +1,27 @@
-//
-//  OffsetController.m
-//  Pocket Gnome
-//
-//  Created by Josh on 9/1/09.
-//  Copyright 2009 Savory Software, LLC. All rights reserved.
-//
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
 
 #import "OffsetController.h"
 #import "MemoryAccess.h"
@@ -62,7 +79,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 		
 		_offsetDictionary = [[NSDictionary dictionaryWithContentsOfFile: [[NSBundle mainBundle] pathForResource: @"OffsetSignatures" ofType: @"plist"]] retain];
 		if ( !_offsetDictionary ){
-			log(LOG_GENERAL, @"[Offsets] Error, offset dictionary not found!");
+			PGLog(@"[Offsets] Error, offset dictionary not found!");
 		}
 		[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(memoryIsValid:) name: MemoryAccessValidNotification object: nil];
     }
@@ -76,7 +93,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 }
 
 - (void)memoryIsValid: (NSNotification*)notification {
-	[self loadEveryOffset];
+    [self loadEveryOffset];
 }
 
 // new and improved offset finder, will loop through our plist file to get the signatures! yay! Easier to store PPC/Intel
@@ -196,10 +213,10 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 				
 			[offsets setObject: [NSNumber numberWithUnsignedLong:offset] forKey:key];
 			if ( offset > 0x0 ){
-				log(LOG_GENERAL, @"%@: 0x%X", key, offset);
+				PGLog(@"%@: 0x%X", key, offset);
 			}
 			else{
-				log(LOG_GENERAL, @"[Offset] Error! No offset found for key %@", key);
+				PGLog(@"[Offset] Error! No offset found for key %@", key);
 			}
 		}
 		
@@ -225,7 +242,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 	}
 	// technically should never be here
 	else{
-		log(LOG_GENERAL, @"[Offsets] No offset dictionary found, PG will be unable to function!");
+		PGLog(@"[Offsets] No offset dictionary found, PG will be unable to function!");
 	}
 }
 
@@ -260,7 +277,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
             while(KERN_SUCCESS == (KernelResult = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName))) {
 
 				
-				//log(LOG_GENERAL, @"[Offset] Success for reading from 0x%X to 0x%X  SourceInfo: 0x%X 0x%X", SourceAddress, SourceSize, SourceInfo, SourceInfoSize);
+				//PGLog(@"[Offset] Success for reading from 0x%X to 0x%X  SourceInfo: 0x%X 0x%X", SourceAddress, SourceSize, SourceInfo, SourceInfoSize);
                 // ensure we have access to this block
                 if ((SourceInfo.protection & VM_PROT_READ)) {
                     NS_DURING {
@@ -274,7 +291,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 								ReturnedBufferContentSize = TEXT_SEGMENT_MAX_ADDRESS;
 							}
 							
-							//log(LOG_GENERAL, @"Reading from %d to %d", SourceAddress, SourceAddress + SourceSize);
+							//PGLog(@"Reading from %d to %d", SourceAddress, SourceAddress + SourceSize);
 							
 							// Lets grab all our offsets!
 							[self findOffsets: ReturnedBuffer Len:SourceSize StartAddress: SourceAddress];
@@ -343,7 +360,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 				return offset;
 			}
 			else if ( offset > 0x0 ){
-				//log(LOG_GENERAL, @"[Offset] Found 0x%X < 0x%X at 0x%X, ignoring... (%d)", offset, minOffset, i, foundCount);
+				//PGLog(@"[Offset] Found 0x%X < 0x%X at 0x%X, ignoring... (%d)", offset, minOffset, i, foundCount);
 			}
 		}
 	}
@@ -390,7 +407,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 				return offset;
 			}
 			else if ( offset > 0x0 ){
-				//log(LOG_GENERAL, @"[Offset] Found 0x%X < 0x%X at 0x%X, ignoring... (%d)", offset, minOffset, i, foundCount);
+				//PGLog(@"[Offset] Found 0x%X < 0x%X at 0x%X, ignoring... (%d)", offset, minOffset, i, foundCount);
 			}
 		}
 	}
@@ -449,7 +466,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 							[data appendBytes:ReturnedBuffer length:ReturnedBufferContentSize];
 						}
 						else{
-							log(LOG_GENERAL, @"[Offset] Memory read failed");
+							PGLog(@"[Offset] Memory read failed");
 						}
                     } NS_HANDLER {
                     } NS_ENDHANDLER
@@ -527,7 +544,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 		}
 	}
 	else {
-		log(LOG_GENERAL, @"[Offset] Unable to read memory!");
+		PGLog(@"[Offset] Unable to read memory!");
 	}
 	
 	// free our buffer
@@ -560,11 +577,11 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			}
 			
 			if ( offset >= minOffset ){
-				//log(LOG_GENERAL, @"[Offset] Found 0x%X, adding to array", offset);
+				//PGLog(@"[Offset] Found 0x%X, adding to array", offset);
 				[list addObject:[NSNumber numberWithInt:offset]];
 			}
 			else if ( offset > 0x0 ){
-				//log(LOG_GENERAL, @"[Offset] Found 0x%X < 0x%X, ignoring... (%d)", offset, minOffset, i);
+				//PGLog(@"[Offset] Found 0x%X < 0x%X, ignoring... (%d)", offset, minOffset, i);
 			}
 		}
 	}
@@ -604,11 +621,11 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			}
 			
 			if ( offset >= minOffset && offset > 0x0 ){
-				//log(LOG_GENERAL, @"[Offset] Found 0x%X, adding to array", offset);
+				//PGLog(@"[Offset] Found 0x%X, adding to array", offset);
 				[list addObject:[NSNumber numberWithInt:offset]];
 			}
 			else if ( offset > 0x0 ){
-				//log(LOG_GENERAL, @"[Offset] Found 0x%X < 0x%X, ignoring... (%d)", offset, minOffset, i);
+				//PGLog(@"[Offset] Found 0x%X < 0x%X, ignoring... (%d)", offset, minOffset, i);
 			}
 		}
 	}
