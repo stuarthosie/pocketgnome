@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * $Id$
+ *
+ */
+
+#import "DelayActionController.h"
+#import "ActionController.h"
+
+@implementation DelayActionController
+
+- (id) init
+{
+    self = [super init];
+    if (self != nil) {
+        if(![NSBundle loadNibNamed: @"DelayAction" owner: self]) {
+            PGLog(@"Error loading DelayAction.nib.");
+            
+            [self release];
+            self = nil;
+        }
+    }
+    return self;
+}
+
+- (IBAction)validateState: (id)sender {
+	
+}
+
+- (void)setStateFromAction: (Action*)action{
+	
+	[delayTextField setStringValue:[NSString stringWithFormat:@"%@", action.value]];
+	
+	[super setStateFromAction:action];
+}
+
+- (Action*)action {
+    [self validateState: nil];
+    
+	NSNumber *delay = [NSNumber numberWithInt:[delayTextField intValue]];
+    Action *action = [Action actionWithType:ActionType_Delay value:delay];
+
+	[action setEnabled: self.enabled];
+    
+    return action;
+}
+
+@end
