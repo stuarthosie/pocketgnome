@@ -12,6 +12,7 @@
 #import "PlayerDataController.h"
 #import "Mob.h"
 #import "BlacklistController.h"
+#import "MobController.h"
 #import "MPSpell.h"
 #import "MPItem.h"
 #import "MPMover.h"
@@ -22,7 +23,7 @@
 #import "SpellController.h"
 
 @implementation MPCustomClassScrubPriest
-@synthesize cureDisease, devouringPlague, dispelMagic, fade, flashHeal, heal, holyFire, pwFort, pwShield, renew, resurrection, smite, swPain;
+@synthesize cureDisease, devouringPlague, dispelMagic, divineSpirit, fade, flashHeal, heal, holyFire, pwFort, pwShield, renew, resurrection, smite, swPain;
 @synthesize drink;
 @synthesize timerRunningAction;
 
@@ -32,6 +33,7 @@
 		self.cureDisease = nil;
 		self.devouringPlague = nil;
 		self.dispelMagic = nil;
+		self.divineSpirit = nil;
 		self.fade = nil;
 		self.flashHeal = nil;
 		self.heal    = nil;
@@ -59,6 +61,7 @@
 	[cureDisease release];
 	[devouringPlague release];
 	[dispelMagic release];
+	[divineSpirit release];
 	[fade release];
 	[flashHeal release];
 	[heal release];
@@ -145,7 +148,7 @@
 			
 			// Renew myself if health < 80%
 			if ([me percentHealth] < 80) {
-				if ([self castHOT:renew on:(Unit *)[me player]]) {
+				if ([self castMyHOT:renew on:(Unit *)[me player]]) {
 					return CombatStateInCombat;
 				}
 			}
@@ -156,8 +159,23 @@
 			for( Player *player in listParty) {
 				if (([player percentHealth] < 80) && ([player currentHealth] > 1)) {
 					if ([self player:player inRange:40]){
-						if ([self castHOT:renew on:player]) {
+						if ([self castMyHOT:renew on:player]) {
 							return CombatStateInCombat;
+						}
+					}
+				}
+				
+				// check player's pet as well:
+				if ([player hasPet]) {
+					
+					Mob *pet = [[MobController sharedController] mobWithGUID: [player petGUID]];
+					
+					if (pet != nil) {
+						
+						if ([pet percentHealth] <= 70) {
+							if ([self castMyHOT:renew on:pet]) {
+								return CombatStateInCombat;
+							}
 						}
 					}
 				}
@@ -211,6 +229,21 @@
 						}
 					}
 				}
+				
+				// check player's pet as well:
+				if ([player hasPet]) {
+					
+					Mob *pet = [[MobController sharedController] mobWithGUID: [player petGUID]];
+					
+					if (pet != nil) {
+						
+						if ([pet percentHealth] <= 35) {
+							if ([self cast:flashHeal on:pet]) {
+								return CombatStateInCombat;
+							}
+						}
+					}
+				}
 			}
 			
 			
@@ -232,6 +265,21 @@
 					if ([self player:player inRange:35]) {
 						if ([self cast:heal on:player]) {
 							return CombatStateInCombat;
+						}
+					}
+				}
+				
+				// check player's pet as well:
+				if ([player hasPet]) {
+					
+					Mob *pet = [[MobController sharedController] mobWithGUID: [player petGUID]];
+					
+					if (pet != nil) {
+						
+						if ([pet percentHealth] <= 50) {
+							if ([self cast:heal on:pet]) {
+								return CombatStateInCombat;
+							}
 						}
 					}
 				}
@@ -262,23 +310,29 @@
 			}
 			
 			
-			// Holy Fire
-			// if mobhealth >= 50% && myMana > 35%
-			if (([mob percentHealth] >= 40) && ([me percentMana] > 35)){
-				if ([self castDOT:holyFire on:mob]) {
-					return CombatStateInCombat;
-				}
-			}
+			// do these if we are ! in a party
+			// (in a party, conserve mana for healing)
+			if ([listParty count] == 0) {
 			
-			
-			// Devouring Plague
-			// if mobhealth >= 50% && myMana > 35%
-			if (([mob percentHealth] >= 50) && ([me percentMana] > 35)){
-				if ([self castDOT:devouringPlague on:mob]) {
-					return CombatStateInCombat;
+				// Holy Fire
+				// if mobhealth >= 50% && myMana > 35%
+				if (([mob percentHealth] >= 40) && ([me percentMana] > 35)){
+					if ([self castDOT:holyFire on:mob]) {
+						return CombatStateInCombat;
+					}
 				}
-			}
+				
+				
+				// Devouring Plague
+				// if mobhealth >= 50% && myMana > 35%
+				if (([mob percentHealth] >= 50) && ([me percentMana] > 35)){
+					if ([self castDOT:devouringPlague on:mob]) {
+						return CombatStateInCombat;
+					}
+				}
 					
+			}
+			
 			
 			
 			// Spam Smite
@@ -289,11 +343,6 @@
 				}
 			} else {
 				[self wandUnit:mob];
-/*				if (!autoShooting) {
-					[self cast:shootWand on:mob];
-					autoShooting = YES;
-				}
-*/
 			}
 
 			
@@ -380,6 +429,7 @@
 	self.cureDisease = [MPSpell cureDisease];
 	self.devouringPlague = [MPSpell devouringPlague];
 	self.dispelMagic = [MPSpell dispelMagic];
+	self.divineSpirit = [MPSpell divineSpirit];
 	self.fade	   = [MPSpell fade];
 	self.flashHeal = [MPSpell flashHeal];
 	self.heal      = [MPSpell heal];
@@ -411,7 +461,7 @@
 	
 	NSMutableArray *buffSpells = [NSMutableArray array];
 	[buffSpells addObject:pwFort];
-//	[buffSpells addObject:divineSpirit];
+	[buffSpells addObject:divineSpirit];
 	self.listBuffs = [buffSpells copy];
 	
 	self.dispellDisease = cureDisease;

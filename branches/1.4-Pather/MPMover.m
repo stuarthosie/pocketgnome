@@ -727,7 +727,7 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 	switch (unstickAttempt) {
 		case 1:
 			// try jumping
-//			[self swimUp:YES];
+			[self swimUp:YES];
 			
 			break;
 			
@@ -754,7 +754,7 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 				[self forwards:YES];
 			}
 			[self strafeLeft:YES];
-//			[self swimUp:YES];
+			[self swimUp:YES];
 			break;
 			
 		case 4:
@@ -780,7 +780,7 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 				[self forwards:YES];
 			}
 			[self strafeRight:YES];
-//			[self swimUp:YES];
+			[self swimUp:YES];
 			break;
 			
 		case 6:

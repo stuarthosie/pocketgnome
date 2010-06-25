@@ -219,12 +219,48 @@
 	// because [loadPlayerSettings] will end with the last
 	// match.
 	
-	[drink addID:  159 withBuffID:  430];  // Refreshing Spring Water
-	[drink addID: 1179 withBuffID:  431];  // Ice Cold Milk  (lv 5)
-	[drink addID: 1205 withBuffID:  432];  // Melon Juice (lv 15)
-	[drink addID: 1708 withBuffID: 1133];  // Sweet Nectar (lv 25)
-	[drink addID: 1645 withBuffID: 1135];  // Moonberry Juice (lv 35)
-	[drink addID: 8766 withBuffID: 1137];  // Morning Glory Dew (lv 45)
+	// to find:
+	// go to www.wowhead.com, look up a drink
+	// on on the description of the drink, click the green text that tells you the effect
+	// this gives you the buff.
+	
+	
+	[drink addID:   159 withBuffID:   430];  // Refreshing Spring Water
+	[drink addID:  5350 withBuffID:   430];  // Conjured Water
+	
+	[drink addID:  1179 withBuffID:   431];  // Ice Cold Milk  (lv 5)
+	[drink addID:  2288 withBuffID:   431];  // Conjured Fresh Water (lv 5)
+	
+	[drink addID:  1205 withBuffID:   432];  // Melon Juice (lv 15)
+	[drink addID:  2136 withBuffID:   432];  // Conjured Purified Water (lv 15)
+	
+	[drink addID:  1708 withBuffID:  1133];  // Sweet Nectar (lv 25)
+	[drink addID:  3772 withBuffID:  1133];  // Conjured Spring Water (lv 25)
+	
+	[drink addID:  1645 withBuffID:  1135];  // Moonberry Juice (lv 35)
+	[drink addID:  8077 withBuffID:  1135];  // Conjured Mineral Water (lv 35)
+	
+	[drink addID:  8766 withBuffID:  1137];  // Morning Glory Dew (lv 45)
+	[drink addID:  8078 withBuffID:  1137];  // Conjured Sparkling Water (lv 45)
+	
+	[drink addID: 8079 withBuffID: 22734];  // Conjured Crystal Water (lv 55)
+	
+	[drink addID: 28399 withBuffID: 34291]; // Filtered Draenic Water (lv 60)
+	[drink addID: 30703 withBuffID: 34291]; // Conjured Mountain Spring water (lv 60)
+	
+	[drink addID: 27860 withBuffID: 27089];  // Purified Draenic Water (lv 65)
+	[drink addID: 22018 withBuffID: 27089];  // Conjured Glacier Water (lv 65)
+	[drink addID: 35954 withBuffID: 27089];  // Sweetened Goats Milk (lv 65)
+	
+	[drink addID: 33444 withBuffID: 43182];  // Pungent Seal Whey (lv 70)
+	
+	[drink addID: 42777 withBuffID: 43183];  // Crusaders Waterskin (lv 75)
+	[drink addID: 33445 withBuffID: 43183];  // Honey Mint Tea (lv 75)
+	[drink addID: 41731 withBuffID: 43183];  // Yeti Milk (lv 75)
+	
+	
+	
+
 //	[drink addID: ];  // 
 	
 

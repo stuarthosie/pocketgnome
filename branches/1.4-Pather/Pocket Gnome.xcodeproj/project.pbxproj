@@ -129,6 +129,7 @@
 		34595AF210B921710099A1AF /* MPLine.m in Sources */ = {isa = PBXBuildFile; fileRef = 34595AF110B921710099A1AF /* MPLine.m */; };
 		345C41D4107EDE87008F9400 /* ParseKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8487443D106BC6FB00BF46A1 /* ParseKit.framework */; };
 		34608CB1106BD8D3003151CD /* pather.xib in Resources */ = {isa = PBXBuildFile; fileRef = 34608CB0106BD8D3003151CD /* pather.xib */; };
+		348C9C5011A3EC7F00D87DDD /* MPCustomClassScrubHunter.m in Sources */ = {isa = PBXBuildFile; fileRef = 348C9C4F11A3EC7F00D87DDD /* MPCustomClassScrubHunter.m */; };
 		349707DD10835F7D005DDB30 /* MPNavMeshView.m in Sources */ = {isa = PBXBuildFile; fileRef = 349707DC10835F7D005DDB30 /* MPNavMeshView.m */; };
 		3497081B10845F24005DDB30 /* MPSquare.m in Sources */ = {isa = PBXBuildFile; fileRef = 3497081A10845F24005DDB30 /* MPSquare.m */; };
 		3497082C10847534005DDB30 /* MPNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3497082B10847534005DDB30 /* MPNavigationController.m */; };
@@ -676,6 +677,8 @@
 		34595AF010B921710099A1AF /* MPLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPLine.h; sourceTree = "<group>"; };
 		34595AF110B921710099A1AF /* MPLine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPLine.m; sourceTree = "<group>"; };
 		34608CB0106BD8D3003151CD /* pather.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = pather.xib; sourceTree = "<group>"; };
+		348C9C4E11A3EC7F00D87DDD /* MPCustomClassScrubHunter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPCustomClassScrubHunter.h; sourceTree = "<group>"; };
+		348C9C4F11A3EC7F00D87DDD /* MPCustomClassScrubHunter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPCustomClassScrubHunter.m; sourceTree = "<group>"; };
 		349707DB10835F7D005DDB30 /* MPNavMeshView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPNavMeshView.h; sourceTree = "<group>"; };
 		349707DC10835F7D005DDB30 /* MPNavMeshView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPNavMeshView.m; sourceTree = "<group>"; };
 		3497081910845F24005DDB30 /* MPSquare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPSquare.h; sourceTree = "<group>"; };
@@ -1531,6 +1534,8 @@
 				34C356E71178BF5D002B11E5 /* MPCustomClassScrubDruid.m */,
 				34F71FD311852634009F75C9 /* MPCustomClassScrubPriest.h */,
 				34F71FD411852634009F75C9 /* MPCustomClassScrubPriest.m */,
+				348C9C4E11A3EC7F00D87DDD /* MPCustomClassScrubHunter.h */,
+				348C9C4F11A3EC7F00D87DDD /* MPCustomClassScrubHunter.m */,
 			);
 			name = CustomClass;
 			sourceTree = "<group>";
@@ -2735,6 +2740,7 @@
 				34F71FD511852634009F75C9 /* MPCustomClassScrubPriest.m in Sources */,
 				34F71FD811852913009F75C9 /* MPCustomClassScrub.m in Sources */,
 				3451D3091187BBC1007C7134 /* MPTaskPartyWait.m in Sources */,
+				348C9C5011A3EC7F00D87DDD /* MPCustomClassScrubHunter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -23,7 +23,7 @@
 	MPSpell *dispellPoison, *dispellCurse, *dispellMagic, *dispellDisease;
 	NSArray *listBuffs, *listSpells, *listParty;
 	MPTimer *timerGCD, *timerRefreshParty, *timerBuffCheck, *timerSpellScan;
-	BOOL errorLOS, autoShooting, autoAttacking;
+	BOOL errorLOS, autoShooting, autoAttacking, autoWand;
 	MPCCCombatState state;
 }
 @property (retain) MPSpell *shootWand, *meleeAttack;
@@ -48,6 +48,8 @@
 - (BOOL) cast:(MPSpell *)spell on:(Unit *)unit;
 - (BOOL) castDOT:(MPSpell *)spell on:(Unit *)unit;
 - (BOOL) castHOT:(MPSpell *)spell on:(Unit *)unit;
+- (BOOL) castMyDOT:(MPSpell *)spell on:(Unit *)unit;
+- (BOOL) castMyHOT:(MPSpell *)spell on:(Unit *)unit;
 
 - (BOOL) decursePlayer: (Player *)player;
 

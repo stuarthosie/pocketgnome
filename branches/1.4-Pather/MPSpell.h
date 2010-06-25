@@ -63,6 +63,7 @@
 + (id) curePoison;
 + (id) healingTouch;
 + (id) insectSwarm;
++ (id) innervate;
 + (id) moonfire;
 + (id) motw;
 + (id) rejuvenation;
@@ -72,10 +73,23 @@
 + (id) wrath;
 
 
+// Hunter
++ (id) arcaneShot;
++ (id) aspectHawk;
++ (id) aspectMonkey;
++ (id) aspectViper;
++ (id) autoShot;
++ (id) huntersMark;
++ (id) mendPet;
++ (id) raptorStrike;
++ (id) serpentSting;
+
+
 // Priest
 + (id) cureDisease;
 + (id) devouringPlague;
 + (id) dispelMagic;
++ (id) divineSpirit;
 + (id) fade;
 + (id) flashHeal;
 + (id) heal;

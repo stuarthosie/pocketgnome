@@ -18,6 +18,7 @@
 #import "MPMover.h"
 #import "Player.h"
 #import "Unit.h"
+#import "MobController.h"
 #import "MPTimer.h"
 #import "Errors.h"
 
@@ -60,6 +61,7 @@
 		errorLOS = NO;
 		autoShooting = NO;
 		autoAttacking = NO;
+		autoWand = NO;
 		
 		state = CCCombatPreCombat;
 	}
@@ -221,6 +223,7 @@
 	// this method is called outside of combat so these should be "NO"
 	autoShooting = NO;
 	autoAttacking = NO;
+	autoWand = NO;
 	
 	// make sure our spell list is updated
 	if ([timerSpellScan ready] ) {
@@ -257,6 +260,15 @@
 					
 					if ((![player isDead]) && ([player currentHealth] > 1)) {
 					
+						Mob *pet = nil;
+						
+						// check player's pet as well:
+						if ([player hasPet]) {
+							
+							pet = [[MobController sharedController] mobWithGUID: [player petGUID]];
+							
+						}
+						
 						if ([self player:player inRange:30]) {
 						
 							for (MPSpell *buff in listBuffs) {
@@ -269,6 +281,19 @@
 									[timerBuffCheck reset];
 									return;
 								}
+								
+								if (pet != nil) {
+									
+									
+									if( ![buff unitHasBuff:(Unit*)pet]) {
+										[me targetGuid:[pet GUID]];
+										//[me setPrimaryTarget:player];
+										[buff cast];
+										[timerBuffCheck reset];
+										return;
+									}
+									
+								}
 							}
 							
 							
@@ -280,7 +305,9 @@
 							
 						}
 						
-					} // if player isValid
+					} // if player ! dead
+					
+					
 					
 				} // if !player->isDead
 			}
@@ -376,7 +403,7 @@
 		error = [spell cast];
 		if (!error) {
 			[timerGCD start];
-			autoShooting = NO;  // autoShooting is turned off when a cast is successful 
+			autoWand= NO;  // autoWand is turned off when a cast is successful 
 			return YES;
 		} else {
 			//			[self markError:error];
@@ -400,12 +427,41 @@
 	
 	if ([spell canCast]) {
 		
+		if (![spell unitHasDebuff:unit]) {
+			
+			error = [spell cast];
+			if (!error) {
+				[timerGCD start];
+				autoWand = NO;  // autoWand is turned off when a cast is successful
+				return YES;
+			} else {
+				//				[self markError:error];
+				if (error == ErrTargetNotInLOS) {
+					PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
+					errorLOS = YES;
+				}
+			}
+		}
+	} 
+	return NO;
+}
+
+
+
+- (BOOL) castMyDOT:(MPSpell *)spell on:(Unit *)unit {
+	
+	int error = ErrNone;
+	
+	[self targetUnit:unit];
+	
+	if ([spell canCast]) {
+		
 		if (![spell unitHasMyDebuff:unit]) {
 			
 			error = [spell cast];
 			if (!error) {
 				[timerGCD start];
-				autoShooting = NO;  // autoShooting is turned off when a cast is successful
+				autoWand = NO;  // autoWand is turned off when a cast is successful
 				return YES;
 			} else {
 				//				[self markError:error];
@@ -429,12 +485,41 @@
 	
 	if ([spell canCast]) {
 		
+		if (![spell unitHasBuff:unit]) {
+			
+			error = [spell cast];
+			if (!error) {
+				[timerGCD start];
+				autoWand = NO;
+				return YES;
+			} else {
+				//	[self markError:error];
+				if (error == ErrTargetNotInLOS) {
+					PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
+					errorLOS = YES;
+				}
+			}
+		}
+	} 
+	return NO;
+}
+
+
+
+- (BOOL) castMyHOT:(MPSpell *)spell on:(Unit *)unit {
+	
+	int error = ErrNone;
+	
+	[self targetUnit:unit];
+	
+	if ([spell canCast]) {
+		
 		if (![spell unitHasMyBuff:unit]) {
 			
 			error = [spell cast];
 			if (!error) {
 				[timerGCD start];
-				autoShooting = NO;
+				autoWand = NO;
 				return YES;
 			} else {
 				//	[self markError:error];
@@ -524,15 +609,16 @@
 }
 
 
+
 - (BOOL) wandUnit:(Unit *)unit {
 	
 	[self targetUnit:unit];
 	
-	if (!autoShooting) {
+	if (!autoWand) {
 		[self cast:shootWand on:unit];
-		autoShooting = YES;
+		autoWand = YES;
 	}
-	return autoShooting;
+	return autoWand;
 }
 
 
