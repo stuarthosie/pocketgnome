@@ -16,14 +16,14 @@
 
 @interface MPCustomClassScrubPriest : MPCustomClassScrub {
 
-	MPSpell *cureDisease, *devouringPlague, *dispelMagic, *fade, *flashHeal, *heal, *holyFire, *pwShield, *pwFort, *renew, *resurrection, *smite, *swPain;
+	MPSpell *cureDisease, *devouringPlague, *dispelMagic, *divineSpirit, *fade, *flashHeal, *heal, *holyFire, *pwShield, *pwFort, *renew, *resurrection, *smite, *swPain;
 	MPItem *drink;
 	BOOL wandShooting;
 	
 	MPTimer *timerRunningAction;
 	
 }
-@property (retain) MPSpell *cureDisease, *devouringPlague, *dispelMagic, *fade, *flashHeal, *heal, *holyFire, *pwShield, *pwFort, *renew, *resurrection, *smite, *swPain;
+@property (retain) MPSpell *cureDisease, *devouringPlague, *dispelMagic, *divineSpirit, *fade, *flashHeal, *heal, *holyFire, *pwShield, *pwFort, *renew, *resurrection, *smite, *swPain;
 @property (retain) MPItem *drink;
 @property (retain) MPTimer *timerRunningAction;
 

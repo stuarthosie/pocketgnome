@@ -14,6 +14,7 @@
 #import "BlacklistController.h"
 #import "Errors.h"
 #import "Mob.h"
+#import "MobController.h"
 #import "MPItem.h"
 #import "MPMover.h"
 #import "MPSpell.h"
@@ -49,8 +50,8 @@
 
 
 @implementation MPCustomClassScrubDruid
-@synthesize abolishPoison, curePoison, insectSwarm, wrath, mf, motw, rejuv, healingTouch, removeCurse, starfire, thorns;
-@synthesize autoAttack;
+@synthesize abolishPoison, curePoison, insectSwarm, innervate, wrath, mf, motw, rejuv, healingTouch, removeCurse, starfire, thorns;
+//@synthesize autoAttack;
 @synthesize drink;
 @synthesize waitDrink, timerRunningAction;
 
@@ -60,6 +61,7 @@
 		self.abolishPoison = nil;
 		self.curePoison = nil;
 		self.insectSwarm = nil;
+		self.innervate = nil;
 		self.wrath = nil;
 		self.mf    = nil;
 		self.motw  = nil;
@@ -69,7 +71,7 @@
 		self.starfire = nil;
 		self.thorns = nil;
 
-		self.autoAttack = nil;
+//		self.autoAttack = nil;
 		
 		self.drink = nil;
 		
@@ -90,6 +92,7 @@
 	[abolishPoison release];
 	[curePoison release];
 	[insectSwarm release];
+	[innervate release];
 	[wrath release];
 	[mf release];
 	[motw release];
@@ -99,7 +102,7 @@
 	[starfire release];
 	[thorns release];
 	
-	[autoAttack release];
+//	[autoAttack release];
 
 	[drink release];
 	
@@ -203,6 +206,21 @@
 						}
 					}
 				}
+				
+				// check player's pet as well:
+				if ([player hasPet]) {
+					
+					Mob *pet = [[MobController sharedController] mobWithGUID: [player petGUID]];
+					
+					if (pet != nil) {
+						
+						if ([pet percentHealth] <= 40) {
+							if ([self castMyHOT:rejuv on:pet]) {
+								return CombatStateInCombat;
+							}
+						}
+					}
+				}
 			}
 			
 			
@@ -253,6 +271,20 @@
 			
 			
 			
+			
+			////
+			//// Mana Regen
+			////
+			if ([me percentMana] < 15) {
+			
+				if([self cast:innervate on:[me player]]) {
+					return CombatStateInCombat;
+				}
+			}
+			
+			
+			
+			
 			////
 			////  Attacks here
 			////
@@ -260,14 +292,16 @@
 			// MoonFire DOT
 			// if mobhealth >= 50% && myMana > 20%
 			if (([mob percentHealth] >= 50) && ([me percentMana] > 20)){
-				if ([self castDOT:mf on:mob]) {
+				if ([self castMyDOT:mf on:mob]) {
 					return CombatStateInCombat;
 				} 
 			}
 			
 			
 			// Insect Swarm
-			
+			if ([self castMyDOT:insectSwarm on:mob]) {
+				return CombatStateInCombat;
+			} 
 			
 			
 			// make sure we are swinging our weapon
@@ -275,14 +309,22 @@
 			
 			
 			// Standard Attack
-			if (([mob isElite]) || ([mob percentHealth] >=20)) { // only nuke when health is high
-				if ([self cast:starfire on:mob]){
+			
+			// if we are not in a party OR mob not attacking me:
+			//   ( if in a party and we pull aggro, then stop nuking)
+			//   (note: if in a party with me and 1 more (healer) then keep nuking)
+			if ( ([listParty count] < 2)
+				|| ([mob targetID] != [me GUID]) ) {
+				
+				if (([mob isElite]) || ([mob percentHealth] >=20)) { // only nuke when health is high
+					if ([self cast:starfire on:mob]){
+						return CombatStateInCombat;
+					}
+				}
+
+				if ([self cast:wrath on:mob]){
 					return CombatStateInCombat;
 				}
-			}
-
-			if ([self cast:wrath on:mob]){
-				return CombatStateInCombat;
 			}
 			
 			
@@ -368,6 +410,7 @@
 	self.abolishPoison = [MPSpell abolishPoison];
 	self.curePoison = [MPSpell curePoison];
 	self.insectSwarm = [MPSpell insectSwarm];
+	self.innervate = [MPSpell innervate];
 	self.wrath = [MPSpell wrath];
 	self.mf    = [MPSpell moonfire];
 	self.motw  = [MPSpell motw];
@@ -382,6 +425,7 @@
 	[spells addObject:abolishPoison];
 	[spells addObject:curePoison];
 	[spells addObject:insectSwarm];
+	[spells addObject:innervate];
 	[spells addObject:wrath];
 	[spells addObject:mf];
 	[spells addObject:motw];
@@ -414,7 +458,7 @@
 	////
 	//// Physical
 	////
-	self.autoAttack = [MPSpell autoAttack];
+	self.meleeAttack = [MPSpell autoAttack];
 	
 	
 	//// 

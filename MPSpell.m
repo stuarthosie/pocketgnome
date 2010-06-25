@@ -185,7 +185,7 @@
 	GUID myGUID = [[PlayerDataController sharedController] GUID];
 	
 	for(Aura *aura in [[AuraController sharedController] aurasForUnit: unit idsOnly: NO]) {
-        if((aura.entryID == spellID) && (!aura.isDebuff) && (aura.guid = myGUID))
+        if((aura.entryID == spellID) && (!aura.isDebuff) && (aura.guid == myGUID))
             return aura.stacks ? aura.stacks : YES;
     }
 	return NO;
@@ -199,7 +199,7 @@
 	GUID myGUID = [[PlayerDataController sharedController] GUID];
 	
 	for(Aura *aura in [[AuraController sharedController] aurasForUnit: unit idsOnly: NO]) {
-        if((aura.entryID == spellID) && (aura.isDebuff) && (aura.guid = myGUID))
+        if((aura.entryID == spellID) && (aura.isDebuff) && (aura.guid == myGUID))
             return aura.stacks ? aura.stacks : YES;
     }
 	return NO;
@@ -243,7 +243,7 @@
 	
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Shoot Weapon"];
-	[newSpell addID:  3018];  
+	[newSpell addID:  3018]; //75 
 	
 	[newSpell loadPlayerSettings];
 	
@@ -347,7 +347,20 @@
 	[newSpell addID: 24977];  // Rank 5
 	[newSpell addID: 27013];  // Rank 6
 	[newSpell addID: 48468];  // Rank 7
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+}
 
+
+
++ (id) innervate {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Innervate"];
+	[newSpell addID: 29166];  // only 1 Rank 
+	
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -527,6 +540,197 @@
 
 
 ////
+//// Hunter Spells
+////
+
+
++ (id) arcaneShot {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Arcane Shot"];
+	[newSpell addID:  3044];  // Rank 1
+	[newSpell addID: 14281];  // Rank 2
+	[newSpell addID: 14282];  // Rank 3
+	[newSpell addID: 14283];  // Rank 4
+	[newSpell addID: 14284];  // Rank 5
+	[newSpell addID: 14285];  // Rank 6
+	[newSpell addID: 14286];  // Rank 7
+	[newSpell addID: 14287];  // Rank 8
+	[newSpell addID: 27019];  // Rank 9
+	[newSpell addID: 49044];  // Rank 10
+	[newSpell addID: 49055];  // Rank 11
+	
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+}
+
+
+
++ (id) aspectHawk {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Aspect of the Hawk"];
+	[newSpell addID:  13165]; // Rank 1
+	[newSpell addID:  14318]; // Rank 2
+	[newSpell addID:  14319]; // Rank 3
+	[newSpell addID:  14320]; // Rank 4
+	[newSpell addID:  14321]; // Rank 5
+	[newSpell addID:  14322]; // Rank 6
+	[newSpell addID:  25296]; // Rank 7
+	[newSpell addID:  27044]; // Rank 8
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
++ (id) aspectMonkey {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Aspect of the Monkey"];
+	[newSpell addID:  13163]; 
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
++ (id) aspectViper {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Aspect of the Viper"];
+	[newSpell addID:  34074]; 
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
++ (id) autoShot {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Auto Shot"];
+	[newSpell addID:  75]; 
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
+
++ (id) huntersMark {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Hunters Mark"];
+	[newSpell addID:  1130]; // Rank 1
+	[newSpell addID: 14323]; // Rank 2
+	[newSpell addID: 14324]; // Rank 3
+	[newSpell addID: 14325]; // Rank 4
+	[newSpell addID: 53338]; // Rank 2
+	
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
+
++ (id) mendPet {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Mend Pet"];
+	[newSpell addID:   136]; // Rank 1
+	[newSpell addID:  3111]; // Rank 2
+	[newSpell addID:  3661]; // Rank 3
+	[newSpell addID:  3662]; // Rank 4
+	[newSpell addID: 13542]; // Rank 5
+	[newSpell addID: 13543]; // Rank 6
+	[newSpell addID: 13544]; // Rank 7
+	[newSpell addID: 27046]; // Rank 8
+	[newSpell addID: 48989]; // Rank 9
+	[newSpell addID: 48990]; // Rank 10
+	
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
+
++ (id) raptorStrike {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Raptor Strike"];
+	[newSpell addID:  2973]; // Rank 1
+	[newSpell addID: 14260]; // Rank 2
+	[newSpell addID: 14261]; // Rank 3
+	[newSpell addID: 14262]; // Rank 4
+	[newSpell addID: 14263]; // Rank 5
+	[newSpell addID: 14264]; // Rank 6
+	[newSpell addID: 14265]; // Rank 7
+	[newSpell addID: 14266]; // Rank 8
+	[newSpell addID: 27014]; // Rank 9
+	[newSpell addID: 48995]; // Rank 10
+	[newSpell addID: 48996]; // Rank 11
+	
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
+
++ (id) serpentSting {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Serpent Sting"];
+	[newSpell addID:  1978]; // Rank 1
+	[newSpell addID: 13549]; // Rank 2
+	[newSpell addID: 13550]; // Rank 3
+	[newSpell addID: 13551]; // Rank 4
+	[newSpell addID: 13552]; // Rank 5
+	[newSpell addID: 13553]; // Rank 6
+	[newSpell addID: 13554]; // Rank 7
+	[newSpell addID: 13555]; // Rank 8
+	[newSpell addID: 25295]; // Rank 9
+	[newSpell addID: 27016]; // Rank 10
+	[newSpell addID: 49000]; // Rank 11
+	[newSpell addID: 49001]; // Rank 12
+	
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+	
+}
+
+
+
+
+////
 //// Priest Spells
 ////
 
@@ -571,6 +775,24 @@
 	[newSpell setName:@"Dispel Magic"];
 	[newSpell addID:  527];  // Rank 1
 	[newSpell addID:  988];  // Rank 2
+	
+	[newSpell loadPlayerSettings];
+	
+	return newSpell;
+}
+
+
+
++ (id) divineSpirit {
+	
+	MPSpell *newSpell = [MPSpell spell];
+	[newSpell setName:@"Divine Spirit"];
+	[newSpell addID:  14752];  // Rank 1
+	[newSpell addID:  14818];  // Rank 2
+	[newSpell addID:  14819];  // Rank 3
+	[newSpell addID:  27841];  // Rank 4
+	[newSpell addID:  25312];  // Rank 5
+	[newSpell addID:  48073];  // Rank 6
 	
 	[newSpell loadPlayerSettings];
 	
