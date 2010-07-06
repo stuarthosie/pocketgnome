@@ -39,6 +39,6 @@
 }
 - (NSString*)ipAddress
 {
-        return [NSString stringWithCString:inet_ntoa([self sockAddrStruct].sin_addr)];
+   return [NSString stringWithCString:inet_ntoa([self sockAddrStruct].sin_addr) encoding:NSASCIIStringEncoding];
 }
 @end
