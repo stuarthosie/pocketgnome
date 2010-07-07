@@ -250,15 +250,6 @@
 - (IBAction) changeAreaFromText: sender;
 
 /*!
- * @function updateNavMeshView
- * @abstract uh.. updates the nav mesh view
- * @discussion Only called with [self performSelectorInBackground..]
- *
- */
-- (void) updateNavMeshView;
-
-
-/*!
  * @function updateUI
  * @abstract Refreshes the UserInterface.
  * @discussion
