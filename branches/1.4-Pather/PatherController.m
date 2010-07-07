@@ -438,7 +438,8 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 			
 			// this button was just clicked to ON, so start a thread to update
 			// the display:
-			[NSThread detachNewThreadSelector:@selector(updateNavMeshView) toTarget:self withObject:nil];
+			//[NSThread detachNewThreadSelector:@selector(updateNavMeshView) toTarget:self withObject:nil];
+			[self performSelectorInBackground:@selector(updateNavMeshView:) withObject:nil];
 		}
 	}
 	
@@ -478,36 +479,35 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 #pragma mark -
 #pragma mark NavMesh Display
 
-- (void) updateNavMeshView: (id) anObject {
+- (void) updateNavMeshView {
 
-	PGLog(@"Starting updateNavMeshView Thread ...");
+	//PGLog(@"updateNavMeshView: Opening..");
 	isThreadStartedNavMeshView = YES;
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	while ([navMeshLiveUpdating state] ) {
+		//PGLog(@"updateNavMeshThread: while loop iteration");
 		
-//		PGLog (@" updating navmeshView ...");
-		
-		// get list of squares in NavMeshView area
+		// update player position
 		Position *playerPosition = [playerData position];
-		NSArray *listSquares = [navigationController listSquaresInView:navMeshView aroundLocation: (MPLocation *)playerPosition];
-		
-		// update NavMeshView with that list
-		[navMeshView setDisplayedSquares:listSquares];
-		
-		// mark NavMeshView as wanting to update it's display
-		[navMeshView setNeedsDisplay: YES];
-		
 		[labelCurrentPosition setStringValue: [NSString stringWithFormat:@"[ %0.2f, %0.2f, %0.2f]", [playerPosition xPosition], [playerPosition yPosition], [playerPosition zPosition]]];
-		[labelNumSquares setStringValue: [NSString stringWithFormat:@"%d",[[navigationController allSquares] count]]];
-		[labelNumPoints setStringValue: [NSString stringWithFormat:@"%d",[[navigationController allPoints] count]]];
-	
+		
+		// get list of squares
+		NSArray *listSquares = [navigationController listSquaresInView:navMeshView aroundLocation: (MPLocation *)playerPosition];
+		// update NavMeshView with list and mark for update
+		[navMeshView setDisplayedSquares:listSquares];
+		[navMeshView setNeedsDisplay: YES];
+		// show number of squares and points
+		[labelNumSquares setStringValue: [NSString stringWithFormat:@"%d", [[navigationController allSquares] count]]];
+		[labelNumPoints setStringValue: [NSString stringWithFormat:@"%d", [[navigationController allPoints] count]]];
+		
+		//PGLog(@"updateNavMeshThread: sleeping");
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.16]];
 		
 	}
 	
-	PGLog(@"closing updateNavMeshView Thread ...");
+	//PGLog(@"updateNavMeshThread: closing thread ...");
 	[pool release];
 	isThreadStartedNavMeshView = NO;
 }
@@ -1152,7 +1152,8 @@ PGLog( @"        ---> RunningStateRunning");
 			
 			// this button was just clicked to ON, so start a thread to update
 			// the display:
-			[NSThread detachNewThreadSelector:@selector(updateNavMeshView:) toTarget:self withObject:nil];
+			//[NSThread detachNewThreadSelector:@selector(updateNavMeshView) toTarget:self withObject:nil];
+			[self performSelectorInBackground:@selector(updateNavMeshView:) withObject:nil];
 		}
 	}
  
