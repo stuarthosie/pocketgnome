@@ -59,8 +59,8 @@
 - (NSString *) ghostRouteTaskData;
 
 // thread for updating the NavMeshView
-- (void) updateNavMeshView: (id) anObject;
-- (void) updateNavMeshAdjustment: (id) anObject;
+- (void) updateNavMeshView;
+- (void) updateNavMeshAdjustment;
 
 @end
 
@@ -439,7 +439,7 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 			// this button was just clicked to ON, so start a thread to update
 			// the display:
 			//[NSThread detachNewThreadSelector:@selector(updateNavMeshView) toTarget:self withObject:nil];
-			[self performSelectorInBackground:@selector(updateNavMeshView:) withObject:nil];
+			[self performSelectorInBackground:@selector(updateNavMeshView) withObject:nil];
 		}
 	}
 	
@@ -514,7 +514,7 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 
 
 
-- (void) updateNavMeshAdjustment: (id) anObject {
+- (void) updateNavMeshAdjustment {
 	
 	PGLog(@"Starting updateNavMeshAdjustment Thread ...");
 	isThreadStartedNavMeshAdjustments = YES;
@@ -840,7 +840,8 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 		
 		if (!isThreadStartedNavMeshAdjustments) {
 			// make sure our thread for updating our NavMesh is running
-			[NSThread detachNewThreadSelector:@selector(updateNavMeshAdjustment) toTarget:self withObject:nil];
+			//[NSThread detachNewThreadSelector:@selector(updateNavMeshAdjustment) toTarget:self withObject:nil];
+			[self performSelectorInBackground:@selector(updateNavMeshAdjustment) withObject:nil];
 			
 		}
 	}// end if
@@ -1141,7 +1142,8 @@ PGLog( @"        ---> RunningStateRunning");
 		
 		if (!isThreadStartedNavMeshAdjustments) {
 			// make sure our thread for updating our NavMesh is running
-			[NSThread detachNewThreadSelector:@selector(updateNavMeshAdjustment:) toTarget:self withObject:nil];
+			//[NSThread detachNewThreadSelector:@selector(updateNavMeshAdjustment:) toTarget:self withObject:nil];
+			[self performSelectorInBackground:@selector(updateNavMeshAdjustment) withObject:nil];
 			
 		}
 	}// end if
@@ -1153,7 +1155,7 @@ PGLog( @"        ---> RunningStateRunning");
 			// this button was just clicked to ON, so start a thread to update
 			// the display:
 			//[NSThread detachNewThreadSelector:@selector(updateNavMeshView) toTarget:self withObject:nil];
-			[self performSelectorInBackground:@selector(updateNavMeshView:) withObject:nil];
+			[self performSelectorInBackground:@selector(updateNavMeshView) withObject:nil];
 		}
 	}
  
