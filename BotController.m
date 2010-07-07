@@ -5689,8 +5689,6 @@ end
 	 PGLog(@"%c", newBuffer[k]);
 	 }
 	 
-	 
-	 /*
 	 UInt32 addressOfSpellStruct = 0x0;
 	 [memory loadDataForObject: self atAddress: rowPtr Buffer:(Byte*)&addressOfSpellStruct BufLength: sizeof(addressOfSpellStruct)];
 	 

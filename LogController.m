@@ -30,7 +30,7 @@
 
 + (BOOL) canLog:(char*)type_s, ...
 {
-	NSString* type = [NSString stringWithFormat:@"log_%s", type_s];
+	//NSString* type = [NSString stringWithFormat:@"log_%s", type_s];
 	
 	
 	return YES;
