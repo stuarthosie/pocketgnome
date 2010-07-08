@@ -185,6 +185,14 @@
 		34D5FCFA10686F1900712FD0 /* MPActivityWalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 34D5FCF910686F1900712FD0 /* MPActivityWalk.m */; };
 		34F71FD511852634009F75C9 /* MPCustomClassScrubPriest.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F71FD411852634009F75C9 /* MPCustomClassScrubPriest.m */; };
 		34F71FD811852913009F75C9 /* MPCustomClassScrub.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F71FD711852913009F75C9 /* MPCustomClassScrub.m */; };
+		3D4A22C611E5A70400CE5158 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22B511E5A70400CE5158 /* common.c */; };
+		3D4A22C711E5A70400CE5158 /* explode.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22B811E5A70400CE5158 /* explode.c */; };
+		3D4A22C811E5A70400CE5158 /* extract.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22BA11E5A70400CE5158 /* extract.c */; };
+		3D4A22C911E5A70400CE5158 /* huffman.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22BC11E5A70400CE5158 /* huffman.c */; };
+		3D4A22CA11E5A70400CE5158 /* mpq.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22BF11E5A70400CE5158 /* mpq.c */; };
+		3D4A22CB11E5A70400CE5158 /* wave.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22C411E5A70400CE5158 /* wave.c */; };
+		3D4A22D011E5D12800CE5158 /* MpqTriangleSupplier.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */; };
+		3D4A22D511E5D49100CE5158 /* DBC.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22D411E5D49100CE5158 /* DBC.m */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
 		7D0C43D10DF2089E005F3940 /* ScanGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C43D00DF2089E005F3940 /* ScanGridView.m */; };
@@ -789,6 +797,27 @@
 		34F71FD411852634009F75C9 /* MPCustomClassScrubPriest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPCustomClassScrubPriest.m; sourceTree = "<group>"; };
 		34F71FD611852913009F75C9 /* MPCustomClassScrub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPCustomClassScrub.h; sourceTree = "<group>"; };
 		34F71FD711852913009F75C9 /* MPCustomClassScrub.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPCustomClassScrub.m; sourceTree = "<group>"; };
+		3D4A22B511E5A70400CE5158 /* common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
+		3D4A22B611E5A70400CE5158 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		3D4A22B711E5A70400CE5158 /* crypt_buf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypt_buf.h; sourceTree = "<group>"; };
+		3D4A22B811E5A70400CE5158 /* explode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = explode.c; sourceTree = "<group>"; };
+		3D4A22B911E5A70400CE5158 /* explode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = explode.h; sourceTree = "<group>"; };
+		3D4A22BA11E5A70400CE5158 /* extract.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = extract.c; sourceTree = "<group>"; };
+		3D4A22BB11E5A70400CE5158 /* extract.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = extract.h; sourceTree = "<group>"; };
+		3D4A22BC11E5A70400CE5158 /* huffman.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = huffman.c; sourceTree = "<group>"; };
+		3D4A22BD11E5A70400CE5158 /* huffman.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = huffman.h; sourceTree = "<group>"; };
+		3D4A22BE11E5A70400CE5158 /* mpq-internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpq-internal.h"; sourceTree = "<group>"; };
+		3D4A22BF11E5A70400CE5158 /* mpq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpq.c; sourceTree = "<group>"; };
+		3D4A22C011E5A70400CE5158 /* mpq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpq.h; sourceTree = "<group>"; };
+		3D4A22C111E5A70400CE5158 /* pack_begin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pack_begin.h; sourceTree = "<group>"; };
+		3D4A22C211E5A70400CE5158 /* pack_end.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pack_end.h; sourceTree = "<group>"; };
+		3D4A22C311E5A70400CE5158 /* platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = platform.h; sourceTree = "<group>"; };
+		3D4A22C411E5A70400CE5158 /* wave.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = wave.c; sourceTree = "<group>"; };
+		3D4A22C511E5A70400CE5158 /* wave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wave.h; sourceTree = "<group>"; };
+		3D4A22CE11E5D12800CE5158 /* MpqTriangleSupplier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MpqTriangleSupplier.h; sourceTree = "<group>"; };
+		3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MpqTriangleSupplier.m; sourceTree = "<group>"; };
+		3D4A22D311E5D49100CE5158 /* DBC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBC.h; sourceTree = "<group>"; };
+		3D4A22D411E5D49100CE5158 /* DBC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBC.m; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1562,6 +1591,8 @@
 		34B0946D10670BC100EC8D5A /* MPather */ = {
 			isa = PBXGroup;
 			children = (
+				3D4A22CD11E5D11100CE5158 /* PPather */,
+				3D4A22B111E5A6E500CE5158 /* libmpq */,
 				340895D011623B43002A16B7 /* Movement */,
 				34B0946E10670BC100EC8D5A /* Activities */,
 				3430EAC2106A307600F7B575 /* CustomClass */,
@@ -1731,6 +1762,41 @@
 			);
 			name = Utilities;
 			sourceTree = SOURCE_ROOT;
+		};
+		3D4A22B111E5A6E500CE5158 /* libmpq */ = {
+			isa = PBXGroup;
+			children = (
+				3D4A22B511E5A70400CE5158 /* common.c */,
+				3D4A22B611E5A70400CE5158 /* common.h */,
+				3D4A22B711E5A70400CE5158 /* crypt_buf.h */,
+				3D4A22B811E5A70400CE5158 /* explode.c */,
+				3D4A22B911E5A70400CE5158 /* explode.h */,
+				3D4A22BA11E5A70400CE5158 /* extract.c */,
+				3D4A22BB11E5A70400CE5158 /* extract.h */,
+				3D4A22BC11E5A70400CE5158 /* huffman.c */,
+				3D4A22BD11E5A70400CE5158 /* huffman.h */,
+				3D4A22BE11E5A70400CE5158 /* mpq-internal.h */,
+				3D4A22BF11E5A70400CE5158 /* mpq.c */,
+				3D4A22C011E5A70400CE5158 /* mpq.h */,
+				3D4A22C111E5A70400CE5158 /* pack_begin.h */,
+				3D4A22C211E5A70400CE5158 /* pack_end.h */,
+				3D4A22C311E5A70400CE5158 /* platform.h */,
+				3D4A22C411E5A70400CE5158 /* wave.c */,
+				3D4A22C511E5A70400CE5158 /* wave.h */,
+			);
+			name = libmpq;
+			sourceTree = "<group>";
+		};
+		3D4A22CD11E5D11100CE5158 /* PPather */ = {
+			isa = PBXGroup;
+			children = (
+				3D4A22CE11E5D12800CE5158 /* MpqTriangleSupplier.h */,
+				3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */,
+				3D4A22D311E5D49100CE5158 /* DBC.h */,
+				3D4A22D411E5D49100CE5158 /* DBC.m */,
+			);
+			name = PPather;
+			sourceTree = "<group>";
 		};
 		7D2167440DC4566600D5A815 /* PTKeyCode */ = {
 			isa = PBXGroup;
@@ -2741,6 +2807,14 @@
 				34F71FD811852913009F75C9 /* MPCustomClassScrub.m in Sources */,
 				3451D3091187BBC1007C7134 /* MPTaskPartyWait.m in Sources */,
 				348C9C5011A3EC7F00D87DDD /* MPCustomClassScrubHunter.m in Sources */,
+				3D4A22C611E5A70400CE5158 /* common.c in Sources */,
+				3D4A22C711E5A70400CE5158 /* explode.c in Sources */,
+				3D4A22C811E5A70400CE5158 /* extract.c in Sources */,
+				3D4A22C911E5A70400CE5158 /* huffman.c in Sources */,
+				3D4A22CA11E5A70400CE5158 /* mpq.c in Sources */,
+				3D4A22CB11E5A70400CE5158 /* wave.c in Sources */,
+				3D4A22D011E5D12800CE5158 /* MpqTriangleSupplier.m in Sources */,
+				3D4A22D511E5D49100CE5158 /* DBC.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
