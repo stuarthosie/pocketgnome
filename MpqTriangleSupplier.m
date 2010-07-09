@@ -53,13 +53,13 @@
 	wmomanager = new WMOManager(archive, modelmanager, 30);
 	*/
 
-	[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
+	/*[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
 			fromMpqList:archiveNames
 			toFile:[NSString stringWithFormat:@"%@/%@",
 					NSTemporaryDirectory(),
 					@"DBFilesClient/AreaTable.dbc"]];
 	
-	areaDbc = [[DBC alloc] init];
+	areaDbc = [[DBC alloc] init]; */
 }
 
 /*
