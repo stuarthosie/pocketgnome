@@ -20,7 +20,6 @@
 
 #import "MpqTriangleSupplier.h"
 
-
 @implementation MpqTriangleSupplier
 
 - (id) init {
@@ -56,11 +55,11 @@
 
 	[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
 			fromMpqList:archiveNames
-			toFile:[NSString stringWithFormat:"%@/%@",
+			toFile:[NSString stringWithFormat:@"%@/%@",
 					NSTemporaryDirectory(),
 					@"DBFilesClient/AreaTable.dbc"]];
 	
-	DBC * areaList = [[DBC alloc] init];
+	areaDbc = [[DBC alloc] init];
 }
 
 /*

@@ -19,6 +19,7 @@
 */
 
 #import <Foundation/Foundation.h>
+#import "PPather.h"
 
 
 @interface DBC : NSObject {
@@ -27,8 +28,8 @@
 	uint fieldCount;
 	uint recordSize;
 	
-	uint[] rawRecords;
-	byte[] strings;
+	NSMutableArray *recordUints;
+	NSMutableArray *recordBytes;
 
 }
 

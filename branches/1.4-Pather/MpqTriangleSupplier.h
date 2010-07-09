@@ -19,6 +19,7 @@
 */
 
 #import <Foundation/Foundation.h>
+#import "PPather.h"
 
 
 @interface MpqTriangleSupplier : NSObject {
@@ -26,6 +27,8 @@
 	NSString * gamePath;
 	NSString * continentFile;
 	NSMutableArray * archiveNames;
+	
+	DBC *areaDbc;
 	
 }
 

@@ -20,32 +20,25 @@
  
 #import "DBC.h"
 
-
 @implementation DBC
-
-@synthesize recordCount;
-@synthesize fieldCount;
-@synthesize recordSize;
-@synthesize rawRecords;
-@synthesize strings;
 
 - (uint) getUintForRecord:(int)record withId:(int)id {
 	int recoff = (int)(record * fieldCount + id);
-	return rawRecords[recoff];
+	return (uint)[recordUints objectAtIndex:recoff];
 }
 
 - (uint) getIntForRecord:(int)record withId:(int)id {
 	int recoff = (int)(record * fieldCount + id);
-	return (int)rawRecords[recoff];
+	return (int)[recordUints objectAtIndex:recoff];
 }
 
 - (NSString *) getStringForRecord:(int)record withId:(int)id {
 	int recoff = (int)(record * fieldCount + id);
 	NSMutableString * returnString = [NSMutableString stringWithCapacity:64];
 	
-	byte b = strings[recoff++];
-	while (b != 0)
-		[returnString appendFormat:@"%b", b];
+	NSString *c = (NSString *)[recordBytes objectAtIndex:recoff++];
+	while (c != 0)
+		[returnString appendFormat:@"%@", c];
 	
 	return [NSString stringWithString:returnString];
 }
