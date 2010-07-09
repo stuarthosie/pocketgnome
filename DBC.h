@@ -18,7 +18,7 @@
 	Ported to Objective-C by wjlafrance@gmail.com (finished 07/08/2010)
 */
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 #import "PPather.h"
 
 

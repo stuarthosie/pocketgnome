@@ -22,6 +22,8 @@
 
 @implementation DBC
 
+#warning wtf were you thinking maethor? better ways to do this, ie nested NSArray
+
 - (uint) getUintForRecord:(int)record withId:(int)id {
 	int recoff = (int)(record * fieldCount + id);
 	return (uint)[recordUints objectAtIndex:recoff];

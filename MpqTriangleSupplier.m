@@ -47,19 +47,25 @@
 	// original pather detected this from registry
 	gamePath = @"/Applications/World of WarCraft/Data";
 	PGLog(@"Game directory (hardcoded): %@", gamePath);
-
+	
+	#warning MpqTriangleSupplier not finished porting
+	
 	/*
-	modelmanager = new ModelManager(archive, 80);
-	wmomanager = new WMOManager(archive, modelmanager, 30);
-	*/
-
-	/*[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
+	[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
 			fromMpqList:archiveNames
 			toFile:[NSString stringWithFormat:@"%@/%@",
 					NSTemporaryDirectory(),
 					@"DBFilesClient/AreaTable.dbc"]];
 	
 	areaDbc = [[DBC alloc] init]; */
+
+	/*
+	modelmanager = new ModelManager(archive, 80);
+	wmomanager = new WMOManager(archive, modelmanager, 30);
+	*/
+
+
+	return self;
 }
 
 /*
