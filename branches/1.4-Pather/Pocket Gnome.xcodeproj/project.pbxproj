@@ -193,6 +193,7 @@
 		3D4A22CB11E5A70400CE5158 /* wave.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22C411E5A70400CE5158 /* wave.c */; };
 		3D4A22D011E5D12800CE5158 /* MpqTriangleSupplier.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */; };
 		3D4A22D511E5D49100CE5158 /* DBC.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22D411E5D49100CE5158 /* DBC.m */; };
+		3D4A237211E6F1FC00CE5158 /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4A237111E6F1FC00CE5158 /* libbz2.a */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
 		7D0C43D10DF2089E005F3940 /* ScanGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C43D00DF2089E005F3940 /* ScanGridView.m */; };
@@ -819,6 +820,7 @@
 		3D4A22D311E5D49100CE5158 /* DBC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBC.h; sourceTree = "<group>"; };
 		3D4A22D411E5D49100CE5158 /* DBC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBC.m; sourceTree = "<group>"; };
 		3D4A231211E6EABC00CE5158 /* PPather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PPather.h; sourceTree = "<group>"; };
+		3D4A237111E6F1FC00CE5158 /* libbz2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libbz2.a; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1191,6 +1193,7 @@
 				0322D72F110744D500EF3EEF /* CoreData.framework in Frameworks */,
 				0393F413110A205800296CF8 /* libcrypto.dylib in Frameworks */,
 				283E08911166E13400DE13C5 /* Sparkle.framework in Frameworks */,
+				3D4A237211E6F1FC00CE5158 /* libbz2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1432,6 +1435,7 @@
 		29B97314FDCFA39411CA2CEA /* WoWWaypoint */ = {
 			isa = PBXGroup;
 			children = (
+				3D4A22CD11E5D11100CE5158 /* PPather */,
 				34B0946D10670BC100EC8D5A /* MPather */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				7D97730C0D2DBF2800E6D8F9 /* GUI Controllers */,
@@ -1592,8 +1596,6 @@
 		34B0946D10670BC100EC8D5A /* MPather */ = {
 			isa = PBXGroup;
 			children = (
-				3D4A22CD11E5D11100CE5158 /* PPather */,
-				3D4A22B111E5A6E500CE5158 /* libmpq */,
 				340895D011623B43002A16B7 /* Movement */,
 				34B0946E10670BC100EC8D5A /* Activities */,
 				3430EAC2106A307600F7B575 /* CustomClass */,
@@ -1767,6 +1769,7 @@
 		3D4A22B111E5A6E500CE5158 /* libmpq */ = {
 			isa = PBXGroup;
 			children = (
+				3D4A237111E6F1FC00CE5158 /* libbz2.a */,
 				3D4A22B511E5A70400CE5158 /* common.c */,
 				3D4A22B611E5A70400CE5158 /* common.h */,
 				3D4A22B711E5A70400CE5158 /* crypt_buf.h */,
@@ -1791,6 +1794,7 @@
 		3D4A22CD11E5D11100CE5158 /* PPather */ = {
 			isa = PBXGroup;
 			children = (
+				3D4A22B111E5A6E500CE5158 /* libmpq */,
 				3D4A231211E6EABC00CE5158 /* PPather.h */,
 				3D4A22CE11E5D12800CE5158 /* MpqTriangleSupplier.h */,
 				3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */,
@@ -2866,6 +2870,10 @@
 				GCC_WARN_SIGN_COMPARE = NO;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				PRODUCT_NAME = ggteabag;
 				VALID_ARCHS = "ppc i386";
 				WRAPPER_EXTENSION = app;
@@ -2896,6 +2904,10 @@
 				GCC_WARN_UNUSED_PARAMETER = NO;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				PRODUCT_NAME = "Pocket Gnome";
 				VALID_ARCHS = "ppc i386";
 				WARNING_CFLAGS = "";
