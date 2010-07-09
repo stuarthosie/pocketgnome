@@ -818,6 +818,7 @@
 		3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MpqTriangleSupplier.m; sourceTree = "<group>"; };
 		3D4A22D311E5D49100CE5158 /* DBC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBC.h; sourceTree = "<group>"; };
 		3D4A22D411E5D49100CE5158 /* DBC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBC.m; sourceTree = "<group>"; };
+		3D4A231211E6EABC00CE5158 /* PPather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PPather.h; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1790,6 +1791,7 @@
 		3D4A22CD11E5D11100CE5158 /* PPather */ = {
 			isa = PBXGroup;
 			children = (
+				3D4A231211E6EABC00CE5158 /* PPather.h */,
 				3D4A22CE11E5D12800CE5158 /* MpqTriangleSupplier.h */,
 				3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */,
 				3D4A22D311E5D49100CE5158 /* DBC.h */,
