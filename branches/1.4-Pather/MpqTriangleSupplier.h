@@ -18,9 +18,8 @@
 	Ported to Objective-C by wjlafrance@gmail.com (in progress)
 */
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 #import "PPather.h"
-
 
 @interface MpqTriangleSupplier : NSObject {
 

@@ -194,6 +194,8 @@
 		3D4A22D011E5D12800CE5158 /* MpqTriangleSupplier.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */; };
 		3D4A22D511E5D49100CE5158 /* DBC.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22D411E5D49100CE5158 /* DBC.m */; };
 		3D4A237211E6F1FC00CE5158 /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4A237111E6F1FC00CE5158 /* libbz2.a */; };
+		3DCB745011E72533009764FA /* DBCFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB744F11E72533009764FA /* DBCFile.m */; };
+		3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
 		7D0C43D10DF2089E005F3940 /* ScanGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C43D00DF2089E005F3940 /* ScanGridView.m */; };
@@ -821,6 +823,10 @@
 		3D4A22D411E5D49100CE5158 /* DBC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBC.m; sourceTree = "<group>"; };
 		3D4A231211E6EABC00CE5158 /* PPather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PPather.h; sourceTree = "<group>"; };
 		3D4A237111E6F1FC00CE5158 /* libbz2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libbz2.a; sourceTree = "<group>"; };
+		3DCB744E11E72533009764FA /* DBCFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBCFile.h; sourceTree = "<group>"; };
+		3DCB744F11E72533009764FA /* DBCFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBCFile.m; sourceTree = "<group>"; };
+		3DCB747611E72DFF009764FA /* NSData+ByteAtIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ByteAtIndex.h"; sourceTree = "<group>"; };
+		3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+ByteAtIndex.m"; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1794,14 +1800,26 @@
 		3D4A22CD11E5D11100CE5158 /* PPather */ = {
 			isa = PBXGroup;
 			children = (
+				3DCB747211E72DD3009764FA /* CocoaAdditions */,
 				3D4A22B111E5A6E500CE5158 /* libmpq */,
 				3D4A231211E6EABC00CE5158 /* PPather.h */,
+				3DCB744E11E72533009764FA /* DBCFile.h */,
+				3DCB744F11E72533009764FA /* DBCFile.m */,
 				3D4A22CE11E5D12800CE5158 /* MpqTriangleSupplier.h */,
 				3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */,
 				3D4A22D311E5D49100CE5158 /* DBC.h */,
 				3D4A22D411E5D49100CE5158 /* DBC.m */,
 			);
 			name = PPather;
+			sourceTree = "<group>";
+		};
+		3DCB747211E72DD3009764FA /* CocoaAdditions */ = {
+			isa = PBXGroup;
+			children = (
+				3DCB747611E72DFF009764FA /* NSData+ByteAtIndex.h */,
+				3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */,
+			);
+			name = CocoaAdditions;
 			sourceTree = "<group>";
 		};
 		7D2167440DC4566600D5A815 /* PTKeyCode */ = {
@@ -2821,6 +2839,8 @@
 				3D4A22CB11E5A70400CE5158 /* wave.c in Sources */,
 				3D4A22D011E5D12800CE5158 /* MpqTriangleSupplier.m in Sources */,
 				3D4A22D511E5D49100CE5158 /* DBC.m in Sources */,
+				3DCB745011E72533009764FA /* DBCFile.m in Sources */,
+				3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
