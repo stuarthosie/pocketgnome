@@ -185,6 +185,7 @@
 		34D5FCFA10686F1900712FD0 /* MPActivityWalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 34D5FCF910686F1900712FD0 /* MPActivityWalk.m */; };
 		34F71FD511852634009F75C9 /* MPCustomClassScrubPriest.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F71FD411852634009F75C9 /* MPCustomClassScrubPriest.m */; };
 		34F71FD811852913009F75C9 /* MPCustomClassScrub.m in Sources */ = {isa = PBXBuildFile; fileRef = 34F71FD711852913009F75C9 /* MPCustomClassScrub.m */; };
+		3D00462011E9DA51001B91FA /* MpqOneshotExtractor.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D00461F11E9DA51001B91FA /* MpqOneshotExtractor.m */; };
 		3D4A22C611E5A70400CE5158 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22B511E5A70400CE5158 /* common.c */; };
 		3D4A22C711E5A70400CE5158 /* explode.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22B811E5A70400CE5158 /* explode.c */; };
 		3D4A22C811E5A70400CE5158 /* extract.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22BA11E5A70400CE5158 /* extract.c */; };
@@ -800,6 +801,8 @@
 		34F71FD411852634009F75C9 /* MPCustomClassScrubPriest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPCustomClassScrubPriest.m; sourceTree = "<group>"; };
 		34F71FD611852913009F75C9 /* MPCustomClassScrub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPCustomClassScrub.h; sourceTree = "<group>"; };
 		34F71FD711852913009F75C9 /* MPCustomClassScrub.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPCustomClassScrub.m; sourceTree = "<group>"; };
+		3D00461E11E9DA51001B91FA /* MpqOneshotExtractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MpqOneshotExtractor.h; sourceTree = "<group>"; };
+		3D00461F11E9DA51001B91FA /* MpqOneshotExtractor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MpqOneshotExtractor.m; sourceTree = "<group>"; };
 		3D4A22B511E5A70400CE5158 /* common.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = common.c; sourceTree = "<group>"; };
 		3D4A22B611E5A70400CE5158 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		3D4A22B711E5A70400CE5158 /* crypt_buf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypt_buf.h; sourceTree = "<group>"; };
@@ -1809,6 +1812,8 @@
 				3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */,
 				3D4A22D311E5D49100CE5158 /* DBC.h */,
 				3D4A22D411E5D49100CE5158 /* DBC.m */,
+				3D00461E11E9DA51001B91FA /* MpqOneshotExtractor.h */,
+				3D00461F11E9DA51001B91FA /* MpqOneshotExtractor.m */,
 			);
 			name = PPather;
 			sourceTree = "<group>";
@@ -2841,6 +2846,7 @@
 				3D4A22D511E5D49100CE5158 /* DBC.m in Sources */,
 				3DCB745011E72533009764FA /* DBCFile.m in Sources */,
 				3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */,
+				3D00462011E9DA51001B91FA /* MpqOneshotExtractor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
