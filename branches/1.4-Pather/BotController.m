@@ -4732,6 +4732,12 @@ NSMutableDictionary *_diffDict = nil;
 	[self startClick];
 }
 
+- (IBAction)maethor: (id)sender {
+	// pather stuff
+	PGLog(@"Ending the world.");
+	MpqTriangleSupplier *mts = [[MpqTriangleSupplier alloc] init];
+}
+
 /*
  using System.Runtime.InteropServices;
  

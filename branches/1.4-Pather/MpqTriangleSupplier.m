@@ -24,40 +24,41 @@
 
 - (id) init {
 
-	archiveNames = [NSMutableArray arrayWithObjects:
-			@"common.MPQ",
-			@"common-2.MPQ",
-			@"expansion.MPQ",
-			@"lichking.MPQ",
-			@"patch.MPQ",
-			@"enUS\\patch-enUS.MPQ",
-			@"enGB\\patch-enGB.MPQ",
-			@"enUS\\lichking-locale-enUS.MPQ",
-			@"enGB\\lichking-locale-enGB.MPQ",
-			@"enUS\\locale-enUS.MPQ",
-			@"enGB\\locale-enGB.MPQ",
-			@"enUS\\expansion-locale-enUS.MPQ",
-			@"enGB\\expansion-locale-enGB.MPQ",
-			@"enUS\\base-enUS.MPQ",
-			@"enGB\\base-enGB.MPQ",
-			@"enUS\\backup-enUS.MPQ",
-			@"enGB\\backup-enGB.MPQ",
-			nil];
-	
-	// original pather detected this from registry
+
+	// original pather detected this from registry, rather difficult on mac
 	gamePath = @"/Applications/World of WarCraft/Data";
 	PGLog(@"Game directory (hardcoded): %@", gamePath);
+
+	archiveNames = [NSMutableArray arrayWithObjects:
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"common.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"common-2.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"expansion.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"lichking.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"patch.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\patch-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\patch-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\lichking-locale-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\lichking-locale-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\locale-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\locale-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\expansion-locale-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\expansion-locale-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\base-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\base-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\backup-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\backup-enGB.MPQ"],
+			nil];
 	
-	#warning MpqTriangleSupplier not finished porting
-	
-	/*
 	[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
 			fromMpqList:archiveNames
 			toFile:[NSString stringWithFormat:@"%@/%@",
 					NSTemporaryDirectory(),
 					@"DBFilesClient/AreaTable.dbc"]];
 	
-	areaDbc = [[DBC alloc] init]; */
+	//areaDbc = [[DBC alloc] init];
+	
+	
+	#warning MpqTriangleSupplier not finished porting
 
 	/*
 	modelmanager = new ModelManager(archive, 80);

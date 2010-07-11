@@ -25,6 +25,12 @@
 
 #import <Cocoa/Cocoa.h>
 
+#ifndef PPather_h
+	#warning pather import only for testing
+	#include "PPather.h"
+	#define PPather_h
+#endif
+
 @class Mob;
 @class Unit;
 @class Rule;
@@ -330,6 +336,7 @@
 - (IBAction)test: (id)sender;
 - (IBAction)test2: (id)sender;
 - (IBAction)maltby: (id)sender;
+- (IBAction)maethor: (id)sender;
 - (IBAction)login: (id)sender;
 
 // Little more flexibility - casts spells! Uses items/macros!
