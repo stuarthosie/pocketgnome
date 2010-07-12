@@ -35,24 +35,24 @@
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"expansion.MPQ"],
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"lichking.MPQ"],
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"patch.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\patch-enUS.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\patch-enGB.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\lichking-locale-enUS.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\lichking-locale-enGB.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\locale-enUS.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\locale-enGB.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\expansion-locale-enUS.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\expansion-locale-enGB.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\base-enUS.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\base-enGB.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS\\backup-enUS.MPQ"],
-			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB\\backup-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS/patch-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/patch-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS/lichking-locale-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/lichking-locale-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS/locale-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/locale-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS/expansion-locale-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/expansion-locale-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS/base-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/base-enGB.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enUS/backup-enUS.MPQ"],
+			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/backup-enGB.MPQ"],
 			nil];
 	
 	[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
 			fromMpqList:archiveNames
-			toFile:[NSString stringWithFormat:@"%@/%@",
-					NSTemporaryDirectory(),
+			toFile:[NSString stringWithFormat:@"%@/%@/%@",
+					NSHomeDirectory(), @"pather-temp",
 					@"DBFilesClient/AreaTable.dbc"]];
 	
 	//areaDbc = [[DBC alloc] init];

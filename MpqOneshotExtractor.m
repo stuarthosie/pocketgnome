@@ -11,11 +11,9 @@
 
 @implementation MpqOneshotExtractor
 
-
-#warning actual extraction is not complete, just reading the listfile
 + (BOOL) extractFile:(NSString *)filename fromMpqList:(NSArray *)mpqList toFile:(NSString *)newPath {
-	PGLog(@"Attempting to extract file @\"%@\" to @\"%@\" from these MPQ files:\n%@",
-		filename, newPath, mpqList);
+	/*PGLog(@"Attempting to extract file @\"%@\" to @\"%@\" from these MPQ files:\n%@",
+		filename, newPath, mpqList);*/
 	
 	int i;
 	for (i = 0; i < [mpqList count]; i++) {
@@ -25,15 +23,13 @@
 		mpq_archive_s *archive = nil;
 		
 		if (libmpq__archive_open(&archive, [mpqFilename cStringUsingEncoding:NSASCIIStringEncoding], -1) == 0) {
-			PGLog(@"Successfully opened archive. Reading listfile.");
+			PGLog(@"Successfully opened archive.");
 			
 			uint32_t listfile_number;
 			const char *listfile = "(listfile)";
-			PGLog(@"Trying to get number for %s", listfile);
 
 			if (libmpq__file_number(archive, listfile, &listfile_number) == 0) {
-				PGLog(@"Got listfile number.");
-				PGLog(@"Listfile is #%i. Let's read it.", listfile_number);
+				PGLog(@"Got listfile number: #%i. Let's read it.", listfile_number);
 				
 				NSMutableArray *filesInMpq = [NSMutableArray arrayWithCapacity:64];
 				
@@ -41,25 +37,26 @@
 				char *listfile;
 				if (libmpq__file_unpacked_size(archive, listfile_number, &listfile_size) == 0) {
 					listfile = malloc(listfile_size);
-					libmpq__file_read(archive, listfile_number, listfile, listfile_size, nil);
 					
-					char *filename = strtok(listfile, "\r\n");
-					while (filename) {
-						[filesInMpq addObject:[NSString stringWithCString:filename encoding:NSASCIIStringEncoding]];
-						filename = strtok(NULL, "\r\n");
-					}
+					if (libmpq__file_read(archive, listfile_number, (uint8_t *)listfile, listfile_size, nil) == 0) {
 					
-					free(listfile);
-					
-					PGLog(@"Found these files: %@", filesInMpq);
-					
-					if ([filesInMpq containsObject:filename]) {
-						PGLog(@"Uber important news guys: we found our file.");
+						char *nextFileName = strtok(listfile, "\r\n");
+						while (nextFileName) {
+							[filesInMpq addObject:[NSString stringWithCString:nextFileName encoding:NSASCIIStringEncoding]];
+							nextFileName = strtok(NULL, "\r\n");
+						}
 						
-						#warning do extrating here
-						return YES;
-					} else {
-						// move along
+						free(listfile);
+						
+						if ([filesInMpq containsObject:filename]) {
+							PGLog(@"Found file. \"%@\" is in \"%@\"", filename, mpqFilename);
+							return [self extractFile:filename fromArchive:mpqFilename toFile:newPath];
+						} else {
+							PGLog(@"Didn't find file. Moving on.");
+						}
+					
+					} else {	// libmpq__file_read
+						PGLog(@"Failed to read listfile.");
 					}
 					
 				} else { // libmpq__file_unpacked_size
@@ -73,7 +70,6 @@
 			// close the archive, i really don't care if this doesn't work
 			libmpq__archive_close(archive);
 			
-			
 		} else { // libmpq__archive_open
 			PGLog(@"Failed to open archive. Moving on.");
 		}
@@ -82,6 +78,64 @@
 	
 	return NO;
 
+}
+
+
+/**
+ * totally unnecessary return NO; :-\
+ */
++ (BOOL) extractFile:(NSString *)filename fromArchive:(NSString *)mpqFile toFile:(NSString *)newPath {
+	PGLog(@"Extracting \"%@\" to \"%@\".", filename, newPath);
+
+	mpq_archive_s *archive = nil;
+	if (libmpq__archive_open(&archive, [mpqFile cStringUsingEncoding:NSASCIIStringEncoding], -1) == 0) {
+		PGLog(@"Opened archive.");
+		
+		uint32_t filenumber;
+		if (libmpq__file_number(archive, [filename cStringUsingEncoding:NSASCIIStringEncoding], &filenumber) == 0) {
+			PGLog(@"Got file number.");
+			
+			off_t filesize;
+			if (libmpq__file_unpacked_size(archive, filenumber, &filesize) == 0) {
+				PGLog(@"Got unpacked size.");
+			
+				#warning i sure hope someone doesn't try extracting a file above 512MB or so
+				char *file = malloc(filesize);
+				if (file) {
+					PGLog(@"Malloc'd successfully.");
+					
+					if (libmpq__file_read(archive, filenumber, (uint8_t *)file, filesize, nil) == 0) {
+						PGLog(@"Read file into malloc'd memory.");
+					
+						FILE *filehandle = fopen([newPath cStringUsingEncoding:NSASCIIStringEncoding], "w");
+						if (filehandle) {
+							PGLog(@"Got file handle.");
+						
+							#warning add path creation
+							fwrite(file, 1, filesize, filehandle);
+							fclose(filehandle);
+						
+						} else { // file handle test
+							PGLog(@"Couldn't get file handle.");
+						} 
+						
+					} // libmpq__file_read
+				
+					free(file);
+				} // malloc test
+				
+			
+			}	// libmpq__file_unpacked_size
+		
+		} // libmpq__file_number
+		
+		if (libmpq__archive_close(archive) == 0) {
+			// closed the archive
+		}	// libmpq__archive_close
+	
+	} // libmpq__archive_open
+
+	return NO;
 }
 
 @end

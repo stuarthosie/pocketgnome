@@ -15,5 +15,6 @@
 }
 
 + (BOOL) extractFile:(NSString *)filename fromMpqList:(NSArray *)mpqList toFile:(NSString *)newPath;
++ (BOOL) extractFile:(NSString *)filename fromArchive:(NSString *)mpqFile toFile:(NSString *)newPath;
 
 @end
