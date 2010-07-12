@@ -18,6 +18,7 @@
 	uint stringSize;
 	
 	NSMutableArray *data;
+	NSMutableArray *stringdata;
 	
 }
 

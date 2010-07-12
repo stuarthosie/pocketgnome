@@ -69,7 +69,8 @@
 	
 	int i;
 	for (i = 0; i < [areaDbc numberOfRecords]; i++) {
-		PGLog(@"Area ID: %u, World ID: %u, Parent ID: %u",
+		PGLog(@"Area Name: %@, ID: %u, World ID: %u, Parent ID: %u",
+			[areaDbc getStringForRecord:i andField:4],
 			[areaDbc getUintForRecord:i andField:0],
 			[areaDbc getUintForRecord:i andField:1],
 			[areaDbc getUintForRecord:i andField:2]);

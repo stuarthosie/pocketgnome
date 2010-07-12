@@ -49,6 +49,7 @@ NSData *fgetdata(FILE *fh, int length) {
 	//	filename, recordCount, fieldCount, recordSize, stringSize);
 	
 	data = [NSMutableArray arrayWithCapacity:recordCount];
+	stringdata = [[NSMutableArray alloc] init];
 	
 	int i, j;
 	for (i = 0; i < recordCount; i++) {
@@ -57,6 +58,26 @@ NSData *fgetdata(FILE *fh, int length) {
 			[thisRecord addObject:[NSNumber numberWithUnsignedInt:fgetui32(fh)]];
 		[data addObject:thisRecord];
 	}
+	
+	// read all them strings
+	fgetc(fh);
+	NSMutableString *myString = [NSMutableString string];
+	while(true) {
+		int c = fgetc(fh);
+		if (c < 1) { // null or EOF
+			PGLog(@"New string: %@", myString);
+			[stringdata addObject:[NSString stringWithString:myString]];
+			myString = [NSMutableString string];
+			if (c == -1) {
+				break;
+			}
+		} else {
+			[myString appendFormat:@"%c", (char)c];
+		}
+	}	
+	
+	// clean up
+	fclose(fh);
 	
 	return self;
 }
@@ -68,6 +89,15 @@ NSData *fgetdata(FILE *fh, int length) {
 - (uint) getUintForRecord:(int)record andField:(int)field {
 	NSArray *thisRecord = [data objectAtIndex:record];
 	return [[thisRecord objectAtIndex:field] unsignedIntValue];
+}
+
+- (NSString *) getStringForRecord:(int)record andField:(int)field {
+	NSArray *thisRecord = [data objectAtIndex:record];
+	int thisField = [[thisRecord objectAtIndex:field] unsignedIntValue];
+	if (thisField >= [stringdata count]) {
+		return @"(unknown)";
+	}
+	return [stringdata objectAtIndex:thisField];
 }
 
 @end
