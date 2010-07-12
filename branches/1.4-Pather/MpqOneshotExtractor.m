@@ -18,18 +18,18 @@
 	int i;
 	for (i = 0; i < [mpqList count]; i++) {
 		NSString *mpqFilename = [mpqList objectAtIndex:i];
-		PGLog(@"Attempting file number %i: %@", i, mpqFilename);
+		//PGLog(@"Attempting file number %i: %@", i, mpqFilename);
 		
 		mpq_archive_s *archive = nil;
 		
 		if (libmpq__archive_open(&archive, [mpqFilename cStringUsingEncoding:NSASCIIStringEncoding], -1) == 0) {
-			PGLog(@"Successfully opened archive.");
+			//PGLog(@"Successfully opened archive.");
 			
 			uint32_t listfile_number;
 			const char *listfile = "(listfile)";
 
 			if (libmpq__file_number(archive, listfile, &listfile_number) == 0) {
-				PGLog(@"Got listfile number: #%i. Let's read it.", listfile_number);
+				//PGLog(@"Got listfile number: #%i. Let's read it.", listfile_number);
 				
 				NSMutableArray *filesInMpq = [NSMutableArray arrayWithCapacity:64];
 				
@@ -52,7 +52,7 @@
 							PGLog(@"Found file. \"%@\" is in \"%@\"", filename, mpqFilename);
 							return [self extractFile:filename fromArchive:mpqFilename toFile:newPath];
 						} else {
-							PGLog(@"Didn't find file. Moving on.");
+							//PGLog(@"Didn't find file. Moving on.");
 						}
 					
 					} else {	// libmpq__file_read
@@ -77,39 +77,34 @@
 	} // close for loop
 	
 	return NO;
-
 }
 
-
-/**
- * totally unnecessary return NO; :-\
- */
 + (BOOL) extractFile:(NSString *)filename fromArchive:(NSString *)mpqFile toFile:(NSString *)newPath {
 	PGLog(@"Extracting \"%@\" to \"%@\".", filename, newPath);
 
 	mpq_archive_s *archive = nil;
 	if (libmpq__archive_open(&archive, [mpqFile cStringUsingEncoding:NSASCIIStringEncoding], -1) == 0) {
-		PGLog(@"Opened archive.");
+		//PGLog(@"Opened archive.");
 		
 		uint32_t filenumber;
 		if (libmpq__file_number(archive, [filename cStringUsingEncoding:NSASCIIStringEncoding], &filenumber) == 0) {
-			PGLog(@"Got file number.");
+			//PGLog(@"Got file number.");
 			
 			off_t filesize;
 			if (libmpq__file_unpacked_size(archive, filenumber, &filesize) == 0) {
-				PGLog(@"Got unpacked size.");
+				//PGLog(@"Got unpacked size.");
 			
 				#warning i sure hope someone doesn't try extracting a file above 512MB or so
 				char *file = malloc(filesize);
 				if (file) {
-					PGLog(@"Malloc'd successfully.");
+					//PGLog(@"Malloc'd successfully.");
 					
 					if (libmpq__file_read(archive, filenumber, (uint8_t *)file, filesize, nil) == 0) {
-						PGLog(@"Read file into malloc'd memory.");
+						//PGLog(@"Read file into malloc'd memory.");
 					
 						FILE *filehandle = fopen([newPath cStringUsingEncoding:NSASCIIStringEncoding], "w");
 						if (filehandle) {
-							PGLog(@"Got file handle.");
+							//PGLog(@"Got file handle.");
 						
 							#warning add path creation
 							fwrite(file, 1, filesize, filehandle);
