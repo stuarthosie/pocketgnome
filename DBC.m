@@ -1,48 +1,73 @@
-/*
-	This file is part of ppather.
-
-	PPather is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Lesser General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	PPather is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Lesser General Public License for more details.
-
-	You should have received a copy of the GNU Lesser General Public License
-	along with ppather.  If not, see <http://www.gnu.org/licenses/>.
-
-	Copyright Pontus Borg 2008
-	Ported to Objective-C by wjlafrance@gmail.com (finished 07/08/2010)
-*/
+//
+//  MpqOneshotExtractor.h
+//  Pocket Gnome
+//
+//  Created by William LaFrance on 7/11/10.
+//  Copyright 2010 Savory Software, LLC. All rights reserved.
+//
  
 #import "DBC.h"
 
 @implementation DBC
 
-#warning wtf were you thinking maethor? better ways to do this, ie nested NSArray
-
-- (uint) getUintForRecord:(int)record withId:(int)id {
-	int recoff = (int)(record * fieldCount + id);
-	return (uint)[recordUints objectAtIndex:recoff];
+uint fgetui32(FILE *fh) {
+	return ((fgetc(fh) << 0) & 0x000000FF) |
+		   ((fgetc(fh) <<  8) & 0x0000FF00) |
+		   ((fgetc(fh) << 16) & 0x00FF0000) |
+		   ((fgetc(fh) << 24) & 0xFF000000);
 }
 
-- (uint) getIntForRecord:(int)record withId:(int)id {
-	int recoff = (int)(record * fieldCount + id);
-	return (int)[recordUints objectAtIndex:recoff];
+NSData *fgetdata(FILE *fh, int length) {
+	int i;
+	NSMutableData *ret = [[NSMutableData alloc] initWithLength:length];
+	for (i = 0; i < length; i++) {
+		int c = fgetc(fh);
+		[ret appendBytes:&c length:1];
+	}
+	return [NSData dataWithData:ret];
 }
 
-- (NSString *) getStringForRecord:(int)record withId:(int)id {
-	int recoff = (int)(record * fieldCount + id);
-	NSMutableString * returnString = [NSMutableString stringWithCapacity:64];
+- (id) initWithDbcFile:(NSString *)filename {
+
+	FILE *fh = fopen([filename cStringUsingEncoding:NSASCIIStringEncoding], "r");
+	if (!fh) {
+		PGLog(@"Unable to open DBC file \"%@\".", filename);
+		return nil;
+	}
 	
-	NSString *c = (NSString *)[recordBytes objectAtIndex:recoff++];
-	while (c != 0)
-		[returnString appendFormat:@"%@", c];
+	if (!((fgetc(fh) == 'W') && (fgetc(fh) == 'D') && (fgetc(fh) == 'B') && (fgetc(fh) == 'C'))) {
+		PGLog(@"Invalid DBC header for file \"%@\".", filename);
+		return nil;
+	}
 	
-	return [NSString stringWithString:returnString];
+	recordCount = fgetui32(fh);
+	fieldCount = fgetui32(fh);
+	recordSize = fgetui32(fh);
+	stringSize = fgetui32(fh);
+	
+	//PGLog(@"Loaded header for DBC file \"%@\". Records: %i, fields: %i, record size: %i, string size: %i",
+	//	filename, recordCount, fieldCount, recordSize, stringSize);
+	
+	data = [NSMutableArray arrayWithCapacity:recordCount];
+	
+	int i, j;
+	for (i = 0; i < recordCount; i++) {
+		NSMutableArray *thisRecord = [NSMutableArray arrayWithCapacity:fieldCount];
+		for (j = 0; j < fieldCount; j++)
+			[thisRecord addObject:[NSNumber numberWithUnsignedInt:fgetui32(fh)]];
+		[data addObject:thisRecord];
+	}
+	
+	return self;
+}
+
+- (uint) numberOfRecords {
+	return recordCount;
+}
+
+- (uint) getUintForRecord:(int)record andField:(int)field {
+	NSArray *thisRecord = [data objectAtIndex:record];
+	return [[thisRecord objectAtIndex:field] unsignedIntValue];
 }
 
 @end

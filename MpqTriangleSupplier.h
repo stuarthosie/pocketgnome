@@ -27,7 +27,6 @@
 	NSString * continentFile;
 	NSMutableArray * archiveNames;
 	
-	//DBC *areaDbc;
 	
 }
 

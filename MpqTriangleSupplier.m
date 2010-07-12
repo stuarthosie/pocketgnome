@@ -54,9 +54,27 @@
 			toFile:[NSString stringWithFormat:@"%@/%@/%@",
 					NSHomeDirectory(), @"pather-temp",
 					@"DBFilesClient/AreaTable.dbc"]];
+					
+	DBC *areaDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@/%@/%@",
+					NSHomeDirectory(), @"pather-temp",
+					@"DBFilesClient/AreaTable.dbc"]];
+					
+	PGLog(@"Number of records: %i", [areaDbc numberOfRecords]);
+					
+					/*
+					int AreaID = (int)areas.GetUint(i, 0);
+				int WorldID = (int)areas.GetUint(i, 1);
+				int Parent = (int)areas.GetUint(i, 2);
+				string Name = areas.GetString(i, 11);*/
 	
-	//areaDbc = [[DBC alloc] init];
-	
+	int i;
+	for (i = 0; i < [areaDbc numberOfRecords]; i++) {
+		PGLog(@"Area ID: %u, World ID: %u, Parent ID: %u",
+			[areaDbc getUintForRecord:i andField:0],
+			[areaDbc getUintForRecord:i andField:1],
+			[areaDbc getUintForRecord:i andField:2]);
+			
+	}
 	
 	#warning MpqTriangleSupplier not finished porting
 
