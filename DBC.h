@@ -25,5 +25,7 @@
 - (id) initWithDbcFile:(NSString *)filename;
 - (uint) numberOfRecords;
 - (uint) getUintForRecord:(int)record andField:(int)field;
+- (NSString *) getStringForRecord:(int)record andField:(int)field;
+- (int) getRecordNumberByValue:(uint)value ofField:(uint)field;
 
 @end
