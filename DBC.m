@@ -60,19 +60,28 @@ NSData *fgetdata(FILE *fh, int length) {
 	}
 	
 	// read all them strings
-	fgetc(fh);
+	int nextIndex = 0;		// index to insert next string at
+	int currentIndex = 0;	// index we're currently at
 	NSMutableString *myString = [NSMutableString string];
 	while(true) {
+		currentIndex++;
 		int c = fgetc(fh);
 		if (c < 1) { // null or EOF
-			PGLog(@"New string: %@", myString);
-			[stringdata addObject:[NSString stringWithString:myString]];
-			myString = [NSMutableString string];
-			if (c == -1) {
+			if ([myString length] > 0) { // don't add empty strings
+				//PGLog(@"New string: %@", myString);
+				[stringdata insertObject:[NSString stringWithString:myString] atIndex:nextIndex];
+				myString = [NSMutableString string];
+			}
+			nextIndex = currentIndex;
+			if (c == -1) {	// EOF
 				break;
 			}
 		} else {
 			[myString appendFormat:@"%c", (char)c];
+			[stringdata addObject:[NSString string]]; // this is a serious waste of memory
+			// but unfortunately, we need to have an object in there, not just nil. I figure
+			// an empty string is pretty small. Any better ideas?
+			#warning fix bad idea
 		}
 	}	
 	

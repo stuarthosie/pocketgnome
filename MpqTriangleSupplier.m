@@ -59,18 +59,12 @@
 					NSHomeDirectory(), @"pather-temp",
 					@"DBFilesClient/AreaTable.dbc"]];
 					
-	PGLog(@"Number of records: %i", [areaDbc numberOfRecords]);
-					
-					/*
-					int AreaID = (int)areas.GetUint(i, 0);
-				int WorldID = (int)areas.GetUint(i, 1);
-				int Parent = (int)areas.GetUint(i, 2);
-				string Name = areas.GetString(i, 11);*/
+	//PGLog(@"Number of records: %i", [areaDbc numberOfRecords]);
 	
 	int i;
 	for (i = 0; i < [areaDbc numberOfRecords]; i++) {
-		PGLog(@"Area Name: %@, ID: %u, World ID: %u, Parent ID: %u",
-			[areaDbc getStringForRecord:i andField:4],
+		PGLog(@"Area Name: %@, area ID: %u, world ID: %u, parent ID: %u",
+			[areaDbc getStringForRecord:i andField:11],
 			[areaDbc getUintForRecord:i andField:0],
 			[areaDbc getUintForRecord:i andField:1],
 			[areaDbc getUintForRecord:i andField:2]);
