@@ -26,7 +26,6 @@
 #import <Cocoa/Cocoa.h>
 
 #ifndef PPather_h
-	#warning pather import only for testing
 	#include "PPather.h"
 	#define PPather_h
 #endif
