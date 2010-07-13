@@ -96,17 +96,34 @@ NSData *fgetdata(FILE *fh, int length) {
 }
 
 - (uint) getUintForRecord:(int)record andField:(int)field {
+	if (record < 0)
+		return 0;
+		
 	NSArray *thisRecord = [data objectAtIndex:record];
 	return [[thisRecord objectAtIndex:field] unsignedIntValue];
 }
 
 - (NSString *) getStringForRecord:(int)record andField:(int)field {
+	if (record < 0)
+		return @"(unknown)";
+	
 	NSArray *thisRecord = [data objectAtIndex:record];
 	int thisField = [[thisRecord objectAtIndex:field] unsignedIntValue];
 	if (thisField >= [stringdata count]) {
 		return @"(unknown)";
 	}
 	return [stringdata objectAtIndex:thisField];
+}
+
+- (int) getRecordNumberByValue:(uint)value ofField:(uint)field {
+	int i;
+	for (i = 0; i < recordCount; i++) {
+		if ([self getUintForRecord:i andField:field] == value) {
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 @end

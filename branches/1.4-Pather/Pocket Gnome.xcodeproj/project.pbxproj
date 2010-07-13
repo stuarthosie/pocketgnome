@@ -195,6 +195,7 @@
 		3D4A22D011E5D12800CE5158 /* MpqTriangleSupplier.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */; };
 		3D4A22D511E5D49100CE5158 /* DBC.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A22D411E5D49100CE5158 /* DBC.m */; };
 		3D4A237211E6F1FC00CE5158 /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4A237111E6F1FC00CE5158 /* libbz2.a */; };
+		3DB7B72311EC357B008E7620 /* NSString+StringWithPadding.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DB7B72211EC357B008E7620 /* NSString+StringWithPadding.m */; };
 		3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
@@ -825,6 +826,8 @@
 		3D4A22D411E5D49100CE5158 /* DBC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBC.m; sourceTree = "<group>"; };
 		3D4A231211E6EABC00CE5158 /* PPather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PPather.h; sourceTree = "<group>"; };
 		3D4A237111E6F1FC00CE5158 /* libbz2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libbz2.a; sourceTree = "<group>"; };
+		3DB7B72111EC357B008E7620 /* NSString+StringWithPadding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+StringWithPadding.h"; sourceTree = "<group>"; };
+		3DB7B72211EC357B008E7620 /* NSString+StringWithPadding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+StringWithPadding.m"; sourceTree = "<group>"; };
 		3DCB747611E72DFF009764FA /* NSData+ByteAtIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ByteAtIndex.h"; sourceTree = "<group>"; };
 		3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+ByteAtIndex.m"; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
@@ -1818,6 +1821,8 @@
 			children = (
 				3DCB747611E72DFF009764FA /* NSData+ByteAtIndex.h */,
 				3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */,
+				3DB7B72111EC357B008E7620 /* NSString+StringWithPadding.h */,
+				3DB7B72211EC357B008E7620 /* NSString+StringWithPadding.m */,
 			);
 			name = CocoaAdditions;
 			sourceTree = "<group>";
@@ -2841,6 +2846,7 @@
 				3D4A22D511E5D49100CE5158 /* DBC.m in Sources */,
 				3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */,
 				3D00462011E9DA51001B91FA /* MpqOneshotExtractor.m in Sources */,
+				3DB7B72311EC357B008E7620 /* NSString+StringWithPadding.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

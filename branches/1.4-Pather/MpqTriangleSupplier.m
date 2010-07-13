@@ -15,7 +15,7 @@
 	along with ppather.  If not, see <http://www.gnu.org/licenses/>.
 
 	Copyright Pontus Borg 2008
-	Ported to Objective-C by wjlafrance@gmail.com (in progress)
+	Ported to Objective-C by wjlafrance@gmail.com
 */
 
 #import "MpqTriangleSupplier.h"
@@ -24,12 +24,15 @@
 
 - (id) init {
 
+	zoneToMapId = [[NSMutableDictionary alloc] init];
+	mapIdToFileName = [[NSMutableDictionary alloc] init];
+	areaIdToName = [[NSMutableDictionary alloc] init];
 
 	// original pather detected this from registry, rather difficult on mac
 	gamePath = @"/Applications/World of WarCraft/Data";
 	PGLog(@"Game directory (hardcoded): %@", gamePath);
-
-	archiveNames = [NSMutableArray arrayWithObjects:
+	
+	archiveNames = [NSArray arrayWithObjects:
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"common.MPQ"],
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"common-2.MPQ"],
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"expansion.MPQ"],
@@ -54,23 +57,49 @@
 			toFile:[NSString stringWithFormat:@"%@/%@/%@",
 					NSHomeDirectory(), @"pather-temp",
 					@"DBFilesClient/AreaTable.dbc"]];
-					
-	DBC *areaDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@/%@/%@",
+	[MpqOneshotExtractor extractFile:@"DBFilesClient\\Map.dbc"
+			fromMpqList:archiveNames
+			toFile:[NSString stringWithFormat:@"%@/%@/%@",
 					NSHomeDirectory(), @"pather-temp",
-					@"DBFilesClient/AreaTable.dbc"]];
-					
-	//PGLog(@"Number of records: %i", [areaDbc numberOfRecords]);
+					@"DBFilesClient/Map.dbc"]];
+	
+	DBC *areaDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@/%@/%@",
+			NSHomeDirectory(), @"pather-temp",
+			@"DBFilesClient/AreaTable.dbc"]];
+	DBC *mapsDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@/%@/%@",
+			NSHomeDirectory(), @"pather-temp",
+			@"DBFilesClient/Map.dbc"]];
 	
 	int i;
 	for (i = 0; i < [areaDbc numberOfRecords]; i++) {
-		PGLog(@"Area Name: %@, area ID: %u, world ID: %u, parent ID: %u",
-			[areaDbc getStringForRecord:i andField:11],
-			[areaDbc getUintForRecord:i andField:0],
-			[areaDbc getUintForRecord:i andField:1],
-			[areaDbc getUintForRecord:i andField:2]);
-			
+		uint areaId    = [areaDbc getUintForRecord:i andField:0];
+		uint worldId   = [areaDbc getUintForRecord:i andField:1];	// continent
+		uint parentId  = [areaDbc getUintForRecord:i andField:2];	// region
+		int parentRecord = [areaDbc getRecordNumberByValue:parentId ofField:0];
+		
+		NSString *areaName = [areaDbc getStringForRecord:i andField:11];
+		NSString *parentAreaName = [areaDbc getStringForRecord:parentRecord andField:11];
+		
+		[areaIdToName setObject:areaName forKey:[NSNumber numberWithUnsignedInt:areaId]];
+		
+		if (parentRecord == -1) {
+			[zoneToMapId setObject:[NSNumber numberWithUnsignedInt:worldId] forKey:areaName];
+		} else {
+			[zoneToMapId setObject:[NSNumber numberWithUnsignedInt:worldId]
+				forKey:[NSString stringWithFormat:@"%@:%@", areaName, parentAreaName]];
+		}
 	}
 	
+	for (i = 0; i < [mapsDbc numberOfRecords]; i++) {
+		uint mapId = [mapsDbc getUintForRecord:i andField:0];
+		NSString *file = [mapsDbc getStringForRecord:i andField:1];
+		NSString *name = [mapsDbc getStringForRecord:i andField:4];
+		NSLog(@"ID: %u, file: %@, name: %@", mapId, file, name);
+	}
+	
+	
+
+
 	#warning MpqTriangleSupplier not finished porting
 
 	/*
@@ -81,65 +110,7 @@
 
 	return self;
 }
-
 /*
-            archive.ExtractFile("DBFilesClient\\AreaTable.dbc", Application.StartupPath + "\\Temps\\AreaTable.dbc");
-			DBC areas = new DBC();
-            DBCFile af = new DBCFile(Application.StartupPath + "\\Temps\\AreaTable.dbc", areas);
-			for (int i = 0; i < areas.recordCount; i++)
-			{
-				int AreaID = (int)areas.GetUint(i, 0);
-				int WorldID = (int)areas.GetUint(i, 1);
-				int Parent = (int)areas.GetUint(i, 2);
-				string Name = areas.GetString(i, 11);
-
-				areaIdToName.Add(AreaID, Name);
-
-
-				if (WorldID != 0 && WorldID != 1 && WorldID != 530)
-				{
-					////   Console.WriteLine(String.Format("{0,4} {1,3} {2,3} {3}", AreaID, WorldID, Parent, Name));
-				}
-				//0 	 uint 	 AreaID
-				//1 	uint 	Continent (refers to a WorldID)
-				//2 	uint 	Region (refers to an AreaID)
-			}
-
-			for (int i = 0; i < areas.recordCount; i++)
-			{
-				int AreaID = (int)areas.GetUint(i, 0);
-				int WorldID = (int)areas.GetUint(i, 1);
-				int Parent = (int)areas.GetUint(i, 2);
-				string Name = areas.GetString(i, 11);
-
-				string TotalName = "";
-				//areaIdToName.Add(AreaID, Name);
-				//areaIdParent.Add(AreaID, Parent);
-				string ParentName = "";
-				if (!areaIdToName.TryGetValue(Parent, out ParentName))
-				{
-					TotalName = ":" + Name;
-				}
-				else
-					TotalName = Name + ":" + ParentName;
-				try
-				{
-					zoneToMapId.Add(TotalName, WorldID);
-					//Console.WriteLine(TotalName + " => " + WorldID);
-				}
-				catch
-				{
-					int id;
-					zoneToMapId.TryGetValue(TotalName, out id);
-					////  Console.WriteLine("Duplicate: " + TotalName + " " + WorldID +" " + id);
-				}
-				//0 	 uint 	 AreaID
-				//1 	uint 	Continent (refers to a WorldID)
-				//2 	uint 	Region (refers to an AreaID)
-			}
-		}
-
-
 }
 		string continentFile;
 

@@ -23,10 +23,13 @@
 
 @interface MpqTriangleSupplier : NSObject {
 
-	NSString * gamePath;
-	NSString * continentFile;
-	NSMutableArray * archiveNames;
+	NSString *gamePath;
+	NSString *continentFile;
+	NSArray *archiveNames;
 	
+	NSMutableDictionary *zoneToMapId;
+	NSMutableDictionary *mapIdToFileName;
+	NSMutableDictionary *areaIdToName;
 	
 }
 
