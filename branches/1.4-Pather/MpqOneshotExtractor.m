@@ -80,35 +80,37 @@
 }
 
 + (BOOL) extractFile:(NSString *)filename fromArchive:(NSString *)mpqFile toFile:(NSString *)newPath {
+	BOOL success = NO;
+
 	PGLog(@"Extracting \"%@\" to \"%@\".", filename, newPath);
 
 	mpq_archive_s *archive = nil;
 	if (libmpq__archive_open(&archive, [mpqFile cStringUsingEncoding:NSASCIIStringEncoding], -1) == 0) {
-		//PGLog(@"Opened archive.");
 		
 		uint32_t filenumber;
 		if (libmpq__file_number(archive, [filename cStringUsingEncoding:NSASCIIStringEncoding], &filenumber) == 0) {
-			//PGLog(@"Got file number.");
 			
 			off_t filesize;
 			if (libmpq__file_unpacked_size(archive, filenumber, &filesize) == 0) {
-				//PGLog(@"Got unpacked size.");
 			
 				#warning i sure hope someone doesn't try extracting a file above 512MB or so
 				char *file = malloc(filesize);
 				if (file) {
-					//PGLog(@"Malloc'd successfully.");
 					
 					if (libmpq__file_read(archive, filenumber, (uint8_t *)file, filesize, nil) == 0) {
-						//PGLog(@"Read file into malloc'd memory.");
+						
+						NSFileManager *fileman = [NSFileManager defaultManager];
+						NSLog(@"Attempting to create directory: %@", [NSString stringWithDirectoryOfFile:newPath]);
+						[fileman createDirectoryAtPath:[NSString stringWithDirectoryOfFile:newPath]
+							withIntermediateDirectories:YES
+							attributes:nil error:nil];
 					
 						FILE *filehandle = fopen([newPath cStringUsingEncoding:NSASCIIStringEncoding], "w");
 						if (filehandle) {
-							//PGLog(@"Got file handle.");
-						
-							#warning add path creation
+							
 							fwrite(file, 1, filesize, filehandle);
 							fclose(filehandle);
+							success = YES;
 						
 						} else { // file handle test
 							PGLog(@"Couldn't get file handle.");
@@ -117,8 +119,9 @@
 					} // libmpq__file_read
 				
 					free(file);
-				} // malloc test
-				
+				} else { // malloc test
+					PGLog(@"Malloc for %i bytes failed.", filesize);
+				}
 			
 			}	// libmpq__file_unpacked_size
 		
@@ -130,7 +133,7 @@
 	
 	} // libmpq__archive_open
 
-	return NO;
+	return success;
 }
 
 @end

@@ -24,6 +24,8 @@
 @interface MpqTriangleSupplier : NSObject {
 
 	NSString *gamePath;
+	NSString *patherDataPath;
+	
 	NSString *continentFile;
 	NSArray *archiveNames;
 	

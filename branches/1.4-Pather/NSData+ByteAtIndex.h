@@ -11,6 +11,9 @@
 
 @interface NSData (PPatherAdditions)
 
+/**
+ * Returns the byte at a certain index. Durr. Binary safe.
+ */
 - (Byte) byteAtIndex:(NSUInteger)index;
 
 @end
