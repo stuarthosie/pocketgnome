@@ -11,7 +11,25 @@
 
 @interface NSString (PPatherAdditions)
 
-+ stringWithLeftPadding:(int)padding originalString:(NSString *)originalString;
-+ stringWithRightPadding:(int)padding originalString:(NSString *)originalString;
+/**
+ * Returns a left-padded string, useful for aligning numerical data
+ * IE: 8, @"string" would return
+ *     @"   string"
+ */
++ (NSString *)stringWithLeftPadding:(int)padding originalString:(NSString *)originalString;
+
+/**
+ * Returns a right-padded string, useful for aligning text-data
+ * IE: 8, @"string" would return
+ *        @"string    "
+ */
++ (NSString *)stringWithRightPadding:(int)padding originalString:(NSString *)originalString;
+
+/**
+ * Returns a the path of a file.
+ * IE: @"/this/is/a/path/to/file.txt" would return
+ *     @"/this/is/a/path/to/"
+ */
++ (NSString *)stringWithDirectoryOfFile:(NSString *)filename;
 
 @end

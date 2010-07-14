@@ -31,6 +31,9 @@
 	// original pather detected this from registry, rather difficult on mac
 	gamePath = @"/Applications/World of WarCraft/Data";
 	PGLog(@"Game directory (hardcoded): %@", gamePath);
+	patherDataPath = [NSString stringWithFormat:@"%@/Library/Application Support/PPather/",
+		NSHomeDirectory()];
+	PGLog(@"Pather data directory: %@", patherDataPath);
 	
 	archiveNames = [NSArray arrayWithObjects:
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"common.MPQ"],
@@ -52,23 +55,21 @@
 			[NSString stringWithFormat:@"%@/%@", gamePath, @"enGB/backup-enGB.MPQ"],
 			nil];
 	
+	// DBC Extraction
 	[MpqOneshotExtractor extractFile:@"DBFilesClient\\AreaTable.dbc"
 			fromMpqList:archiveNames
-			toFile:[NSString stringWithFormat:@"%@/%@/%@",
-					NSHomeDirectory(), @"pather-temp",
-					@"DBFilesClient/AreaTable.dbc"]];
+			toFile:[NSString stringWithFormat:@"%@%@",
+					patherDataPath, @"DBFilesClient/AreaTable.dbc"]];
 	[MpqOneshotExtractor extractFile:@"DBFilesClient\\Map.dbc"
 			fromMpqList:archiveNames
-			toFile:[NSString stringWithFormat:@"%@/%@/%@",
-					NSHomeDirectory(), @"pather-temp",
-					@"DBFilesClient/Map.dbc"]];
+			toFile:[NSString stringWithFormat:@"%@%@",
+					patherDataPath, @"DBFilesClient/Map.dbc"]];
 	
-	DBC *areaDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@/%@/%@",
-			NSHomeDirectory(), @"pather-temp",
-			@"DBFilesClient/AreaTable.dbc"]];
-	DBC *mapsDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@/%@/%@",
-			NSHomeDirectory(), @"pather-temp",
-			@"DBFilesClient/Map.dbc"]];
+	// DBC Loading
+	DBC *areaDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@%@",
+			patherDataPath, @"DBFilesClient/AreaTable.dbc"]];
+	DBC *mapsDbc = [[DBC alloc] initWithDbcFile:[NSString stringWithFormat:@"%@%@",
+			patherDataPath, @"DBFilesClient/Map.dbc"]];
 	
 	int i;
 	for (i = 0; i < [areaDbc numberOfRecords]; i++) {
@@ -90,12 +91,13 @@
 		}
 	}
 	
+	/*
 	for (i = 0; i < [mapsDbc numberOfRecords]; i++) {
 		uint mapId = [mapsDbc getUintForRecord:i andField:0];
 		NSString *file = [mapsDbc getStringForRecord:i andField:1];
 		NSString *name = [mapsDbc getStringForRecord:i andField:4];
 		NSLog(@"ID: %u, file: %@, name: %@", mapId, file, name);
-	}
+	}*/
 	
 	
 

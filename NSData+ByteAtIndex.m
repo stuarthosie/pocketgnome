@@ -12,10 +12,6 @@
 @implementation NSData (PPatherAdditions)
 
 - (Byte) byteAtIndex:(NSUInteger)index {
-	/*
-	NSString *string = [NSString stringWithCString:[self bytes] encoding:NSASCIIStringEncoding];
-	return [string characterAtIndex:index];*/
-	
 	Byte b;
 	char *bytes = malloc([self length]);
 	[self getBytes:bytes];
