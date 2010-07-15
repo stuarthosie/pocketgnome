@@ -1,31 +1,26 @@
-//
-//  MpqOneshotExtractor.h
-//  Pocket Gnome
-//
-//  Created by William LaFrance on 7/11/10.
-//  Copyright 2010 Savory Software, LLC. All rights reserved.
-//
+/*
+	This file is part of ppather.
+
+	PPather is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	PPather is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with ppather.  If not, see <http://www.gnu.org/licenses/>.
+
+	Copyright Pontus Borg 2008
+	Ported to Objective-C by wjlafrance@gmail.com
+*/
  
 #import "DBC.h"
 
 @implementation DBC
-
-uint fgetui32(FILE *fh) {
-	return ((fgetc(fh) << 0) & 0x000000FF) |
-		   ((fgetc(fh) <<  8) & 0x0000FF00) |
-		   ((fgetc(fh) << 16) & 0x00FF0000) |
-		   ((fgetc(fh) << 24) & 0xFF000000);
-}
-
-NSData *fgetdata(FILE *fh, int length) {
-	int i;
-	NSMutableData *ret = [[NSMutableData alloc] initWithLength:length];
-	for (i = 0; i < length; i++) {
-		int c = fgetc(fh);
-		[ret appendBytes:&c length:1];
-	}
-	return [NSData dataWithData:ret];
-}
 
 - (id) initWithDbcFile:(NSString *)filename {
 
@@ -83,7 +78,7 @@ NSData *fgetdata(FILE *fh, int length) {
 			// an empty string is pretty small. Any better ideas?
 			#warning fix bad idea
 		}
-	}	
+	}
 	
 	// clean up
 	fclose(fh);

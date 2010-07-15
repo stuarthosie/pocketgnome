@@ -197,6 +197,8 @@
 		3D4A237211E6F1FC00CE5158 /* libbz2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4A237111E6F1FC00CE5158 /* libbz2.a */; };
 		3DB7B72311EC357B008E7620 /* NSString+StringWithPadding.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DB7B72211EC357B008E7620 /* NSString+StringWithPadding.m */; };
 		3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */; };
+		3DDFA92A11EEEB0C00583245 /* WDT.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DDFA92911EEEB0C00583245 /* WDT.m */; };
+		3DDFA93311EEEC9300583245 /* PPather.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DDFA93211EEEC9300583245 /* PPather.m */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
 		7D0C43D10DF2089E005F3940 /* ScanGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C43D00DF2089E005F3940 /* ScanGridView.m */; };
@@ -830,6 +832,9 @@
 		3DB7B72211EC357B008E7620 /* NSString+StringWithPadding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+StringWithPadding.m"; sourceTree = "<group>"; };
 		3DCB747611E72DFF009764FA /* NSData+ByteAtIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ByteAtIndex.h"; sourceTree = "<group>"; };
 		3DCB747711E72DFF009764FA /* NSData+ByteAtIndex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+ByteAtIndex.m"; sourceTree = "<group>"; };
+		3DDFA92811EEEB0C00583245 /* WDT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDT.h; sourceTree = "<group>"; };
+		3DDFA92911EEEB0C00583245 /* WDT.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDT.m; sourceTree = "<group>"; };
+		3DDFA93211EEEC9300583245 /* PPather.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PPather.m; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1806,12 +1811,15 @@
 				3DCB747211E72DD3009764FA /* CocoaAdditions */,
 				3D4A22B111E5A6E500CE5158 /* libmpq */,
 				3D4A231211E6EABC00CE5158 /* PPather.h */,
+				3DDFA93211EEEC9300583245 /* PPather.m */,
 				3D4A22CE11E5D12800CE5158 /* MpqTriangleSupplier.h */,
 				3D4A22CF11E5D12800CE5158 /* MpqTriangleSupplier.m */,
 				3D4A22D311E5D49100CE5158 /* DBC.h */,
 				3D4A22D411E5D49100CE5158 /* DBC.m */,
 				3D00461E11E9DA51001B91FA /* MpqOneshotExtractor.h */,
 				3D00461F11E9DA51001B91FA /* MpqOneshotExtractor.m */,
+				3DDFA92811EEEB0C00583245 /* WDT.h */,
+				3DDFA92911EEEB0C00583245 /* WDT.m */,
 			);
 			name = PPather;
 			sourceTree = "<group>";
@@ -2847,6 +2855,8 @@
 				3DCB747811E72DFF009764FA /* NSData+ByteAtIndex.m in Sources */,
 				3D00462011E9DA51001B91FA /* MpqOneshotExtractor.m in Sources */,
 				3DB7B72311EC357B008E7620 /* NSString+StringWithPadding.m in Sources */,
+				3DDFA92A11EEEB0C00583245 /* WDT.m in Sources */,
+				3DDFA93311EEEC9300583245 /* PPather.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -91,13 +91,14 @@
 		}
 	}
 	
-	/*
+	
+	// DISPLAY MAPS DATABASE
 	for (i = 0; i < [mapsDbc numberOfRecords]; i++) {
 		uint mapId = [mapsDbc getUintForRecord:i andField:0];
 		NSString *file = [mapsDbc getStringForRecord:i andField:1];
 		NSString *name = [mapsDbc getStringForRecord:i andField:4];
 		NSLog(@"ID: %u, file: %@, name: %@", mapId, file, name);
-	}*/
+	}
 	
 	
 
@@ -114,9 +115,7 @@
 }
 /*
 }
-		string continentFile;
 
-		StormDll.ArchiveSet archive;
 
 		//TriangleSet global_triangles = new TriangleSet();
 
