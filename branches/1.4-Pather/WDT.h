@@ -22,22 +22,16 @@
 #import "PPather.h"
 
 
-@interface DBC : NSObject {
-
-	uint recordSize;
-	uint recordCount;
-	uint fieldCount;
-	uint stringSize;
+@interface WDT : NSObject {
+	int gnWMO;
 	
-	NSMutableArray *data;
-	NSMutableArray *stringdata;
+	BOOL maps[64][64];
+	//MapTile[64][64] mapTiles;
 	
+	NSMutableArray *GMOs;
+	NSMutableArray *GMOIs;
 }
 
-- (id) initWithDbcFile:(NSString *)filename;
-- (uint) numberOfRecords;
-- (uint) getUintForRecord:(int)record andField:(int)field;
-- (NSString *) getStringForRecord:(int)record andField:(int)field;
-- (int) getRecordNumberByValue:(uint)value ofField:(uint)field;
+- (id) initWithWdtFile:(NSString *)filename;
 
 @end
