@@ -156,13 +156,13 @@
 // -----------------------------------------------------------------------------
 
 // Define some minimum intervals to avoid DOS-like checking attacks. These are in seconds.
-#ifdef DEBUG && 0
+#ifdef DEBUG
 #define SU_MIN_CHECK_INTERVAL 60
 #else
 #define SU_MIN_CHECK_INTERVAL 60*60
 #endif
 
-#ifdef DEBUG && 0
+#ifdef DEBUG
 #define SU_DEFAULT_CHECK_INTERVAL 60
 #else
 #define SU_DEFAULT_CHECK_INTERVAL 60*60*24
