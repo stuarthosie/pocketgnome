@@ -27,6 +27,13 @@
 #import "Controller.h"
 #import "OffsetController.h"
 
+#import "InventoryController.h"
+#import "MobController.h"
+#import "NodeController.h"
+#import "PlayersController.h"
+
+#import "Item.h"
+
 #import "WoWObject.h"
 
 typedef enum ViewTypes {
@@ -65,6 +72,8 @@ typedef enum ViewTypes {
 		_formatOfSavedValues = 0;
 		_searchArray = nil;
 		_pointerScanThread = nil;
+		
+		_attachedPID = 0;
     }
     return self;
 }
@@ -87,6 +96,8 @@ typedef enum ViewTypes {
     [(NSTableView*)memoryTable setTarget: self];
     
     [self setRefreshFrequency: 0.5];
+	
+	_instanceListTimer = [NSTimer scheduledTimerWithTimeInterval: 1.0f target: self selector: @selector(updateInstanceList:) userInfo: nil repeats: YES];
 }
 
 @synthesize view;
@@ -168,9 +179,8 @@ typedef enum ViewTypes {
 - (IBAction)snapshotMemory: (id)sender {
     
     UInt32 startAddress = [self.currentAddress unsignedIntValue];
-    MemoryAccess *memory = [controller wowMemoryAccess];
-    
-    if(!startAddress || !memory || ([self displayFormat] == 2) || ([self displayFormat] == 5)) {
+
+    if(!startAddress || !_memory || ([self displayFormat] == 2) || ([self displayFormat] == 5)) {
         NSBeep();
         return;
     }
@@ -181,7 +191,7 @@ typedef enum ViewTypes {
     NSString *export = @"";
     
     for(i=0; i<_displayCount; i++) {
-        if([memory loadDataForObject: self atAddress: (startAddress + sizeof(buffer)*i) Buffer: (Byte*)&buffer BufLength: sizeof(buffer)]) {
+        if([_memory loadDataForObject: self atAddress: (startAddress + sizeof(buffer)*i) Buffer: (Byte*)&buffer BufLength: sizeof(buffer)]) {
             if([self displayFormat] == 0)
                 export = [NSString stringWithFormat: @"%@\n0x%X: %u", export, 4*i, (UInt32)buffer];
             if([self displayFormat] == 1)
@@ -225,8 +235,7 @@ typedef enum ViewTypes {
 			size_t size = sizeof(uint32_t);
 			uint32_t addr = startAddress + clickedRow*size;
 			uint32_t value32 = 0;
-			MemoryAccess *memory = [controller wowMemoryAccess];
-			if ( memory && [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)] ){
+			if ( _memory && [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)] ){
 				[self setBaseAddress:[NSNumber numberWithInt:value32]];
 				[memoryTable scrollRowToVisible: 0];
 			}
@@ -283,32 +292,31 @@ typedef enum ViewTypes {
 	
 	// Then we need to read the value!
 	if ( num == nil && addr > 0 ){
-		MemoryAccess *memory = [controller wowMemoryAccess];
-		
+
 		// 32 bit
 		if ( displayFormat == 0 || displayFormat == 1 || displayFormat == 4 ){
 			uint32_t value32;
-			if ( [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)] )
+			if ( [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)] )
 				num = [NSNumber numberWithInt:value32];				
 		}
 		// 64 bit
 		else if ( displayFormat == 2 ){
 			uint64_t value64;
-			if ( [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value64 BufLength: sizeof(uint64_t)] ){
+			if ( [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value64 BufLength: sizeof(uint64_t)] ){
 				num = [NSNumber numberWithLongLong:value64];
 			}
 		}
 		// Float
 		else if ( displayFormat == 3 ){
 			float floatVal;
-			if ( [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&floatVal BufLength: sizeof(float)] ){
+			if ( [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&floatVal BufLength: sizeof(float)] ){
 				num = [NSNumber numberWithFloat:floatVal];
 			}
 		}
 		// 16 bit
 		else if ( displayFormat == 5 ){
 			uint16_t value16 = 0;
-			if ( [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value16 BufLength: sizeof(uint16_t)] ){
+			if ( [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value16 BufLength: sizeof(uint16_t)] ){
 				num = [NSNumber numberWithShort:value16];
 			}
 		}
@@ -344,8 +352,7 @@ typedef enum ViewTypes {
 	// Error while reading
 	else if ( addr > 0 ){
 		uint32_t value32;
-		MemoryAccess *memory = [controller wowMemoryAccess];
-		int ret = [memory readAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)];
+		int ret = [_memory readAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)];
 		return [NSString stringWithFormat: @"(error: %d)", ret];
 	}
 	
@@ -366,28 +373,27 @@ typedef enum ViewTypes {
 	for ( i = 0; i < _displayCount; i++ ){
 		uint32_t addr = startAddress + i*size;	
 		
-		MemoryAccess *memory = [controller wowMemoryAccess];
-        int ret = [memory readAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)];
+        int ret = [_memory readAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)];
         if((ret == KERN_SUCCESS)) {
 			
 			if ( [self displayFormat] == 2 ){
 				uint64_t value64;
-                [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value64 BufLength: sizeof(uint64_t)];
+                [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value64 BufLength: sizeof(uint64_t)];
 				[_lastValues setObject:[NSNumber numberWithLongLong:value64] forKey:[NSNumber numberWithInt:addr]];
 			}
 			else if ( [self displayFormat] == 3 ){
                 float floatVal;
-                [memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&floatVal BufLength: sizeof(float)];
+                [_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&floatVal BufLength: sizeof(float)];
 				[_lastValues setObject:[NSNumber numberWithFloat:floatVal] forKey:[NSNumber numberWithInt:addr]];
 			}
 			else if ( [self displayFormat] == 5 ){
 				uint16_t value16 = 0;
-				[memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value16 BufLength: sizeof(uint16_t)];
+				[_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value16 BufLength: sizeof(uint16_t)];
 				[_lastValues setObject:[NSNumber numberWithShort:value16] forKey:[NSNumber numberWithInt:addr]];
 			}
 			else{
 				uint32_t value32;
-				[memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(uint32_t)];
+				[_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(uint32_t)];
 				[_lastValues setObject:[NSNumber numberWithLong:value32] forKey:[NSNumber numberWithInt:addr]];
 			}
 		}
@@ -406,7 +412,7 @@ typedef enum ViewTypes {
 }
 
 - (BOOL)validState {
-    return (self.currentAddress && [controller wowMemoryAccess]);
+    return (self.currentAddress && _memory && [_memory isValid]);
 }
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView {
@@ -443,6 +449,8 @@ typedef enum ViewTypes {
 		
 		uint32_t addr = startAddress + rowIndex*size;
 		
+		NSString *value = [self formatNumber:nil WithAddress:addr DisplayFormat:[self displayFormat]];
+		
 		if( [[aTableColumn identifier] isEqualToString: @"Address"] ) {
 			return [NSString stringWithFormat: @"0x%X", addr];
 		}
@@ -455,7 +463,7 @@ typedef enum ViewTypes {
 		}
 		
 		if( [[aTableColumn identifier] isEqualToString: @"Value"] ) {
-			return [self formatNumber:nil WithAddress:addr DisplayFormat:[self displayFormat]];
+			return value;
 		}
 		
 		if( [[aTableColumn identifier] isEqualToString: @"Info"] ) {
@@ -482,12 +490,39 @@ typedef enum ViewTypes {
 				}
 			}
 			
-			NSString *value = [self formatNumber:nil WithAddress:addr DisplayFormat:0];
-			NSNumber *num = [NSNumber numberWithInt:[value integerValue]];
+			NSNumber *num = [NSNumber numberWithInt:[[self formatNumber:nil WithAddress:addr DisplayFormat:0] integerValue]];
 			NSArray *objectAddresses = [controller allObjectAddresses];
 			
 			if ( [objectAddresses containsObject:num] ){
 				return @"OBJECT POINTER";
+			}
+			
+			
+			
+			// 64-bit
+			if ( [self displayFormat] == 2 ){
+				//NSLog(@"0x%qX %@", [value longLongValue], itemController);
+				Item *item = [itemController itemForGUID:[value longLongValue]];
+				if ( item ){
+					return [NSString stringWithFormat:@"Item: %@", [item name]];				
+				}
+				Mob *mob = [mobController mobWithGUID:[value longLongValue]];
+				if ( mob ){
+					return [NSString stringWithFormat:@"Mob: %@", [mob name]];				
+				}
+				Player *player = [playersController playerWithGUID:[value longLongValue]];
+				if ( player ){
+					return [NSString stringWithFormat:@"Player: %@", [playersController playerNameWithGUID:[value longLongValue]]];				
+				}
+				/*Node *node = [nodeController nodeWithGUID:[value longLongValue]];
+				 if ( node ){
+				 return [NSString stringWithFormat:@"Mob: %@", [node name]];				
+				 }*/
+			}
+			
+			NSArray *objectGUIDs = [controller allObjectGUIDs];
+			if ( [objectGUIDs containsObject:num] ){
+				return @"OBJECT GUID (LOW32)";
 			}
 			
 			id info = nil;
@@ -497,7 +532,7 @@ typedef enum ViewTypes {
 			if(!info || ![info length]) {
 				char str[5];
 				str[4] = '\0';
-				[[controller wowMemoryAccess] loadDataForObject: self atAddress: addr Buffer: (Byte*)&str BufLength: 4];
+				[_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&str BufLength: 4];
 				
 				NSString *tehString = [NSString stringWithUTF8String: str];
 				if([tehString length])
@@ -544,23 +579,23 @@ typedef enum ViewTypes {
 		int type = [self displayFormat];
 		if(type == 0 || type == 4) {
 			UInt32 value = [anObject intValue];
-			[[controller wowMemoryAccess] saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
+			[_memory saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
 		}
 		if(type == 1) {
 			SInt32 value = [anObject intValue];
-			[[controller wowMemoryAccess] saveDataForAddress:([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
+			[_memory saveDataForAddress:([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
 		}
 		if(type == 2) {
 			UInt64 value = [anObject longLongValue];
-			[[controller wowMemoryAccess] saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
+			[_memory saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
 		}
 		if(type == 3) {
 			float value = [anObject floatValue];
-			[[controller wowMemoryAccess] saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
+			[_memory saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
 		}
 		if(type == 5) {
 			UInt16 value = [anObject intValue];
-			[[controller wowMemoryAccess] saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
+			[_memory saveDataForAddress: ([self.currentAddress unsignedIntValue] + rowIndex*4) Buffer: (Byte*)&value BufLength: sizeof(value)];
 		}
 	}
 	
@@ -581,7 +616,7 @@ typedef enum ViewTypes {
     uint32_t addr = startAddress + [sender clickedRow]*size;
     
     uint32_t value = 0;
-    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: addr Buffer: (Byte*)&value BufLength: sizeof(value)] && value) {
+    if([_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value BufLength: sizeof(value)] && value) {
         if(value >= startAddress && value <= startAddress + _displayCount*size) {
             int line = (value - startAddress)/4;
             [memoryTable scrollRowToVisible: line];
@@ -640,7 +675,7 @@ typedef enum ViewTypes {
 		int totalInvalids = 0;
 		// update values
 		for ( NSMutableDictionary *dict in (NSArray*)objects ){
-
+			
 			WoWObject *obj = [dict valueForKey:@"Object"];
 			
 			if ( [obj isStale] || ![obj isValid] ){
@@ -680,7 +715,7 @@ typedef enum ViewTypes {
 					break;
 				}
 			}
-
+			
 			if ( different ){
 				WoWObject *obj = [[(NSArray*)objects objectAtIndex:0] valueForKey:@"Object"];
 				uint32_t startAddress = [obj baseAddress];
@@ -693,14 +728,14 @@ typedef enum ViewTypes {
 				NSNumber *value1 = [[[(NSArray*)objects objectAtIndex:1] valueForKey:@"StartValues"] objectForKey:[NSNumber numberWithUnsignedInt:addr3]];
 				
 				/*obj = [[(NSArray*)objects objectAtIndex:2] valueForKey:@"Object"];
-				startAddress = [obj baseAddress];
-				addr3 = startAddress + i*4;
-				NSNumber *value2 = [[[(NSArray*)objects objectAtIndex:2] valueForKey:@"StartValues"] objectForKey:[NSNumber numberWithUnsignedInt:addr3]];
-				
-				obj = [[(NSArray*)objects objectAtIndex:3] valueForKey:@"Object"];
-				startAddress = [obj baseAddress];
-				addr3 = startAddress + i*4;
-				NSNumber *value3 = [[[(NSArray*)objects objectAtIndex:3] valueForKey:@"StartValues"] objectForKey:[NSNumber numberWithUnsignedInt:addr3]];*/
+				 startAddress = [obj baseAddress];
+				 addr3 = startAddress + i*4;
+				 NSNumber *value2 = [[[(NSArray*)objects objectAtIndex:2] valueForKey:@"StartValues"] objectForKey:[NSNumber numberWithUnsignedInt:addr3]];
+				 
+				 obj = [[(NSArray*)objects objectAtIndex:3] valueForKey:@"Object"];
+				 startAddress = [obj baseAddress];
+				 addr3 = startAddress + i*4;
+				 NSNumber *value3 = [[[(NSArray*)objects objectAtIndex:3] valueForKey:@"StartValues"] objectForKey:[NSNumber numberWithUnsignedInt:addr3]];*/
 				
 				UInt32 offset = addr - firstObjectStartAddress;
 				
@@ -710,7 +745,7 @@ typedef enum ViewTypes {
 		}
 		
 		PGLog(@"------------------------------");
-
+		
 		
 		// all are invalid :(
 		if ( totalInvalids == [objects count] ){
@@ -726,7 +761,7 @@ typedef enum ViewTypes {
 		
 		NSMutableArray *objectsWithData = [[NSMutableArray array] retain];
 		
-
+		
 		for ( WoWObject *obj in (NSArray*)objects ){
 			
 			NSNumber *addressesToMonitor = [NSNumber numberWithUnsignedInt:(([obj memoryEnd] - [obj memoryStart] + 0x1000) / sizeof(UInt32))];
@@ -786,10 +821,10 @@ typedef enum ViewTypes {
 			NSDictionary *startValues = [self valuesForObject:object withAddressSize:[addressesToMonitor intValue]];
 			
 			NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-								  object, @"Object",
-								  addressesToMonitor, @"Size",
-								  startValues,@"StartValues",
-								  nil];
+										 object, @"Object",
+										 addressesToMonitor, @"Size",
+										 startValues,@"StartValues",
+										 nil];
 			
 			PGLog(@"[Memory] Starting to monitor %@ with base address 0x%X!", object, [object baseAddress]);
 			[self performSelector:@selector(monitorObject:) withObject:dict afterDelay:0.1f];
@@ -810,11 +845,10 @@ typedef enum ViewTypes {
 	for ( i = 0; i < addressSize; i++ ){
 		uint32_t addr = startAddress + i*size;	
 		
-		MemoryAccess *memory = [controller wowMemoryAccess];
-        int ret = [memory readAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)];
+        int ret = [_memory readAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(value32)];
         if((ret == KERN_SUCCESS)) {
 			uint32_t value32;
-			[memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(uint32_t)];
+			[_memory loadDataForObject: self atAddress: addr Buffer: (Byte*)&value32 BufLength: sizeof(uint32_t)];
 			[dict setObject:[NSNumber numberWithLong:value32] forKey:[NSNumber numberWithInt:addr]];
 		}
 	}
@@ -864,10 +898,10 @@ typedef enum SearchType{
 			PGLog(@"searching for new values... %d %d", sizeof(float), sizeof(double));
 			
 			/*NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys: 
-								[NSNumber numberWithInt:[signMatrix selectedTag]],		@"Sign",
-								[NSNumber numberWithInt:[signMatrix selectedTag]],		@"Type",
-								[searchText stringValue],								@"Value",				  
-								nil];*/
+			 [NSNumber numberWithInt:[signMatrix selectedTag]],		@"Sign",
+			 [NSNumber numberWithInt:[signMatrix selectedTag]],		@"Type",
+			 [searchText stringValue],								@"Value",				  
+			 nil];*/
 			
 			//[NSThread detachNewThreadSelector: @selector(searchPlease:) toTarget: self withObject: dict];
 		}
@@ -911,7 +945,7 @@ typedef enum SearchType{
 		size = sizeof(float);
 	else if ( searchType == Type_Double )		// 8
 		size = sizeof(double);
-
+	
 	// block of data!
 	Byte *dataBlock = malloc(size);
 	
@@ -973,10 +1007,10 @@ typedef enum SearchType{
 								 }*/
 								// is this our address?
 								/*if ( *checkVal == addressToFind ){
-									UInt32 foundAddress = SourceAddress + x;
-									PGLog(@"Match for 0x%X found at 0x%X", addressToFind, foundAddress);
-									[addressesFound addObject:[NSNumber numberWithUnsignedInt:foundAddress]];
-								}*/
+								 UInt32 foundAddress = SourceAddress + x;
+								 PGLog(@"Match for 0x%X found at 0x%X", addressToFind, foundAddress);
+								 [addressesFound addObject:[NSNumber numberWithUnsignedInt:foundAddress]];
+								 }*/
                             }
                         }
                     } NS_HANDLER {
@@ -998,16 +1032,16 @@ typedef enum SearchType{
     
     PGLog(@"[Memory] Pointer scan took %.4f seconds.", 0.0f-[date timeIntervalSinceNow]);
     /*
-	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
-						  address,				@"Address",
-						  addressesFound,      @"Addresses",
-						  nil];
-	
-	
-    // tell the main thread we are done
-	[self performSelectorOnMainThread: @selector(findPointerAddresses:)
-						   withObject: dict
-                        waitUntilDone: NO];*/
+	 NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+	 address,				@"Address",
+	 addressesFound,      @"Addresses",
+	 nil];
+	 
+	 
+	 // tell the main thread we are done
+	 [self performSelectorOnMainThread: @selector(findPointerAddresses:)
+	 withObject: dict
+	 waitUntilDone: NO];*/
     
     [pool release];
 }
@@ -1015,12 +1049,12 @@ typedef enum SearchType{
 #pragma mark OFfset Scanner UI
 
 - (IBAction)openOffsetPanel: (id)sender {
-
-        [NSApp beginSheet: offsetScanPanel
-           modalForWindow: [self.view window]
-            modalDelegate: self
-           didEndSelector: @selector(offsetSheetDidEnd: returnCode: contextInfo:)
-              contextInfo: nil];
+	
+	[NSApp beginSheet: offsetScanPanel
+	   modalForWindow: [self.view window]
+		modalDelegate: self
+	   didEndSelector: @selector(offsetSheetDidEnd: returnCode: contextInfo:)
+		  contextInfo: nil];
 }
 
 - (void)offsetSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
@@ -1042,18 +1076,19 @@ typedef enum SearchType{
 	if ( [mask length] > 0 && [signature length] > 0 ){
 		[resultsTextView setString: @""];
 		
-		NSArray *offsetList = [offsetController offsetWithByteSignature:signature 
-															  withMask:mask 
-														 withEmulation:[emulatePPCButton state]];
+		NSDictionary *offsetDict = [offsetController offsetWithByteSignature:signature 
+																	withMask:mask];
 		
 		// do we have any offsets?
-		if ( [offsetList count] > 0 ){
+		if ( [offsetDict count] > 0 ){
 			
 			NSString *offsets = [[NSString alloc] init];
 			
+			NSArray *allKeys = [offsetDict allKeys];
+			
 			int loc = 1;
-			for ( NSNumber *offset in offsetList ){
-				offsets = [offsets stringByAppendingString: [NSString stringWithFormat:@"%d: 0x%X\n", loc++, [offset intValue]]];	
+			for ( NSNumber *key in allKeys ){
+				offsets = [offsets stringByAppendingString: [NSString stringWithFormat:@"%d: 0x%X found at 0x%X\n", loc++, [[offsetDict objectForKey:key] unsignedIntValue], [key unsignedIntValue]]];	
 			}
 			
 			[resultsTextView setString: offsets];
@@ -1114,7 +1149,7 @@ typedef enum SearchType{
 	UInt32 currentAddress = [self.currentAddress unsignedIntValue];
 	
 	_pointerScanThread = [[NSThread alloc] initWithTarget:self
-												selector:@selector(pointerScan:)
+												 selector:@selector(pointerScan:)
 												   object:[NSNumber numberWithUnsignedInt:currentAddress]];
 	[_pointerScanThread start];
 }
@@ -1189,7 +1224,7 @@ typedef enum SearchType{
 				if ( [[NSThread currentThread] isCancelled] ){
 					break;		
 				}
-
+				
                 // ensure we have access to this block
                 if ((SourceInfo.protection & VM_PROT_READ)) {
                     NS_DURING {
@@ -1264,6 +1299,85 @@ typedef enum SearchType{
 	
 	// reload our table
 	[memoryTable reloadData];
+}
+
+#pragma mark New Process List
+
+- (void)setNewMemory{
+	[_memory release]; _memory = nil;
+	_memory = [[[MemoryAccess alloc] initWithPID: _attachedPID] retain];  
+	
+	[memoryTable reloadData];
+}
+
+- (IBAction)selectInstance: (id)sender{
+	
+	pid_t newPID = [[instanceList selectedItem] tag];
+
+	if ( newPID > 0 ){
+		_attachedPID = newPID;
+		[self setNewMemory];
+	}
+}
+
+- (void)updateInstanceList: (NSTimer*)timer{
+	
+	pid_t currentPID = _attachedPID;
+
+	NSMenu *instanceMenu = [[[NSMenu alloc] initWithTitle: @"Instances"] autorelease];
+	NSMenuItem *instanceItem;
+	pid_t pidToSelect = 0;
+	
+	// loop through all running processes
+    for ( NSDictionary *processDict in [[NSWorkspace sharedWorkspace] launchedApplications] ) {
+		
+		ProcessSerialNumber pSN = {kNoProcess, kNoProcess};
+		pSN.highLongOfPSN = [[processDict objectForKey: @"NSApplicationProcessSerialNumberHigh"] longValue];
+		pSN.lowLongOfPSN  = [[processDict objectForKey: @"NSApplicationProcessSerialNumberLow"] longValue];
+		pid_t pid = 0;
+		OSStatus err = GetProcessPID(&pSN, &pid);
+		
+		// valid process
+		if ( (err == noErr) && ( pid > 0 ) ) {
+			
+			// so we know the first
+			if ( pidToSelect == 0 ){
+				pidToSelect = pid;
+			}
+			
+			NSString *appName = [processDict objectForKey: @"NSApplicationName"];
+			
+			// add a menu item
+			instanceItem = [[NSMenuItem alloc] initWithTitle: [NSString stringWithFormat: @"%@ - %d", appName, pid] action: nil keyEquivalent: @""];
+			[instanceItem setTag: pid];
+			[instanceItem setRepresentedObject: [NSNumber numberWithInt:pid]];
+			[instanceItem setIndentationLevel: 0];
+			[instanceMenu addItem: [instanceItem autorelease]];
+		}
+	}
+	
+	// if we don't have a PID, then we need to select the current wow (or the first one we find)
+	if ( _attachedPID == 0 ){
+		ProcessSerialNumber wowPSN = [controller getWoWProcessSerialNumber];
+		
+		pid_t pid = 0;
+		OSStatus err = GetProcessPID(&wowPSN, &pid);
+		if ( (err == noErr) && ( pid > 0 ) ) {
+			_attachedPID = pid;
+			pidToSelect = pid;
+		}
+	}
+	else{
+		pidToSelect = _attachedPID;
+	}
+	
+	// we need a new memory access!
+	if ( currentPID != pidToSelect ){
+		[self setNewMemory];
+	}
+	
+    [instanceList setMenu: instanceMenu];
+    [instanceList selectItemWithTag: pidToSelect];
 }
 
 @end

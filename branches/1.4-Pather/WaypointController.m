@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */  
+//
+//  WaypointController.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/16/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//  
 
 #import "WaypointController.h"
 #import "Controller.h"
@@ -42,7 +25,7 @@
 #import "Action.h"
 #import "Mob.h"
 #import "ActionMenusController.h"
-#import "SaveData.h"
+#import "FileController.h"
 
 #import "RouteVisualizationView.h"
 
@@ -97,23 +80,26 @@ enum AutomatorIntervalType {
 		_currentRouteCollection = nil;
 		_routeCollectionList = [[NSMutableArray array] retain];
 		
-		// pull data from the .plist file
-		NSArray *routes = [[self loadAllDataForKey:@"Routes" withClass:[RouteSet class]] retain];
+		// needed since the connection hasn't been done @ this point (and we want the Bot.xib file to see the routes!)
+		if ( fileController == nil ){
+			fileController = [[FileController sharedFileController] retain]; 
+		}
 		
-		// pull routes from .route files
-		_myHackVariableToLoadOldData = YES;
+		// pull data from the .plist file
+		NSArray *routes = [[fileController dataForKey:@"Routes" withClass:[RouteSet class]] retain];
+		
+		// try to load .route files if they exist
 		if ( !routes ){
-			routes = [[self loadAllObjects] retain];
+			routes = [[fileController getObjectsWithClass:[RouteSet class]] retain];
 		}
 		
 		// delete old files!
 		if ( [routes count] > 0 ){
-			PGLog(@"[Routes] Converting all routes to the new format! Removing old files!");
-			[self deleteAllObjects];
+			for ( RouteSet *route in routes ){
+				[fileController deleteObject:route];
+			}
+			log(LOG_WAYPOINT, @"[Routes] Converting all routes to the new format! Removing old files!");
 		}
-		
-		// stop using .route
-		_myHackVariableToLoadOldData = NO;
 		
 		// then we need to convert our routes above, I love how much I change things QQ
 		if ( [routes count] > 0 ){
@@ -127,15 +113,13 @@ enum AutomatorIntervalType {
 			}
 			
 			// save for the first time
-			[self saveRoutes];
+			[fileController saveObjects:_routeCollectionList];
 			
 			_firstTimeEverOnTheNewRouteCollections = YES;
 		}
 		else{
-			_routeCollectionList = [[self loadAllObjects] retain];
+			_routeCollectionList = [[fileController getObjectsWithClass:[RouteCollection class]] retain];
 		}
-		
-		PGLog(@"We now have %d objects of route collection", [_routeCollectionList count]);
 		
         // listen for notification
         [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(applicationWillTerminate:) name: NSApplicationWillTerminateNotification object: nil];
@@ -149,6 +133,7 @@ enum AutomatorIntervalType {
 }
 
 - (void)awakeFromNib {
+
     self.minSectionSize = [self.view frame].size;
     self.maxSectionSize = NSZeroSize;
 
@@ -190,13 +175,9 @@ enum AutomatorIntervalType {
 
 - (void)saveRoutes {
 	
-	// lets save our collections!
-	for ( RouteCollection *rc in _routeCollectionList ){
-		//if ( rc.changed ){
-			[self saveObject:rc];
-		//}
-	}
-	
+	// save
+	[fileController saveObjects:_routeCollectionList];
+
 	// we no longer use this anymore! Yay!
 	[[NSUserDefaults standardUserDefaults] removeObjectForKey: @"IgnoreRoute"];
 	[[NSUserDefaults standardUserDefaults] removeObjectForKey: @"Routes"];
@@ -272,10 +253,10 @@ enum AutomatorIntervalType {
 		[allRoutes addObjectsFromArray:[rc routes]];
 	}
 	
-	/*PGLog(@"total: %d", [allRoutes count]);
+	/*log(LOG_WAYPOINT, @"total: %d", [allRoutes count]);
 	
 	for ( id item in allRoutes ){
-		PGLog(@"%@", item);
+		log(LOG_WAYPOINT, @"%@", item);
 	}
 	
 	
@@ -352,7 +333,7 @@ enum AutomatorIntervalType {
 	
 	// not of type RouteSet or RouteCollection? not sure how we would get here
 	if ( ![object isKindOfClass:[RouteSet class]] && ![object isKindOfClass:[RouteCollection class]] ){
-		PGLog(@"[Routes] Unable to import route of type %@ (Obj:%@)", [object class], object);
+		log(LOG_WAYPOINT, @"[Routes] Unable to import route of type %@ (Obj:%@)", [object class], object);
 		return;
 	}
 	
@@ -405,7 +386,7 @@ enum AutomatorIntervalType {
     
     if ( importedRoute ) {
 		
-		PGLog(@"%@", importedRoute);
+		log(LOG_WAYPOINT, @"%@", importedRoute);
 		
 		// single RouteSet
         if ( [importedRoute isKindOfClass: [RouteSet class]] ) {
@@ -467,7 +448,7 @@ enum AutomatorIntervalType {
 	if ( closestWaypointRow > 0 ){
 		[waypointTable selectRow:closestWaypointRow byExtendingSelection:NO];
 		[waypointTable scrollRowToVisible:closestWaypointRow];
-		PGLog(@"[Waypoint] Closest waypoint is %0.2f yards away", minDist);
+		log(LOG_WAYPOINT, @"[Waypoint] Closest waypoint is %0.2f yards away", minDist);
 	}
 }
 
@@ -494,6 +475,7 @@ enum AutomatorIntervalType {
 }
 
 - (IBAction)addWaypoint: (id)sender {
+    log(LOG_DEV, @"addWaypoint called");
     if(![self currentRoute])        return;
     if(![playerData playerIsValid:self]) return;
     if(![self.view window])         return;
@@ -502,7 +484,7 @@ enum AutomatorIntervalType {
     [[self currentRoute] addWaypoint: newWP];
     [waypointTable reloadData];
 	[self currentRouteSet].changed = YES;
-    PGLog(@"Added: %@", newWP);
+    log(LOG_WAYPOINT, @"Added: %@", newWP);
     NSString *readableRoute =  ([routeTypeSegment selectedTag] == 0) ? @"Primary" : @"Corpse Run";
     
     BOOL dontGrowl = (!sender && self.disableGrowl); // sender is nil when this is called by the automator
@@ -539,7 +521,7 @@ enum AutomatorIntervalType {
     // make sure the clicked row is valid
     if ( [waypointTable clickedRow] < 0 || [waypointTable clickedRow] >= [[self currentRoute] waypointCount] ) {
         NSBeep();
-        PGLog(@"Error: invalid row (%d), cannot change action.", [waypointTable clickedRow]);
+        log(LOG_WAYPOINT, @"Error: invalid row (%d), cannot change action.", [waypointTable clickedRow]);
         return;
     }
     
@@ -572,7 +554,7 @@ enum AutomatorIntervalType {
 	
     Waypoint *waypoint = [[self currentRoute] waypointAtIndex: row];
     
-    [movementController moveToWaypoint: waypoint];
+    [movementController moveToWaypointFromUI: waypoint];
 }
 
 - (IBAction)testWaypointSequence: (id)sender {
@@ -629,7 +611,7 @@ enum AutomatorIntervalType {
 - (IBAction)startStopAutomator: (id)sender {
 	// OK stop automator!
 	if ( self.isAutomatorRunning ) {
-		PGLog(@"Waypoint recording stopped");
+		log(LOG_WAYPOINT, @"Waypoint recording stopped");
 		self.isAutomatorRunning = NO;
         [automatorSpinner stopAnimation: nil];
         [automatorStartStopButton setState: NSOffState];
@@ -637,7 +619,7 @@ enum AutomatorIntervalType {
         [automatorStartStopButton setImage: [NSImage imageNamed: @"off"]];
 	}
 	else {
-		PGLog(@"Waypoint recording started");
+		log(LOG_WAYPOINT, @"Waypoint recording started");
         [automatorPanel makeFirstResponder: [automatorPanel contentView]];
 		self.isAutomatorRunning = YES;
         [automatorSpinner startAnimation: nil];
@@ -932,11 +914,11 @@ enum AutomatorIntervalType {
 		if(!data) return NO;
 		NSIndexSet* rowIndexes = [NSKeyedUnarchiver unarchiveObjectWithData: data];
 		if(!rowIndexes ) {
-			PGLog(@"Error dragging waypoints. Indexes invalid.");
+			log(LOG_WAYPOINT, @"Error dragging waypoints. Indexes invalid.");
 			return NO;
 		}
 		
-		// PGLog(@"Draggin %d rows to above row %d", [rowIndexes count], row);
+		// log(LOG_WAYPOINT, @"Draggin %d rows to above row %d", [rowIndexes count], row);
 		
 		Waypoint *targetWP = [[self currentRoute] waypointAtIndex: row];
 		NSMutableArray *wpToInsert = [NSMutableArray arrayWithCapacity: [rowIndexes count]];
@@ -953,7 +935,7 @@ enum AutomatorIntervalType {
 		// now, find the current index of the saved waypoint
 		int index = [[[self currentRoute] waypoints] indexOfObjectIdenticalTo: targetWP];
 		if(index == NSNotFound) index = [[self currentRoute] waypointCount];
-		// PGLog(@"Target index: %d", index);
+		// log(LOG_WAYPOINT, @"Target index: %d", index);
 		
 		// don't need to reverseEnum because the order is already reversed
 		for (Waypoint *wp in wpToInsert) {
@@ -965,7 +947,7 @@ enum AutomatorIntervalType {
 		 int numIns = 0;
 		 int dragRow = [rowIndexes firstIndex];
 		 if(dragRow < row) { 
-		 PGLog(@" --> Decrementing row to %d because dragRow (%d) < row (%d)", row-1, dragRow, row);
+		 log(LOG_WAYPOINT, @" --> Decrementing row to %d because dragRow (%d) < row (%d)", row-1, dragRow, row);
 		 row--;
 		 }
 		 
@@ -977,7 +959,7 @@ enum AutomatorIntervalType {
 		 [[self currentRoute] removeWaypointAtIndex: dragRow];
 		 [[self currentRoute] insertWaypoint: dragWaypoint atIndex: (row + numIns)];
 		 
-		 PGLog(@" --> Moving row %d to %d", dragRow, (row + numIns));
+		 log(LOG_WAYPOINT, @" --> Moving row %d to %d", dragRow, (row + numIns));
 		 
 		 numIns++;
 		 dragRow = [rowIndexes indexGreaterThanIndex: dragRow];
@@ -1197,7 +1179,7 @@ enum AutomatorIntervalType {
 	if ( outlineView == routesTable ){
 		
 		if ( ![item isKindOfClass:[RouteCollection class]] ){
-			PGLog(@"Not doing anything with %@", item);
+			log(LOG_WAYPOINT, @"Not doing anything with %@", item);
 			return NO;
 		}
 	
@@ -1295,7 +1277,7 @@ enum AutomatorIntervalType {
 			[self selectItemInOutlineViewToEdit:route];
 		}
 		else{
-			PGLog(@"[Routes] Error when adding a set! Report to Tanaris4! %@", selectedItem);
+			log(LOG_WAYPOINT, @"[Routes] Error when adding a set! Report to Tanaris4! %@", selectedItem);
 			NSBeep();
 			NSRunAlertPanel(@"Error when adding route", @"Error when adding route! Report to Tanaris4 + give him logs!", @"Okay", NULL, NULL);
 		}
@@ -1355,7 +1337,7 @@ enum AutomatorIntervalType {
 			[_routeCollectionList removeObject:rc];
 			
 			// delete the file from our disk!
-			[self deleteObject:rc];
+			[fileController deleteObject:rc];
 			
 			[routesTable reloadData];
 		}
@@ -1392,6 +1374,10 @@ enum AutomatorIntervalType {
 }
 
 #pragma mark Route Collection UI
+
+- (IBAction)showInFinder: (id)sender{
+	[fileController showInFinder:[self currentRoute]];
+}
 
 - (IBAction)duplicateRoute: (id)sender {
 	
@@ -1649,26 +1635,6 @@ enum AutomatorIntervalType {
 		else
 			[waypointSectionTitle setStringValue:@"No route set selected"];
 	}
-}
-
-#pragma mark SaveData
-
-// for saving
-- (NSString*)objectExtension{
-	// just to load old data
-	if ( _myHackVariableToLoadOldData ){
-		return @"route";
-	}
-	
-	return @"routecollection";
-}
-
-- (NSString*)objectName:(id)object{
-	if ( _myHackVariableToLoadOldData ){
-		return [(RouteSet*)object name];
-	}
-	
-	return [(RouteCollection*)object name];
 }
 
 @end

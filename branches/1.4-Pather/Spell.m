@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Spell.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/22/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "Spell.h"
 
@@ -40,7 +23,6 @@
         _range = nil;
         _cooldown = nil;
         _name = nil;
-        _rank = nil;
         _dispelType = nil;
         _school = nil;
 		_mount = nil;
@@ -75,7 +57,6 @@
         self.ID = [decoder decodeObjectForKey: @"SpellID"];
         self.range = [decoder decodeObjectForKey: @"Range"];
         self.name = [decoder decodeObjectForKey: @"Name"];
-        self.rank = [decoder decodeObjectForKey: @"Rank"];
         self.cooldown = [decoder decodeObjectForKey: @"Cooldown"];
         self.school = [decoder decodeObjectForKey: @"School"];
         self.dispelType = [decoder decodeObjectForKey: @"DispelType"];
@@ -87,7 +68,7 @@
         if(self.name) {
             NSRange range = [self.name rangeOfString: @"html>"];
             if( ([self.name length] == 0) || (range.location != NSNotFound)) {
-                // PGLog(@"Name for spell %@ is invalid.", self.ID);
+                // log(LOG_GENERAL, @"Name for spell %@ is invalid.", self.ID);
                 self.name = nil;
             }
         }
@@ -99,7 +80,6 @@
 {
     [coder encodeObject: self.ID forKey: @"SpellID"];
     [coder encodeObject: self.name forKey: @"Name"];
-    [coder encodeObject: self.rank forKey: @"Rank"];
     [coder encodeObject: self.range forKey: @"Range"];
     [coder encodeObject: self.school forKey: @"School"];
     [coder encodeObject: self.cooldown forKey: @"Cooldown"];
@@ -114,7 +94,6 @@
     self.ID = nil;
     self.range = nil;
     self.name = nil;
-    self.rank = nil;
     self.cooldown = nil;
     self.dispelType = nil;
     self.school = nil;
@@ -173,26 +152,6 @@
     @synchronized (@"Name") {
         temp = _name;
         _name = name;
-    }
-    [self didChangeValueForKey: @"fullName"];
-    [temp release];
-}
-
-- (NSNumber*)rank {
-    NSNumber *temp = nil;
-    @synchronized (@"Rank") {
-        temp = [_rank retain];
-    }
-    return [temp autorelease];
-}
-
-- (void)setRank: (NSNumber*)rank {
-    id temp = nil;
-    [rank retain];
-    [self willChangeValueForKey: @"fullName"];
-    @synchronized (@"Rank") {
-        temp = _rank;
-        _rank = rank;
     }
     [self didChangeValueForKey: @"fullName"];
     [temp release];
@@ -289,15 +248,9 @@
 
 - (NSString*)fullName {
     NSString *name = nil;
-    NSNumber *rank = nil;
     @synchronized(@"Name") {
         name = self.name;
     }
-    @synchronized(@"Rank") {
-        rank = self.rank;
-    }
-    if(rank)
-        return [NSString stringWithFormat: @"%@ (Rank %@)", name, rank];
     return name;
 }
 
@@ -357,6 +310,22 @@
 	return NO;
 }
 
+- (BOOL)isAirMount {
+	if ( [self.mechanic isEqualToString:@"Mounted"] && [self.mount intValue] == MOUNT_AIR ){
+		return YES;
+	}
+	
+	return NO;
+}
+
+- (BOOL)isGroundMount {
+	if ( [self.mechanic isEqualToString:@"Mounted"] && [self.mount intValue] == MOUNT_GROUND ){
+		return YES;
+	}
+	
+	return NO;
+}
+
 #pragma mark -
 
 //#define NAME_SEPARATOR      @"<table class=ttb width=300><tr><td colspan=2>"
@@ -364,7 +333,6 @@
 //#define COOLDOWN_SEPARATOR  @"<tr><th>Cooldown</th><td>"
 
 #define NAME_SEPARATOR      @"<title>"
-#define RANK_SEPARATOR      @"<b class=\"q0\">Rank "
 #define SCHOOL_SEPARATOR    @"School</th><td>"
 #define MECHANIC_SEPARATOR	@"Mechanic</th><td>"
 #define DISPEL_SEPARATOR    @"Dispel type</th><td style=\"border-bottom: 0\">"
@@ -386,7 +354,7 @@
     
     [_connection cancel];
     [_connection release];
-    _connection = [[NSURLConnection alloc] initWithRequest: [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithFormat: @"http://www.wowhead.com/?spell=%@", [self ID]]]] delegate: self];
+    _connection = [[NSURLConnection alloc] initWithRequest: [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithFormat: @"http://wowhead.com/?spell=%@", [self ID]]]] delegate: self];
 	if(_connection) {
         [_downloadData release];
         _downloadData = [[NSMutableData data] retain];
@@ -412,7 +380,7 @@
     [_downloadData release]; _downloadData = nil;
  
     // inform the user
-    PGLog(@"Connection failed! Error - %@ %@",
+    log(LOG_GENERAL, @"Connection failed! Error - %@ %@",
           [error localizedDescription],
           [[error userInfo] objectForKey:NSErrorFailingURLStringKey]);
 }
@@ -453,12 +421,12 @@
                     break;
             }
             
-            PGLog(@"Spell %d does not exist on wowhead.", spellID);
+            log(LOG_GENERAL, @"Spell %d does not exist on wowhead.", spellID);
             return;
         } else {
             if( [scanner scanUpToString: @"Bad Request" intoString: nil] && ![scanner isAtEnd]) {
                 int spellID = [[self ID] intValue];
-                PGLog(@"Error loading spell %d.", spellID);
+                log(LOG_GENERAL, @"Error loading spell %d.", spellID);
                 return;
             } else {
                 [scanner setScanLocation: 0];
@@ -475,19 +443,6 @@
                 } else {
                     self.name = @"";
                 }
-            }
-        } else {
-            [scanner setScanLocation: scanSave]; // some spells dont have ranks
-        }
-        
-        // get spell rank
-        scanSave = [scanner scanLocation];
-        if([scanner scanUpToString: RANK_SEPARATOR intoString: nil] && [scanner scanString: RANK_SEPARATOR intoString: nil]) {
-            int rank = 0;
-            if([scanner scanInt: &rank] && rank) {
-                self.rank = [NSNumber numberWithInt: rank];
-            } else {
-                self.rank = [NSNumber numberWithInt: 0];
             }
         } else {
             [scanner setScanLocation: scanSave]; // some spells dont have ranks
@@ -573,18 +528,18 @@
             float castTime = 0;
             if([scanner scanFloat: &castTime]) {
                 self.castTime = [NSNumber numberWithFloat: castTime];
-                // PGLog(@"Loaded cast time %@ for spell %@", self.castTime, self);
+                // log(LOG_GENERAL, @"Loaded cast time %@ for spell %@", self.castTime, self);
             } else {
                 if([scanner scanString: @"Instant" intoString: nil]) {
                     self.castTime = [NSNumber numberWithFloat: 0];
-                    // PGLog(@"Loaded cast time instant! for spell %@", self);
+                    // log(LOG_GENERAL, @"Loaded cast time instant! for spell %@", self);
                 } else {
-                    // PGLog(@"Got nothing for %@", self);
+                    // log(LOG_GENERAL, @"Got nothing for %@", self);
                     self.castTime = nil;
                 }
             }
         } else {
-            // PGLog(@"No cast time entry for %@", self);
+            // log(LOG_GENERAL, @"No cast time entry for %@", self);
             [scanner setScanLocation: scanSave];
             self.castTime = nil;
         }
@@ -629,7 +584,7 @@
         } else {
             [scanner setScanLocation: scanSave]; // some spells dont have cooldowns
 			
-			// PGLog(@"Loaded: %@; Rank %@; %@ yards; %@ seconds; school: %@; dispel: %@", self.name, self.rank, self.range, self.cooldown, self.school, self.dispelType);
+			// log(LOG_GENERAL, @"Loaded: %@; %@ yards; %@ seconds; school: %@; dispel: %@", self.name, self.range, self.cooldown, self.school, self.dispelType);
         }
 		
 		
@@ -649,14 +604,14 @@
 		[scanner setScanLocation: scanSave];
 		
 		if ( [self.mount intValue] > 0 ){
-			PGLog(@"mount: %@  %@ %@", [self ID], self.mount, self.mechanic);
+			//log(LOG_GENERAL, @"mount: %@  %@ %@", [self ID], self.mount, self.mechanic);
 		}
 		
 		// get if this is a fast mount
         scanSave = [scanner scanLocation];
         if([scanner scanUpToString: MOUNT_FAST intoString: nil] && [scanner scanString: MOUNT_FAST intoString: NULL]) {
         } else {
-            // PGLog(@"No cast time entry for %@", self);
+            // log(LOG_GENERAL, @"No cast time entry for %@", self);
             [scanner setScanLocation: scanSave];
         }
 		
@@ -676,7 +631,7 @@
 		}
     }
 	else{
-		PGLog(@"[Spell] Error grabbing data for Spell ID: %@", [self ID]);
+		log(LOG_GENERAL, @"[Spell] Error grabbing data for Spell ID: %@", [self ID]);
 	}
 }
 

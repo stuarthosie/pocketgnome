@@ -1,30 +1,13 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Behavior.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 1/4/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import "Behavior.h"
-#import "SaveDataObject.h"
+#import "FileObject.h"
 
 @interface Behavior ()
 @property (readwrite, retain) NSDictionary *procedures;
@@ -40,10 +23,16 @@
 {
     self = [super init];
     if (self != nil) {
-        self.name = nil;
         self.procedures = [NSDictionary dictionary];
         self.meleeCombat = NO;
         self.usePet = NO;
+		self.useStartAttack = NO;
+		
+		_observers = [[NSArray arrayWithObjects:
+					   @"usePet",
+					   @"meleeCombat",
+					   @"useStartAttack",
+					   nil] retain];
     }
     return self;
 }
@@ -51,13 +40,15 @@
 - (id)initWithName: (NSString*)name {
     self = [self init];
     
-    self.name = name;
-    self.procedures = [NSDictionary dictionaryWithObjectsAndKeys: 
-                       [Procedure procedureWithName: name], PreCombatProcedure,
-                       [Procedure procedureWithName: name], CombatProcedure,
-                       [Procedure procedureWithName: name], PostCombatProcedure,
-                       [Procedure procedureWithName: name], RegenProcedure,
-                       [Procedure procedureWithName: name], PatrollingProcedure, nil];
+	if ( self ){
+		self.name = name;
+		self.procedures = [NSDictionary dictionaryWithObjectsAndKeys: 
+						   [Procedure procedureWithName: name], PreCombatProcedure,
+						   [Procedure procedureWithName: name], CombatProcedure,
+						   [Procedure procedureWithName: name], PostCombatProcedure,
+						   [Procedure procedureWithName: name], RegenProcedure,
+						   [Procedure procedureWithName: name], PatrollingProcedure, nil];
+	}
     
     return self;
 }
@@ -70,9 +61,8 @@
 
 - (id)initWithCoder:(NSCoder *)decoder
 {
-	self = [super initWithCoder:decoder];
+	self = [self init];
 	if ( self ) {
-        self.name = [decoder decodeObjectForKey: @"Name"];
         self.procedures = [decoder decodeObjectForKey: @"Procedures"] ? [decoder decodeObjectForKey: @"Procedures"] : [NSDictionary dictionary];
         
         // make sure we have a procedure object for every type
@@ -94,6 +84,12 @@
         if([decoder decodeObjectForKey: @"UsePet"]) {
             self.usePet = [[decoder decodeObjectForKey: @"UsePet"] boolValue];
         }
+
+        if([decoder decodeObjectForKey: @"UseStartAttack"]) {
+            self.useStartAttack = [[decoder decodeObjectForKey: @"UseStartAttack"] boolValue];
+        }
+		
+		[super initWithCoder:decoder];
 	}
 	return self;
 }
@@ -102,10 +98,10 @@
 {
 	[super encodeWithCoder:coder];
 	
-    [coder encodeObject: self.name forKey: @"Name"];
     [coder encodeObject: self.procedures forKey: @"Procedures"];
     [coder encodeObject: [NSNumber numberWithBool: self.meleeCombat] forKey: @"MeleeCombat"];
     [coder encodeObject: [NSNumber numberWithBool: self.usePet] forKey: @"UsePet"];
+    [coder encodeObject: [NSNumber numberWithBool: self.usePet] forKey: @"UseStartAttack"];
 }
 
 - (id)copyWithZone:(NSZone *)zone
@@ -115,15 +111,19 @@
     copy.procedures = self.procedures;
     copy.usePet = self.usePet;
     copy.meleeCombat = self.meleeCombat;
+    copy.useStartAttack = self.useStartAttack;
 	copy.changed = YES;
         
     return copy;
 }
 
-- (void) dealloc
-{
-    self.name = nil;
-    self.procedures = nil;
+- (void) dealloc{
+	[_observers release];
+	_observers = nil;
+	[_procedures release];
+	_procedures = nil;
+//    self.procedures = nil;
+
     [super dealloc];
 }
 
@@ -137,8 +137,7 @@
 @synthesize procedures = _procedures;
 @synthesize meleeCombat = _meleeCombat;
 @synthesize usePet = _usePet;
-@synthesize name = _name;
-
+@synthesize useStartAttack = _useStartAttack;
 - (Procedure*)procedureForKey: (NSString*)key {
     return [_procedures objectForKey: key];
 }

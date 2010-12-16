@@ -1,27 +1,11 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Controller.h
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/15/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
+//
 
 #import <Cocoa/Cocoa.h>
 #import "MemoryAccess.h"
@@ -44,9 +28,9 @@
 @class PatherController;
 @class OffsetController;
 @class StatisticsController;
-@class CombatProfileEditor;
 @class ObjectsController;
 @class PvPController;
+@class ProfileController;
 
 #define MemoryAccessValidNotification       @"MemoryAccessValidNotification"
 #define MemoryAccessInvalidNotification     @"MemoryAccessInvalidNotification"
@@ -58,6 +42,7 @@
 #define GameState_Loading		2
 
 BOOL Ascii2Virtual(char pcar, BOOL *pshift, BOOL *palt, char *pkeycode);
+
 
 @interface Controller : NSObject <GrowlApplicationBridgeDelegate> {
     IBOutlet PlayerDataController	*playerData;
@@ -75,15 +60,15 @@ BOOL Ascii2Virtual(char pcar, BOOL *pshift, BOOL *palt, char *pkeycode);
 	IBOutlet PatherController       *patherController;
 	IBOutlet OffsetController		*offsetController;
 	IBOutlet StatisticsController	*statisticsController;
-	IBOutlet CombatProfileEditor	*combatProfileEditor;
 	IBOutlet ObjectsController		*objectsController;
 	IBOutlet PvPController			*pvpController;
+	IBOutlet ProfileController		*profileController;
 	
     IBOutlet id mainWindow;
     IBOutlet NSToolbar *mainToolbar;
     IBOutlet NSToolbarItem *botToolbarItem, *playerToolbarItem, *spellsToolbarItem;
     IBOutlet NSToolbarItem *routesToolbarItem, *behavsToolbarItem, *pvpToolbarItem;
-    IBOutlet NSToolbarItem *memoryToolbarItem, *prefsToolbarItem, *chatLogToolbarItem, *statisticsToolbarItem, *objectsToolbarItem, *patherToolbarItem;
+    IBOutlet NSToolbarItem *memoryToolbarItem, *prefsToolbarItem, *chatLogToolbarItem, *statisticsToolbarItem, *objectsToolbarItem, *patherToolbarItem, *profilesToolbarItem;
 	
 	IBOutlet NSPopUpButton *wowInstancePopUpButton;
 	int _selectedPID;
@@ -107,6 +92,7 @@ BOOL Ascii2Virtual(char pcar, BOOL *pshift, BOOL *palt, char *pkeycode);
 	
 	// new scan
 	NSMutableArray *_objectAddresses;
+	NSMutableArray *_objectGUIDs;
 	UInt32 _currentObjectManager;
 	int _totalObjects;
 	UInt32 _currentAddress;
@@ -149,6 +135,7 @@ BOOL Ascii2Virtual(char pcar, BOOL *pshift, BOOL *palt, char *pkeycode);
 
 // new scan
 - (NSArray*)allObjectAddresses;
+- (NSArray*)allObjectGUIDs;
 - (BOOL)isObjectManagerValid;
 
 // WoW information
@@ -164,14 +151,12 @@ BOOL Ascii2Virtual(char pcar, BOOL *pshift, BOOL *palt, char *pkeycode);
 - (int)getWOWWindowID;
 - (CGRect)wowWindowRect;
 - (unsigned)refreshDelay;
-- (unsigned)refreshDelayReal;
 - (Position*)cameraPosition;
 - (NSString*)wowVersionShort;
 - (NSString*)wowVersionLong;
 - (MemoryAccess*)wowMemoryAccess;
 - (ProcessSerialNumber)getWoWProcessSerialNumber;
 - (CGPoint)screenPointForGamePosition: (Position*)gamePosition;
-- (int)gameState;
 
 - (void)showMemoryView;
 
@@ -183,18 +168,15 @@ BOOL Ascii2Virtual(char pcar, BOOL *pshift, BOOL *palt, char *pkeycode);
 - (UInt32)friendMaskForFaction: (UInt32)faction;
 - (UInt32)enemyMaskForFaction: (UInt32)faction;
 
-// security routines
-- (IBAction)toggleGUIScripting: (id)sender;
-- (IBAction)toggleSecurePrefs: (id)sender;
-- (IBAction)confirmAppRename: (id)sender;
-- (IBAction)renameUseExisting: (id)sender;
-- (IBAction)renameShowHelp: (id)sender;
-
-- (IBAction)testFront: (id)sender;
-
 - (void)traverseNameList;
 
 - (float)getPing;
+
+- (void)selectCombatProfileTab;
+- (void)selectBehaviorTab;
+- (void)selectRouteTab;
+- (void)selectPvPRouteTab;
+
 @end
 
 @interface NSObject (MemoryViewControllerExtras)

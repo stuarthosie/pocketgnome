@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  BindingsController.h
+//  Pocket Gnome
+//
+//  Created by Josh on 1/28/10.
+//  Copyright 2010 Savory Software, LLC. All rights reserved.
+//
 
 #import "BindingsController.h"
 
@@ -30,6 +13,8 @@
 #import "ChatController.h"
 #import "BotController.h"
 #import "OffsetController.h"
+
+#import "Behavior.h"
 
 #import "MemoryAccess.h"
 
@@ -50,16 +35,23 @@
 		
 		_guid = 0x0;
 		
-		// invalidate all key bindings
-		_primaryActionOffset = -1;
-		_primaryActionCode = -1;
-		_primaryActionModifier = -1;
-		_petAttackActionOffset = -1;
-		_petAttackActionCode = -1;
-		_petAttackActionModifier = -1;
-		_interactMouseoverActionOffset = -1;
-		_interactMouseoverActionCode = -1;
-		_interactMouseoverActionModifier = -1;
+		// required bindings
+		_requiredBindings = [[NSArray arrayWithObjects: 
+							  @"MULTIACTIONBAR1BUTTON1",            // lower left action bar
+							  @"INTERACTMOUSEOVER",
+							  @"TARGETLASTTARGET",
+							  @"TURNLEFT",
+							  @"TURNRIGHT",
+							  @"MOVEFORWARD",
+							  @"STRAFERIGHT",
+							  @"STRAFELEFT",
+							  nil] retain];
+		
+		// optional - basically back up in case any of the above are NOT bound
+		_optionalBindings = [[NSArray arrayWithObjects:
+							  @"ACTIONBUTTON1",
+							  @"PETATTACK",
+							  nil] retain];
 		
 		// might move this to a plist eventually once I have all of them
 		_commandToAscii = [[NSDictionary dictionaryWithObjectsAndKeys:
@@ -97,8 +89,8 @@
 							[NSNumber numberWithInt:-1]						,@"button1",			
 							[NSNumber numberWithInt:-1]						,@"button4",	
 							[NSNumber numberWithInt:-1]						,@"button5",
-							//[NSNumber numberWithInt:-1]						,@"backspace",
-							[NSNumber numberWithInt:kVK_Delete]				,@"delete",			
+							[NSNumber numberWithInt:kVK_Delete]				,@"backspace",
+							[NSNumber numberWithInt:kVK_ForwardDelete]		,@"delete",			
 							[NSNumber numberWithInt:kVK_ANSI_Keypad0]		,@"numpad0",			
 							[NSNumber numberWithInt:kVK_ANSI_Keypad3]		,@"numpad3",			
 							[NSNumber numberWithInt:kVK_Return]				,@"enter",			
@@ -145,6 +137,7 @@
 	[_keyCodesWithCommands release]; _keyCodesWithCommands = nil;
 	[_commandToAscii release]; _commandToAscii = nil;
 	[_bindingsToCodes release]; _bindingsToCodes = nil;
+	[_requiredBindings release]; _requiredBindings = nil;
     [super dealloc];
 }
 
@@ -169,12 +162,12 @@
 typedef struct WoWBinding {
     UInt32 nextBinding;		// 0x0
 	UInt32 unknown1;		// 0x4	pointer to a list of something
-	UInt32 keyPointer;		// 0x8
+	UInt32 keyPointer;		// 0x8 (like BACKSPACE)
 	UInt32 unknown2;		// 0xC	usually 0
 	UInt32 unknown3;		// 0x10	usually 0
 	UInt32 unknown4;		// 0x14	usually 0
 	UInt32 unknown5;		// 0x18	usually 0
-	UInt32 cmdPointer;		// 0x1C
+	UInt32 cmdPointer;		// 0x1C (like STRAFELEFT)
 } WoWBinding;
 
 - (void)getKeyBindings{
@@ -185,21 +178,22 @@ typedef struct WoWBinding {
 	
 	MemoryAccess *memory = [controller wowMemoryAccess];
 	UInt32 offset = [offsetController offset:@"Lua_GetBindingKey"];
+
 	UInt32 bindingsManager = 0, structPointer = 0, firstStruct = 0;
 	WoWBinding bindingStruct;
 	
 	// find the address of our key bindings manager
 	if ( [memory loadDataForObject: self atAddress: offset Buffer: (Byte*)&bindingsManager BufLength: sizeof(bindingsManager)] && bindingsManager ){
-		
+
 		// load the first struct
-		[memory loadDataForObject: self atAddress: bindingsManager + 0xB4 Buffer: (Byte*)&firstStruct BufLength: sizeof(firstStruct)];
+		[memory loadDataForObject: self atAddress: bindingsManager + 0xC4 Buffer: (Byte*)&firstStruct BufLength: sizeof(firstStruct)];
 		
 		structPointer = firstStruct;
-
+		
 		// loop through all structs!
 		while ( [memory loadDataForObject: self atAddress: structPointer Buffer: (Byte*)&bindingStruct BufLength: sizeof(bindingStruct)] && bindingStruct.nextBinding > 0x0 && !(bindingStruct.nextBinding & 0x1) ){
 
-			//PGLog(@"[Bindings] Struct found at 0x%X", structPointer);
+			//log(LOG_BINDINGS, @"[Bindings] Struct found at 0x%X", structPointer);
 
 			// initiate our variables
 			NSString *key = nil;
@@ -208,24 +202,23 @@ typedef struct WoWBinding {
 			tmpKey[63] = 0;
 			tmpCmd[63] = 0;
 
-			
 			if ( [memory loadDataForObject: self atAddress: bindingStruct.keyPointer Buffer: (Byte *)&tmpKey BufLength: sizeof(tmpKey)-1] ){
-				key = [NSString stringWithUTF8String: tmpKey];  // will stop after it's first encounter with '\0'
-				//PGLog(@"[Bindings] Key %@ found at 0x%X", key, bindingStruct.keyPointer);
+				key = [NSString stringWithUTF8String: tmpKey];
+				//log(LOG_BINDINGS, @"[Bindings] Key %@ found at 0x%X", key, bindingStruct.keyPointer);
 			}
 			
 			if ( [memory loadDataForObject: self atAddress: bindingStruct.cmdPointer Buffer: (Byte *)&tmpCmd BufLength: sizeof(tmpCmd)-1] ){
-				cmd = [NSString stringWithUTF8String: tmpCmd];  // will stop after it's first encounter with '\0'
-				//PGLog(@"[Bindings] Command %@ found at 0x%X", cmd, bindingStruct.cmdPointer);
+				cmd = [NSString stringWithUTF8String: tmpCmd];
+				//log(LOG_BINDINGS, @"[Bindings] Command %@ found at 0x%X", cmd, bindingStruct.cmdPointer);
 			}
 			
 			// add it
 			if ( [key length] && [cmd length] ){
-				//PGLog(@"%@ -> %@", key, cmd);
+				//log(LOG_BINDINGS, @"%@ -> %@", key, cmd);
 				[_bindings setObject:cmd forKey:key];
 			}
 			
-			//PGLog(@"[Bindings] Code %d for %@", [chatController keyCodeForCharacter:key], key);
+			//log(LOG_BINDINGS, @"[Bindings] Code %d for %@", [chatController keyCodeForCharacter:key], key);
 			
 			// we already made it through the list! break!
 			if ( firstStruct == bindingStruct.nextBinding ){
@@ -284,7 +277,7 @@ typedef struct WoWBinding {
 		// remove the previous commands
 		[allCodes removeAllObjects];
 		
-		//PGLog(@"[Bindings] Command: %@ %@", [_bindings objectForKey:key], key);
+		//log(LOG_BINDINGS, @"[Bindings] Command: %@ %@", [_bindings objectForKey:key], key);
 		
 		// this will tell us where the "-" is in our string!
 		int i, splitIndex = -1;
@@ -307,7 +300,7 @@ typedef struct WoWBinding {
 
 			/*NSString *binding = [[_bindings objectForKey:key] lowercaseString];
 			if ( [binding isEqualToString:[[NSString stringWithFormat:@"MULTIACTIONBAR1BUTTON1"] lowercaseString]] ){
-				PGLog(@" %@", command1);
+				log(LOG_BINDINGS, @" %@", command1);
 			}*/
 		}
 		// 2 commands
@@ -390,13 +383,14 @@ typedef struct WoWBinding {
 	if ( [unknownCodes count] ){
 		for ( NSString *cmd in unknownCodes ){
 			if ( ![_commandToAscii objectForKey:cmd] ){
-				PGLog(@"[Bindings] Unable to find code for %@, report it to Tanaris4!", cmd);
+				log(LOG_BINDINGS, @"[Bindings] Unable to find code for %@, report it to Tanaris4!", cmd);
 			}
-			//PGLog(@" \@\"%@\",", cmd);
+			//log(LOG_BINDINGS, @" \@\"%@\",", cmd);
 		}
 	}
 }
 
+// pass it MULTIACTIONBAR1BUTTON1
 - (NSArray*)bindingForCommand:(NSString*)binding{
 	
 	NSString *lowerCase = [binding lowercaseString];
@@ -467,140 +461,44 @@ typedef struct WoWBinding {
 // this will do an "intelligent" scan to find our key bindings! Then store them for use! (reset when player is invalid)
 - (void)mapBindingsToKeys{
 	
-	int offset = -1;
-	int code = -1;
-	int modifier = 0x0;
+	// combine all bindings
+	NSMutableArray *allBindings = [NSMutableArray arrayWithArray:_requiredBindings];
+	[allBindings addObjectsFromArray:_optionalBindings];
 	
-	//
-	//	PRIMARY HOTKEY - Lower Left Action Bar or Action Bar 1
-	//
-	
-	// scan for lower left action bar first (would be nice if we have this!
-	if ( [self codeForBinding:@"MULTIACTIONBAR1BUTTON1"] >= 0 ){
-		code = [self codeForBinding:@"MULTIACTIONBAR1BUTTON1"];
-		modifier = [self modifierForBinding:@"MULTIACTIONBAR1BUTTON1"];
-		offset = BAR6_OFFSET;
+	// lets find all the codes!
+	for ( NSString *binding in allBindings ){
 		
-		PGLog(@"[Bindings] Found binding for lower left action bar: %d 0x%X 0x%X", code, modifier, offset);
-	}
-	// try normal bar (I could try more after this, but if they don't have either bound, they shouldn't be using this bot)
-	else if ( [self codeForBinding:@"ACTIONBUTTON1"] >= 0 ){
-		code = [self codeForBinding:@"ACTIONBUTTON1"];
-		modifier = [self modifierForBinding:@"ACTIONBUTTON1"];
-		offset = BAR1_OFFSET;
+		int code = [self codeForBinding:binding];
+		int modifier = [self modifierForBinding:binding];
 		
-		PGLog(@"[Bindings] Found binding for action bar 1: %d 0x%X 0x%X", code, modifier, offset);
+		// we have a valid binding!
+		if ( code != -1  ){
+			
+			// add our object!
+			[_bindingsToCodes setObject:[NSDictionary dictionaryWithObjectsAndKeys:
+										 [NSNumber numberWithInt:code],                 @"Code",
+										 [NSNumber numberWithInt:modifier],             @"Modifier",
+										 nil]
+								 forKey:binding];        // key is something like MULTIACTIONBAR1BUTTON1
+		}
+		// no binding /cry
+		else{
+			log(LOG_BINDINGS, @"No valid key binding found for %@", binding);
+		}
 	}
-			 
-	if ( code != -1 ){
-		
-		[_bindingsToCodes setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									 [NSNumber numberWithInt:offset],		@"Offset",
-									 [NSNumber numberWithInt:code],			@"Code",
-									 [NSNumber numberWithInt:modifier],		@"Modifier",
-									 nil]
-							 forKey:BindingPrimaryHotkey];
-	}
-	else{
-		PGLog(@"[Bindings] No Primary Hotkey found! Bind a key to lower left action bar 1 or bar 1");
-	}	
-	
-	//
-	//	PET ATTACK HOTKEY
-	//
-	
-	// reset
-	offset = -1; code = -1; modifier = 0x0;
-	
-	// get pet attack!
-	if ( [self codeForBinding:@"PETATTACK"] >= 0 ){
-		code = [self codeForBinding:@"PETATTACK"];
-		modifier = [self modifierForBinding:@"PETATTACK"];
-		offset = BAR6_OFFSET;
-		
-		PGLog(@"[Bindings] Found binding for pet attack: %d 0x%X 0x%X", code, modifier, offset);
-	}
-	
-	if ( code != -1 ){
-		
-		[_bindingsToCodes setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									 [NSNumber numberWithInt:offset],		@"Offset",
-									 [NSNumber numberWithInt:code],			@"Code",
-									 [NSNumber numberWithInt:modifier],		@"Modifier",
-									 nil]
-							 forKey:BindingPetAttack];
-	}
-	else{
-		PGLog(@"[Bindings] No Pet Attack key found! Bind a key to pet attack!");
-	}
-	
-	//
-	//	INTERACT WITH MOUSEOVER
-	//
-	
-	// reset
-	offset = -1; code = -1; modifier = 0x0;
-	
-	// get pet attack!
-	if ( [self codeForBinding:@"INTERACTMOUSEOVER"] >= 0 ){
-		code = [self codeForBinding:@"INTERACTMOUSEOVER"];
-		modifier = [self modifierForBinding:@"INTERACTMOUSEOVER"];
-		offset = BAR6_OFFSET;
-		
-		PGLog(@"[Bindings] Found binding for interact with mouseover: %d 0x%X 0x%X", code, modifier, offset);
-	}
-	
-	if ( code != -1 ){
-		[_bindingsToCodes setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									 [NSNumber numberWithInt:offset],		@"Offset",
-									 [NSNumber numberWithInt:code],			@"Code",
-									 [NSNumber numberWithInt:modifier],		@"Modifier",
-									 nil]
-							 forKey:BindingInteractMouseover];
-	}
-	else{
-		PGLog(@"[Bindings] No Interact with Mouseover key found! Bind a key to 'Interact with Mouseover'!");
-	}
-	
-	//
-	//	TARGET LAST TARGET
-	//
-	
-	// reset
-	offset = -1; code = -1; modifier = 0x0;
-	
-	// get pet attack!
-	if ( [self codeForBinding:@"TARGETLASTTARGET"] >= 0 ){
-		code = [self codeForBinding:@"TARGETLASTTARGET"];
-		modifier = [self modifierForBinding:@"TARGETLASTTARGET"];
-		offset = BAR6_OFFSET;
-		
-		PGLog(@"[Bindings] Found binding for target last target: %d 0x%X 0x%X", code, modifier, offset);
-	}
-	
-	if ( code != -1 ){
-		[_bindingsToCodes setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									 [NSNumber numberWithInt:offset],		@"Offset",
-									 [NSNumber numberWithInt:code],			@"Code",
-									 [NSNumber numberWithInt:modifier],		@"Modifier",
-									 nil]
-							 forKey:BindingTargetLast];
-	}
-	else{
-		PGLog(@"[Bindings] No Target Last Target found! Bind a key to 'Target Last Target'!");
-	}
-	
-	
-	
-	
-	
 }
 
 - (BOOL)executeBindingForKey:(NSString*)key{
 	
-	PGLog(@"[Bindings] Executing %@", key);
+	log(LOG_BINDINGS, @"Executing %@", key);
 	
 	NSDictionary *dict = [_bindingsToCodes objectForKey:key];
+	
+	// special case! Try for a backup!
+	if ( !dict && [key isEqualToString:BindingPrimaryHotkey] ){
+		log(LOG_BINDINGS, @"No code found for %@, searching for %@", key, BindingPrimaryHotkeyBackup);
+		dict = [_bindingsToCodes objectForKey:BindingPrimaryHotkeyBackup];
+	}
 	
 	if ( dict ){
 		//int offset		= [[dict objectForKey:@"Offset"] intValue];
@@ -608,7 +506,7 @@ typedef struct WoWBinding {
 		int modifier	= [[dict objectForKey:@"Modifier"] intValue];
 		
 		// close chat box?
-		if ( [controller isWoWChatBoxOpen] && code != kVK_F13 ){
+		if ( [controller isWoWChatBoxOpen] && code != kVK_F13 && code != kVK_F14 && code != kVK_F15){
 			[chatController pressHotkey:kVK_Escape withModifier:0x0];
 			usleep(10000);
 		}
@@ -618,20 +516,67 @@ typedef struct WoWBinding {
 		return YES;
 	}
 	else{
-		PGLog(@"[Bindings] Unable to find binding for %@", key);
+		log(LOG_BINDINGS, @"[Bindings] Unable to find binding for %@", key);
 	}
 	
 	return NO;
 }
 
-- (int)barOffsetForKey:(NSString*)key{
-	NSDictionary *dict = [_bindingsToCodes objectForKey:key];
+- (int)castingBarOffset{
 	
-	if ( dict ){
-		return [[dict objectForKey:@"Offset"] intValue];
+	// primary is valid
+	if ( [_bindingsToCodes objectForKey:BindingPrimaryHotkey] ){
+		return BAR6_OFFSET;
+	}
+	else if ( [_bindingsToCodes objectForKey:BindingPrimaryHotkeyBackup] ){
+		return BAR1_OFFSET;
 	}
 	
-	return -1;	
+	return -1;
+}
+
+// if this string isn't nil, then we are sad + the bot won't start :(
+- (NSString*)keyBindingsValid{
+	
+	// reload bindings
+	[self reloadBindings];
+	
+	BOOL bindingsError = NO;
+	NSMutableString *error = [NSMutableString stringWithFormat:@"You need to bind your keys to something! The following aren't bound:\n"];
+	if ( ![self bindingForKeyExists:BindingPrimaryHotkey] && ![self bindingForKeyExists:BindingPrimaryHotkeyBackup] ){
+		[error appendString:@"\tLower Left Action Bar 1 (Or Action Bar 1)\n"];
+		bindingsError = YES;
+	}
+	else if ( ![self bindingForKeyExists:BindingPetAttack] && [botController.theBehavior usePet] ){
+		[error appendString:@"\tPet Attack\n"];
+		bindingsError = YES;
+	}
+	else if ( ![self bindingForKeyExists:BindingInteractMouseover] ){
+		[error appendString:@"\tInteract With Mouseover\n"];
+		bindingsError = YES;
+	}
+	else if ( ![self bindingForKeyExists:BindingTargetLast] ){
+		[error appendString:@"\tTarget Last Target\n"];
+		bindingsError = YES;
+	}
+	else if ( ![self bindingForKeyExists:BindingTurnLeft] ){
+		[error appendString:@"\tTurn Left\n"];
+		bindingsError = YES;
+	}
+	else if ( ![self bindingForKeyExists:BindingTurnRight] ){
+		[error appendString:@"\tTurn Right\n"];
+		bindingsError = YES;
+	}
+	else if ( ![self bindingForKeyExists:BindingMoveForward] ){
+		[error appendString:@"\tMove Forward\n"];
+		bindingsError = YES;
+	}
+	
+	if ( bindingsError ){
+		return error;
+	}
+	
+	return nil;     
 }
 
 @end

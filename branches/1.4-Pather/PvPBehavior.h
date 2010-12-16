@@ -24,7 +24,7 @@
  */
 
 #import <Cocoa/Cocoa.h>
-#import "SaveDataObject.h"
+#import "FileObject.h"
 
 #define ZoneAlteracValley			2597
 #define ZoneArathiBasin				3358
@@ -35,13 +35,14 @@
 
 @class Battleground;
 
-@interface PvPBehavior : SaveDataObject {
-	
-	NSString *_name;
+@interface PvPBehavior : FileObject {
 	
 	// battlegrounds
 	Battleground *_bgAlteracValley, *_bgArathiBasin, *_bgEyeOfTheStorm, *_bgIsleOfConquest, *_bgStrandOfTheAncients, *_bgWarsongGulch;
 	
+	
+	
+	// Note that these are all deprecaed (in the comabt profile now), but they've been left here so we dont' screw up the object people already have stored (not sure if it would be bad to remove these?)
 	// options
 	BOOL _random;
 	BOOL _stopHonor;
@@ -58,7 +59,6 @@
 @property (readwrite, retain) Battleground *IsleOfConquest;
 @property (readwrite, retain) Battleground *StrandOfTheAncients;
 @property (readwrite, retain) Battleground *WarsongGulch;
-@property (readwrite, copy) NSString *name;
 
 @property (readwrite, assign) BOOL random;
 @property (readwrite, assign) BOOL stopHonor;

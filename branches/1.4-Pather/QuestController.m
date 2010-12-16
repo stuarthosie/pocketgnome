@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  QuestController.m
+//  Pocket Gnome
+//
+//  Created by Josh on 4/22/09.
+//	Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "QuestController.h"
 #import "Controller.h"
@@ -94,7 +77,7 @@ typedef struct QuestInfo {
 - (void) reloadPlayerQuests{
 	
 	// Get access to memory
-	MemoryAccess *wowMemory = [controller wowMemoryAccess];
+	/*MemoryAccess *wowMemory = [controller wowMemoryAccess];
 	UInt32 playerAddress = [playerDataController baselineAddress];
 	
 	// Add the player's current quests to the array pls
@@ -109,7 +92,7 @@ typedef struct QuestInfo {
 				break;
 			}
 		}
-	}
+	}*/
 	
 	// Get the data for each quest from WoWHead
     for(Quest *quest in _playerQuests) {
@@ -126,7 +109,7 @@ typedef struct QuestInfo {
 	 
 	 QuestInfo quest;
 	 if([wowMemory loadDataForObject: self atAddress: (questStart) + i*sizeof(quest) Buffer:(Byte*)&quest BufLength: sizeof(quest)]) {
-	 //PGLog(@"ID: %d, 1:%d, 2:%d, 3:%d", quest.questID, quest.bytes, quest.bytes1, quest.bytes2);
+	 //log(LOG_GENERAL, @"ID: %d, 1:%d, 2:%d, 3:%d", quest.questID, quest.bytes, quest.bytes1, quest.bytes2);
 	 
 	 if ( quest.questID == 0 ) continue;
 	 
@@ -139,7 +122,7 @@ typedef struct QuestInfo {
 	 // Found a valid quest ID... lets save the extra data
 	 if ( [[obj ID] intValue] == quest.questID )
 	 {
-	 PGLog(@"Found quest %d (%d, %d, %D)", quest.questID, quest.bytes, quest.bytes1, quest.bytes2);
+	 log(LOG_GENERAL, @"Found quest %d (%d, %d, %D)", quest.questID, quest.bytes, quest.bytes1, quest.bytes2);
 	 
 	 obj._bytes1 = [NSNumber numberWithInt:quest.bytes];
 	 obj._bytes2 = [NSNumber numberWithInt:quest.bytes1];
@@ -179,10 +162,10 @@ typedef struct QuestInfo {
 	NSLog(@"Total quests: %i", [_playerQuests count] );
 	for(Quest *quest in _playerQuests) {
 		
-		PGLog(@"Quest: %@ %@", [quest questID], [quest name]);
+		log(LOG_GENERAL, @"Quest: %@ %@", [quest questID], [quest name]);
 		
         for(QuestItem *questItem in quest.itemRequirements){
-            PGLog(@"  Required Item: %@ Quantity: %@", [questItem item], [questItem quantity]);
+            log(LOG_GENERAL, @"  Required Item: %@ Quantity: %@", [questItem item], [questItem quantity]);
         }
 	}
 }

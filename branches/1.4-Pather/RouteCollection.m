@@ -1,30 +1,13 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  RouteCollection.m
+//  Pocket Gnome
+//
+//  Created by Josh on 2/11/10.
+//  Copyright 2010 Savory Software, LLC. All rights reserved.
+//
 
 #import "RouteCollection.h"
-#import "SaveDataObject.h"
+#import "FileObject.h"
 
 #import "RouteSet.h"
 
@@ -39,10 +22,13 @@
 {
     self = [super init];
     if (self != nil) {
-        self.name = nil;
         self.routes = [NSMutableArray array];
 		self.startUUID = nil;
 		self.startRouteOnDeath = NO;
+
+		_observers = [[NSArray arrayWithObjects: 
+					   @"startRouteOnDeath",
+					   @"routes", nil] retain];
     }
     return self;
 }
@@ -62,29 +48,27 @@
 }
 
 - (id)initWithCoder:(NSCoder *)decoder{
-	self = [super initWithCoder:decoder];
+	self = [self init];
 	if ( self ) {
-        self.name = [decoder decodeObjectForKey: @"Name"];
         self.routes = [decoder decodeObjectForKey: @"Routes"] ? [decoder decodeObjectForKey: @"Routes"] : [NSArray array];
 		self.startUUID = [decoder decodeObjectForKey: @"StartUUID"];
 		self.startRouteOnDeath = [[decoder decodeObjectForKey: @"StartRouteOnDeath"] boolValue];
+		[super initWithCoder:decoder];
 	}
 	return self;
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder{
-	[super encodeWithCoder:coder];
-	
-    [coder encodeObject: self.name forKey: @"Name"];
     [coder encodeObject: self.routes forKey: @"Routes"];
 	[coder encodeObject: self.startUUID forKey: @"StartUUID"];
 	[coder encodeObject: [NSNumber numberWithBool:self.startRouteOnDeath] forKey: @"StartRouteOnDeath"];
+	
+	[super encodeWithCoder:coder];
 }
 
 - (id)copyWithZone:(NSZone *)zone{
     RouteCollection *copy = [[[self class] allocWithZone: zone] initWithName: self.name];
     
-	PGLog(@"copy is changed?");
 	copy.changed = YES;
 	copy.startUUID = self.startUUID;
 	copy.startRouteOnDeath = self.startRouteOnDeath;
@@ -105,7 +89,6 @@
 }
 
 @synthesize routes = _routes;
-@synthesize name = _name;
 @synthesize startUUID = _startUUID;
 @synthesize startRouteOnDeath = _startRouteOnDeath;
 
@@ -168,13 +151,11 @@
 #pragma mark Starting Route stuff
 
 - (RouteSet*)startingRoute{
-	
-	for ( RouteSet *route in _routes ){
-		if ( [self.startUUID isEqualToString:[route UUID]] ){
-			return route;
-		}
+
+	for ( RouteSet *route in _routes ) {
+		if ( [self.startUUID isEqualToString:[route UUID]] ) return route;
 	}
-	
+
 	return nil;
 }
 
@@ -201,10 +182,31 @@
 
 #pragma mark Accessors
 
-// so we can set changed to yes!
-- (void)setStartRouteOnDeath:(BOOL)val{
-	self.changed = YES;
-	_startRouteOnDeath = val;
+- (BOOL)changed{
+	
+	if ( _changed ){
+		return YES;
+	}
+	
+	for (RouteSet *route in _routes ){
+		if ( route.changed ){
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
+- (void)setChanged:(BOOL)val{
+	
+	// set each route set to not changed!
+	if ( val == NO ){
+		for (RouteSet *route in _routes ){
+			[route setChanged:NO];
+		}
+	}
+	
+	_changed = val;
 }
 
 @end

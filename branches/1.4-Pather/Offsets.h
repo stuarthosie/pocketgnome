@@ -11,10 +11,10 @@
  
 #import "ObjectConstants.h"
 
-#define VALID_WOW_VERSION   @"3.3.5"
+#define VALID_WOW_VERSION   @"4.0.3"
 #define PLAYER_LEVEL_CAP    80
 
-#define	BG_STATUS		0x18
+#define	BG_STATUS		0xC
 #define BG_MINLEVEL		0x1C
 #define BG_MAXLEVEL		0x20
 #define BG_INFO_NEXT	0x3C
@@ -32,7 +32,7 @@
                                              // 0x9B1008 : 0x9D8C55) // 2.4.2
                                              // 0x9A8008 : 0x9CDC5D) // 2.4.1
 #define COMBO_POINT_VALUE           0x0   // appears 0xY000000 on PPC, Y on x86
-#define COMBO_POINT_TARGET_UID      0x8   // 64 bit
+#define COMBO_POINT_TARGET_UID      0x4   // 64 bit
 // in 3.0.x, the current time appears globally +0xC after COMBO_POINTS_STATIC
 
 // there's another interesting struct between combo points and targets

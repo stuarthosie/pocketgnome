@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  PlayerDataController.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/15/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "PlayerDataController.h"
 #import "Offsets.h"
@@ -119,9 +102,17 @@ static PlayerDataController* sharedController = nil;
     return self;
 }
 
+- (void)dealloc{
+	[_combatDataList release];
+	[_baselineAddress release];
+	[_playerAddress release];
+	
+	[super dealloc];
+}
+
 - (void)viewLoaded: (NSNotification*)notification {
     //if( [notification object] == self.view ) {
-    //    PGLog(@"loaded");
+    //    log(LOG_DEV, @"loaded");
     //    [[AuraController sharedController] aurasForUnit: [self player]];
     //} 
 }
@@ -254,12 +245,13 @@ static PlayerDataController* sharedController = nil;
 #pragma mark -
 
 - (BOOL)playerIsValid{
-	//PGLog(@"UI UI UI");
+	//log(LOG_DEV, @"UI UI UI");
 	return [self playerIsValid:nil];	
 }
 // 4 reads
 //  could take this down to 3 if we store the global GUID somewhere + ONLY reset when player is invalid
 - (BOOL)playerIsValid: (id)sender {
+
     // check that our so-called player struct has the correct signature
     MemoryAccess *memory = [controller wowMemoryAccess];
     
@@ -279,7 +271,7 @@ static PlayerDataController* sharedController = nil;
 	// is the player still valid?
     if ( GUID_LOW32(globalGUID) == selfGUID && objectType == TYPEID_PLAYER && previousPtr > 0x0 ) {
 		if ( !_lastState ) {
-			PGLog(@"[Player] Player is valid. %@", [sender class]);
+			log(LOG_DEV, @"[Player] Player is valid. %@", [sender class]);
 			
 			[self loadState];
 			
@@ -289,7 +281,7 @@ static PlayerDataController* sharedController = nil;
 	}
 
     if ( _lastState ) {
-        PGLog(@"[Player] Player is invalid. %@", [sender class]);
+        log(LOG_DEV, @"[Player] Player is invalid. %@", [sender class]);
         [self resetState];
     }
     return NO;
@@ -329,7 +321,7 @@ static PlayerDataController* sharedController = nil;
     if(memory && _baselineAddress && [self baselineAddress]) {
         [memory loadDataForObject: self atAddress: ([self baselineAddress] + OBJECT_TYPE_ID) Buffer: (Byte*)&objectType BufLength: sizeof(objectType)];
         [memory loadDataForObject: self atAddress: ([self baselineAddress] + OBJECT_FIELDS_PTR) Buffer: (Byte*)&playerAddress BufLength: sizeof(playerAddress)];
-		PGLog(@"[PlayerData] Type: %d Address: 0x%X  BaselineAddress: 0x%X", objectType, playerAddress, [self baselineAddress]);
+		log(LOG_DEV, @"[PlayerData] Type: %d Address: 0x%X  BaselineAddress: 0x%X", objectType, playerAddress, [self baselineAddress]);
     }
 
     // if we got a ~~~~
@@ -346,17 +338,18 @@ static PlayerDataController* sharedController = nil;
         _lastState = YES;
         [self didChangeValueForKey: @"playerIsValid"];
         [self didChangeValueForKey: @"playerHeader"];
-        
+		
         // reset internal state info variables
         self.wasDead = [self isDead];
         savedLevel = 0;
 
         // and start the update process
         [self performSelector: @selector(refreshPlayerData) withObject: nil afterDelay: _updateFrequency];
+
         return;
     }
     
-    PGLog(@"Error: Attemping to load invalid player; bailing. Address: 0x%X Type: %d", playerAddress, objectType);
+    log(LOG_DEV, @"Error: Attemping to load invalid player; bailing. Address: 0x%X Type: %d", playerAddress, objectType);
     [self resetState];
 }
 
@@ -513,29 +506,37 @@ static PlayerDataController* sharedController = nil;
 }
 
 - (int)runesAvailable:(int)type{
-	
-	// start CD: [offsetController offset:@"RUNE_STATUS"] + 0x1C
-	// end CD: [offsetController offset:@"RUNE_STATUS"] + 0x1C + 0x20
+
+	//   offsets are from the Lua_GetRuneCount offset
+	//	the below indicates the start time that the rune was used, the end time is 0x18 from the below (so 0x4 + 0x18 = end time of the first blood rune)
+	// blood: 0x4 and 0x8
+	// unholy: 0xC and 0x10
+	// forst : 0x14 and 0x18
 
 	MemoryAccess *memory = [controller wowMemoryAccess];
-	UInt32 runeState = 0, runeType = 0;
-	[memory loadDataForObject: self atAddress: [offsetController offset:@"RUNE_STATUS"] Buffer: (Byte*)&runeState BufLength: sizeof(runeState)];
-	
+	UInt32 runeStatePtr = 0x0, runeState = 0, runeType = 0;
+	[memory loadDataForObject: self atAddress: [offsetController offset:@"Lua_GetRuneCount"] Buffer: (Byte*)&runeStatePtr BufLength: sizeof(runeStatePtr)];
+	[memory loadDataForObject: self atAddress: runeStatePtr Buffer: (Byte*)&runeState BufLength: sizeof(runeState)];
+
 	if ( runeState ){
-		int i, runesAvailable = 0;
-		for ( i = 0; i < 6; i++ ){
-			[memory loadDataForObject: self atAddress: [offsetController offset:@"RUNE_STATE_START"] + (i*4) Buffer: (Byte*)&runeType BufLength: sizeof(runeType)];
-			BOOL unavailable = ( runeState & (1 << i ) ) == 0;
-			
-			if ( runeType == type && !unavailable ){
-				runesAvailable++;
-			}
+		int runesAvailable = 0;
+		if ( type == RuneType_Blood ){
+			runesAvailable += (runeState & ( 1 << 0 )) ? 1 : 0;
+			runesAvailable += (runeState & ( 1 << 1 )) ? 1 : 0;
+		}
+		else if ( type == RuneType_Unholy ){
+			runesAvailable += (runeState & ( 1 << 2 )) ? 1 : 0;
+			runesAvailable += (runeState & ( 1 << 3 )) ? 1 : 0;			
+		}
+		else if ( type == RuneType_Frost ){
+			runesAvailable += (runeState & ( 1 << 4 )) ? 1 : 0;
+			runesAvailable += (runeState & ( 1 << 5 )) ? 1 : 0;
 		}
 		
 		return runesAvailable;
 	}
 
-	PGLog(@"[Rune] No rune state found");
+	log(LOG_DEV, @"[Rune] No rune state found");
 	
 	return 0;	
 }
@@ -550,13 +551,26 @@ static PlayerDataController* sharedController = nil;
 }
 
 - (BOOL)isOnGround {
-	
+
+	UInt32 movementFlags = [self movementFlags];
+
 	// Player is in the air!
-	if ( ( [self movementFlags] & 0x3000000) == 0x3000000 || ( [self movementFlags] & 0x1000) == 0x1000 ){
+	if ( ( movementFlags & 0x3000000) == 0x3000000 || ( movementFlags & 0x1000) == 0x1000 ){
 		return NO;
 	}
 	
 	return YES;
+}
+
+- (BOOL)isAirMounted{
+
+	UInt32 movementFlags = [self movementFlags];
+
+	if ( ( movementFlags & MovementFlags_AirMounted) == MovementFlags_AirMounted || ( movementFlags & MovementFlags_AirMountedInAir) == MovementFlags_AirMountedInAir ){
+		return YES;
+	}
+
+	return NO;
 }
 
 // 1 write
@@ -632,18 +646,28 @@ static PlayerDataController* sharedController = nil;
     return floatValue;
 }
 
+- (UInt32)playerFieldsAddress{
+	UInt32 value = 0;
+	if ( [[controller wowMemoryAccess] loadDataForObject: self atAddress: ([[self player] baseAddress] + [offsetController offset:@"PlayerField_Pointer"]) Buffer: (Byte *)&value BufLength: sizeof(value)] ){
+		return value;
+	}
+	return 0;
+}
+
 // 1 read
 - (UInt32)copper {
 	UInt32 value = 0;
-	[[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_Coinage) Buffer: (Byte*)&value BufLength: sizeof(value)];
+	[[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self playerFieldsAddress] + PLAYER_FIELD_COINAGE) Buffer: (Byte*)&value BufLength: sizeof(value)];
 	return value;
 }
 
 // 1 read
 - (UInt32)honor {
-	UInt32 value = 0;
-	[[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_Coinage) Buffer: (Byte*)&value BufLength: sizeof(value)];
-	return value;
+	
+	return 1500000;
+	/*UInt32 value = 0;
+	[[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self playerFieldsAddress] + ) Buffer: (Byte*)&value BufLength: sizeof(value)];
+	return value;*/
 }
 
 // 1 read, 2 writes
@@ -658,7 +682,7 @@ static PlayerDataController* sharedController = nil;
 // 1 write
 - (void)trackResources: (int)resource{
 	MemoryAccess *memory = [controller wowMemoryAccess];
-	[memory saveDataForAddress: ([self infoAddress] + PlayerField_TrackResources) Buffer: (Byte *)&resource BufLength: sizeof(resource)];
+	[memory saveDataForAddress: ([self playerFieldsAddress] + PLAYER_TRACK_RESOURCES) Buffer: (Byte *)&resource BufLength: sizeof(resource)];
 }
 
 #pragma mark Player Targeting
@@ -674,7 +698,7 @@ static PlayerDataController* sharedController = nil;
         //ret2 = [[self wowMemory] saveDataForAddress: self atAddress: ([offsetController offset:@"TARGET_TABLE_STATIC"] + TARGET_MOUSEOVER) Buffer: (Byte *)&targetID BufLength: sizeof(targetID)];
         
         // and to the player table
-        ret3 = [memory saveDataForAddress: ([self infoAddress] + UnitField_Target) Buffer: (Byte *)&targetID BufLength: sizeof(targetID)];
+        ret3 = [memory saveDataForAddress: ([[self player] unitFieldAddress] + UNIT_FIELD_TARGET) Buffer: (Byte *)&targetID BufLength: sizeof(targetID)];
 		
         if(ret1 && ret3)    
             return YES;
@@ -687,7 +711,7 @@ static PlayerDataController* sharedController = nil;
 
 - (BOOL)targetGuid: (GUID)guid{
 	
-	PGLog(@"[PlayerData] Attempted to target 0x%qX", guid);
+	log(LOG_DEV, @"[PlayerData] Attempted to target 0x%qX", guid);
 	
 	MemoryAccess *memory = [controller wowMemoryAccess];
     if ( memory && [memory isValid] && [memory saveDataForAddress: ([offsetController offset:@"TARGET_TABLE_STATIC"] + TARGET_LAST) Buffer: (Byte *)&guid BufLength: sizeof(guid)] ) {
@@ -695,8 +719,10 @@ static PlayerDataController* sharedController = nil;
 		usleep([controller refreshDelay]*2);
 		
 		[bindingsController executeBindingForKey:BindingTargetLast];
+
+		usleep([controller refreshDelay]*2);
 		
-		PGLog(@"[PlayerData] Targetting last target: 0x%qX", guid);
+		log(LOG_DEV, @"[PlayerData] Targetting last target: 0x%qX", guid);
 		
 		return YES;       
 	}
@@ -708,7 +734,7 @@ static PlayerDataController* sharedController = nil;
 	
 	// is target valid
 	if ( !target || ![target isValid] ){
-		PGLog(@"[Player] Unable to target %@", target);
+		log(LOG_DEV, @"[Player] Unable to target %@", target);
 		[mobController clearTargets];
 		return [self setTarget:0];
 	}
@@ -736,7 +762,7 @@ static PlayerDataController* sharedController = nil;
 
 - (UInt64)targetID {
     UInt64 value = 0;
-    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self infoAddress] + UnitField_Target) Buffer: (Byte*)&value BufLength: sizeof(value)] && value) {
+    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: ([[self player] unitFieldAddress] + UNIT_FIELD_TARGET) Buffer: (Byte*)&value BufLength: sizeof(value)] && value) {
         return value;
     }
     return 0;
@@ -776,7 +802,7 @@ static PlayerDataController* sharedController = nil;
 
 - (UInt32)stateFlags {
     UInt32 value = 0;
-    [[controller wowMemoryAccess] loadDataForObject: self atAddress: [self infoAddress] + UnitField_StatusFlags Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [[controller wowMemoryAccess] loadDataForObject: self atAddress: [[self player] unitFieldAddress] + UNIT_FIELD_FLAGS_2 Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
     
     // polymorph sets bits 22 and 29
@@ -829,6 +855,25 @@ static PlayerDataController* sharedController = nil;
 	return [listMembers copy];
 }
 
+- (UInt64)PartyMember: (int)whichMember{
+	GUID partyGUID = 0x0;
+	
+	whichMember--;	// We'll make it so you can use 1-6
+	
+	UInt64 memberOffset = 0x8 * whichMember;
+	
+    [[controller wowMemoryAccess] loadDataForObject: self atAddress: [offsetController offset:@"Lua_GetPartyMember"] + memberOffset Buffer: (Byte *)&partyGUID BufLength: sizeof(partyGUID)];
+	return partyGUID;
+}
+
+// We should make this one work, I'm pretty new to this offset stuff so I failed
+- (BOOL)UnitInParty: (UInt64)targetID {
+	GUID partyGUID = targetID;
+    [[controller wowMemoryAccess] loadDataForObject: self atAddress: [offsetController offset:@"Lua_UnitInParty"] Buffer: (Byte *)&partyGUID BufLength: sizeof(partyGUID)];
+
+	if ( partyGUID > 0x0 ) return YES;
+	return NO;	
+}
 
 - (BOOL)isInCombat {
     if( ([self stateFlags] & (1 << 19)) == (1 << 19))
@@ -884,11 +929,11 @@ static PlayerDataController* sharedController = nil;
     MemoryAccess *memory = [controller wowMemoryAccess];
     if(memory) {
         UInt32 toCastID = 0, castID = 0, channelID = 0;
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_Casting Buffer: (Byte *)&castID BufLength: sizeof(castID)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_Casting"] Buffer: (Byte *)&castID BufLength: sizeof(castID)];
         if(castID > 0) return YES;
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_ToCast Buffer: (Byte *)&toCastID BufLength: sizeof(toCastID)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_ToCast"] Buffer: (Byte *)&toCastID BufLength: sizeof(toCastID)];
         if(toCastID > 0) return YES;
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_Channeling Buffer: (Byte *)&channelID BufLength: sizeof(channelID)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_Channeling"] Buffer: (Byte *)&channelID BufLength: sizeof(channelID)];
         if(channelID > 0) return YES;
         
         /*
@@ -898,7 +943,7 @@ static PlayerDataController* sharedController = nil;
             // sometimes it's simply 0x500, moreoften 0x80500
             // 0x90500 seems to be the default state, but often isn't (wtf)
             // 0x--100 on a gryphon
-            PGLog(@"toCast = %d, castID = %d, channelID = %d", toCastID, castID, channelID);
+            log(LOG_DEV, @"toCast = %d, castID = %d, channelID = %d", toCastID, castID, channelID);
             return YES;
         }*/
     }
@@ -929,20 +974,10 @@ static PlayerDataController* sharedController = nil;
     MemoryAccess *memory = [controller wowMemoryAccess];
     if(memory) {
         UInt32 value = 0;
-        if([memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_Channeling Buffer: (Byte *)&value BufLength: sizeof(value)] && value)
+        if([memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_Channeling"] Buffer: (Byte *)&value BufLength: sizeof(value)] && value)
             return YES;
     }
     return NO;
-}
-
-- (int)haste {
-    MemoryAccess *memory = [controller wowMemoryAccess];
-    if(memory) {
-        UInt32 value = 0;
-        if([memory loadDataForObject: self atAddress: [self baselineAddress] + PlayerField_Haste Buffer: (Byte *)&value BufLength: sizeof(value)] && value)
-            return value;
-    }
-    return 0;
 }
 
 - (UInt32)spellCasting {
@@ -950,17 +985,17 @@ static PlayerDataController* sharedController = nil;
     if([self isCasting] && memory) {
         UInt32 value = 0;
         // we have started to cast a spell, but are awaiting server response
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_ToCast Buffer: (Byte *)&value BufLength: sizeof(value)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_ToCast"] Buffer: (Byte *)&value BufLength: sizeof(value)];
         if(value)   return value;
         
         // we are actually casting a spell
         value = 0;
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_Casting Buffer: (Byte *)&value BufLength: sizeof(value)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_Casting"] Buffer: (Byte *)&value BufLength: sizeof(value)];
         if(value) return value;
         
         // we are chanelling a spell
         value = 0;
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_Channeling Buffer: (Byte *)&value BufLength: sizeof(value)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_Channeling"] Buffer: (Byte *)&value BufLength: sizeof(value)];
         if(value) return value;
     }
     return 0;
@@ -975,8 +1010,8 @@ static PlayerDataController* sharedController = nil;
             [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_ChannelTimeEnd Buffer: (Byte *)&timeEnd BufLength: sizeof(timeEnd)];
             [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_ChannelTimeStart Buffer: (Byte *)&timeStart BufLength: sizeof(timeStart)];
         } else {
-            [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_TimeEnd Buffer: (Byte *)&timeEnd BufLength: sizeof(timeEnd)];
-            [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_TimeStart Buffer: (Byte *)&timeStart BufLength: sizeof(timeStart)];
+            [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_TimeEnd"] Buffer: (Byte *)&timeEnd BufLength: sizeof(timeEnd)];
+            [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_TimeStart"] Buffer: (Byte *)&timeStart BufLength: sizeof(timeStart)];
         }
         float time = (timeEnd - timeStart) / 1000.0f;
         return time;
@@ -992,11 +1027,11 @@ static PlayerDataController* sharedController = nil;
         
         // check to see if we're casting
         UInt32 endTime = 0;
-        [memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Spell_TimeEnd Buffer: (Byte *)&endTime BufLength: sizeof(endTime)];
+        [memory loadDataForObject: self atAddress: [self baselineAddress] + [offsetController offset:@"BaseField_Spell_TimeEnd"] Buffer: (Byte *)&endTime BufLength: sizeof(endTime)];
         if(endTime) { // we are casting and it has a designated end time
-            //PGLog(@"[cast] %d vs. %d", endTime, currentTime);
+            //log(LOG_DEV, @"[cast] %d vs. %d", endTime, currentTime);
             if(endTime >= currentTime) {
-                //PGLog(@"[cast] %f", ((endTime - currentTime) / 1000.0f));
+                //log(LOG_DEV, @"[cast] %f", ((endTime - currentTime) / 1000.0f));
                 return ((endTime - currentTime) / 1000.0f);
             }
         }
@@ -1009,22 +1044,22 @@ static PlayerDataController* sharedController = nil;
                 return ((endTime - currentTime) / 1000.0f);
         }
     }
-    // PGLog(@"nothing from castTimeRemaining");
+    // log(LOG_DEV, @"nothing from castTimeRemaining");
     return 0;
 }
 
+#define kTwoPower32 (4294967296.0)      /* 2^32 */
 - (UInt32)currentTime {
-    UInt32 currentTime = 0;
-    MemoryAccess *memory = [controller wowMemoryAccess];
-    if([memory loadDataForObject: self atAddress: [self baselineAddress] + BaseField_Player_CurrentTime Buffer: (Byte *)&currentTime BufLength: sizeof(currentTime)] && currentTime) {
-        return currentTime;
-    }
-    return 0;
+	UnsignedWide theTime;
+	Microseconds(&theTime);
+	double result;
+	result = (((double) theTime.hi) * kTwoPower32) + theTime.lo;
+	return (UInt32) (result / 0x3E8);
 }
 
 - (UInt32)level {
     UInt32 value = 0;
-    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self infoAddress] + UnitField_Level) Buffer: (Byte *)&value BufLength: sizeof(value)] && value) {
+    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: ([[self player] unitFieldAddress] + UNIT_FIELD_LEVEL) Buffer: (Byte *)&value BufLength: sizeof(value)] && value) {
         return value;
     }
     return 0;
@@ -1032,7 +1067,7 @@ static PlayerDataController* sharedController = nil;
 
 - (UInt32)factionTemplate {
     UInt32 value = 0;
-    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: ([self infoAddress] + UnitField_FactionTemplate) Buffer: (Byte *)&value BufLength: sizeof(value)] && value) {
+    if([[controller wowMemoryAccess] loadDataForObject: self atAddress: ([[self player] unitFieldAddress] + UNIT_FIELD_FACTIONTEMPLATE) Buffer: (Byte *)&value BufLength: sizeof(value)] && value) {
         return value;
     }
     return 0;
@@ -1048,7 +1083,7 @@ static PlayerDataController* sharedController = nil;
 
 - (IBAction)showPlayerStructure: (id)sender {
     
-    //PGLog(@"%@", NSStringFromPoint(NSPointFromCGPoint([controller screenPointForGamePosition: [self position]])));
+    //log(LOG_DEV, @"%@", NSStringFromPoint(NSPointFromCGPoint([controller screenPointForGamePosition: [self position]])));
     
     [memoryViewController showObjectMemory: [self player]];
     [controller showMemoryView];
@@ -1087,19 +1122,6 @@ static PlayerDataController* sharedController = nil;
         
         Player *player = [self player];
         
-        // the stance value doesn't seem to exist in 3.0.8
-        /*UInt32 stance = [player currentStance];
-        if(stance) {
-            Spell *stanceSpell = [[SpellController sharedSpells] spellForID: [NSNumber numberWithUnsignedInt: stance]];
-            if(stanceSpell.name) {
-                [stanceText setStringValue: [NSString stringWithFormat: @"%@ (%d)", stanceSpell.name, stance]];
-            } else {
-                [stanceText setStringValue: [NSString stringWithFormat: @"%d", stance]];
-            }
-        } else {
-            [stanceText setStringValue: @"No stance detected."];
-        }*/
-        
         // load health
         [self setHealth: [player currentHealth]];
         [self setMaxHealth: [player maxHealth]];
@@ -1121,7 +1143,7 @@ static PlayerDataController* sharedController = nil;
         // check pet
         if( self.pet && (![self.pet isValid] || ([player petGUID] == 0))) {
             self.pet = nil;
-            PGLog(@"[Player] Pet is no longer valid.");
+            log(LOG_DEV, @"[Player] Pet is no longer valid.");
         }
         
         // player has a pet, but we don't know which mob it is
@@ -1132,7 +1154,7 @@ static PlayerDataController* sharedController = nil;
             // this mob is really our pet, right?
             if( [pet isValid] && ((playerGUID == [pet summonedBy]) || (playerGUID == [pet createdBy]) || (playerGUID == [pet charmedBy]))) {
                 self.pet = pet;
-                PGLog(@"[Player] Found pet: %@", pet);
+                log(LOG_DEV, @"[Player] Found pet: %@", pet);
             } else {
                 // [[MobController sharedController] enumerateAllMobs];
             }
@@ -1143,7 +1165,7 @@ static PlayerDataController* sharedController = nil;
             savedLevel = level;
         } else {
             if(level == (savedLevel+1)) {
-                PGLog(@"[Player] Level up! You have reached level %d", level);
+                log(LOG_DEV, @"[Player] Level up! You have reached level %d", level);
                 savedLevel = level;
                 
                 if( [controller sendGrowlNotifications] && [GrowlApplicationBridge isGrowlInstalled] && [GrowlApplicationBridge isGrowlRunning]) {
@@ -1231,21 +1253,21 @@ static PlayerDataController* sharedController = nil;
         BOOL combatState = [self isInCombat];
         if( !_lastCombatState && combatState) {
             // we were not in combat, now we are
-            PGLog(@"[PlayerData] ------ Player Entering Combat ------");
+            log(LOG_DEV, @"[PlayerData] ------ Player Entering Combat ------");
             [[NSNotificationCenter defaultCenter] postNotificationName: PlayerEnteringCombatNotification object: nil];
         }
         if( _lastCombatState && !combatState) {
             // we were in combat, now we are not
-			PGLog(@"[PlayerData] ------ Player Leaving Combat ------");
+			log(LOG_DEV, @"[PlayerData] ------ Player Leaving Combat ------");
             [[NSNotificationCenter defaultCenter] postNotificationName: PlayerLeavingCombatNotification object: nil];
         }
         _lastCombatState = combatState;
-		
+
 		// Lets see which mobs are attacking us!
-		if ( combatState || [[combatController combatList] count] > 0 ){
+		if ( combatState || [[combatController combatList] count] > 0 ) {
 			[combatController doCombatSearch];
 		}
-		
+	
 		[combatController updateCombatTable];
 		
 		[_combatDataList removeAllObjects];
@@ -1335,6 +1357,10 @@ static PlayerDataController* sharedController = nil;
 // the frostbreaker - left boat
 #define StrandPrivateerZierhut			32658		// right boat
 #define StrandPrivateerStonemantle		32657		// left boat
+// Horde
+#define StrandDreadCaptainNadeux		32660		// right boat
+#define StrandDreadCaptainWinge			32659		// left boat
+
 - (BOOL)isOnRightBoatInStrand{
 	
 	// not on a boat
@@ -1348,6 +1374,13 @@ static PlayerDataController* sharedController = nil;
 		return YES;
 	}
 	
+	if ( [[mobController mobsWithinDistance:50.0f	// actual value is around 35.0f
+									 MobIDs:[NSArray arrayWithObject:[NSNumber numberWithInt: StrandDreadCaptainNadeux]]
+								   position: [[self player] position]
+								  aliveOnly:NO] count] ){
+		return YES;
+	}
+
 	return NO;
 	
 }
@@ -1365,6 +1398,13 @@ static PlayerDataController* sharedController = nil;
 		return YES;
 	}
 	
+	if ( [[mobController mobsWithinDistance:50.0f 
+									 MobIDs:[NSArray arrayWithObject:[NSNumber numberWithInt:StrandDreadCaptainWinge]]
+								   position: [[self player] position]
+								  aliveOnly:NO] count]){
+		return YES;
+	}
+
 	return NO;	
 }
 

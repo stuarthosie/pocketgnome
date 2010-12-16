@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  RuleEditor.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 1/3/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import "RuleEditor.h"
 
@@ -76,8 +59,20 @@
     return self;
 }
 
+- (void) dealloc{
+	[_spellsMenu release];  _spellsMenu = nil;
+	[_itemsMenu release];   _itemsMenu = nil;
+	[_macrosMenu release];  _macrosMenu = nil;
+	[_interactMenu release]; _interactMenu = nil;
+	
+    [super dealloc];
+}
+
 - (void)awakeFromNib {
     // set our column to use a Rule Cell
+
+	[spellRuleTableView registerForDraggedTypes: [NSArray arrayWithObjects: @"Condition", nil]];
+
     NSTableColumn *column = [spellRuleTableView tableColumnWithIdentifier: @"Conditions"];
 	[column setDataCell: [[[ConditionCell alloc] init] autorelease]];
 	[column setEditable: NO];
@@ -119,7 +114,7 @@
         //[newRule setResultType: [conditionResultTypeSegment selectedTag]];
         //[newRule setActionID: [[resultActionDropdown selectedItem] tag]];
         
-        // PGLog(@"Created Rule: %@", newRule);
+        // log(LOG_GENERAL, @"Created Rule: %@", newRule);
     }
     
     return [newRule autorelease];
@@ -182,7 +177,7 @@
 }
 
 - (IBAction)addCondition:(id)sender {
-    //PGLog(@"adding condition");
+    //log(LOG_GENERAL, @"adding condition");
     
     int type = [[spellRuleTypeDropdown selectedItem] tag];
     ConditionController *newRule = nil;
@@ -338,6 +333,72 @@
     return NO;
 }
 
+#pragma mark Table Drag & Drop
 
+// begin drag operation, save row index
+- (BOOL)tableView:(NSTableView *)tv writeRowsWithIndexes:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard*)pboard {
+    // Copy the row numbers to the pasteboard.
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:rowIndexes];
+    [pboard declareTypes: [NSArray arrayWithObjects: @"Condition", nil] owner: self];
+    [pboard setData: data forType: @"Condition"];
+    return YES;
+}
+
+// validate drag operation
+- (NSDragOperation) tableView: (NSTableView*) tableView
+                 validateDrop: (id ) info
+                  proposedRow: (int) row
+        proposedDropOperation: (NSTableViewDropOperation) op
+{
+    int result = NSDragOperationNone;
+    
+    if (op == NSTableViewDropAbove) {
+        result = NSDragOperationMove;
+
+        NSPasteboard* pboard = [info draggingPasteboard];
+        NSData* rowData = [pboard dataForType: @"Condition"];
+        NSIndexSet* rowIndexes = [NSKeyedUnarchiver unarchiveObjectWithData:rowData];
+        int dragRow = [rowIndexes firstIndex];
+        
+        if (dragRow == row || dragRow == row-1) result = NSDragOperationNone;
+    }
+
+    return (result);
+    
+}
+
+// accept the drop
+- (BOOL)tableView: (NSTableView *)aTableView 
+       acceptDrop: (id <NSDraggingInfo>)info
+              row: (int)row 
+    dropOperation: (NSTableViewDropOperation)operation {
+
+    NSPasteboard* pboard = [info draggingPasteboard];
+
+    NSData* rowData = [pboard dataForType: @"Condition"];
+	if ( !rowData) return NO;
+
+    NSIndexSet* rowIndexes = [NSKeyedUnarchiver unarchiveObjectWithData:rowData];
+	if ( !rowIndexes ) return NO;
+
+    int dragRow = [rowIndexes firstIndex];
+	if ( dragRow < 0 ) return NO;
+
+	// Move the specified row to its new location...
+
+	ConditionController *condition = [[_conditionList objectAtIndex: dragRow] retain];
+	if ( !condition ) return NO;
+
+	log(LOG_DEV, @"Dropping %@ dragRow: %d row: %d", condition, dragRow, row)
+
+	if(dragRow < row) row--;
+	[_conditionList removeObjectAtIndex: dragRow];
+	[_conditionList insertObject: condition atIndex: row];
+
+	[condition release];
+	[aTableView reloadData];
+	
+    return YES;
+}
 
 @end

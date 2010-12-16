@@ -28,12 +28,22 @@
 
 @class Controller;
 @class OffsetController;
+@class InventoryController;
+@class MobController;
+@class PlayersController;
+@class NodeController;
 
 @interface MemoryViewController : NSView {
     IBOutlet Controller *controller;
 	IBOutlet OffsetController *offsetController;
     IBOutlet id memoryTable;
     IBOutlet id memoryViewWindow;
+	IBOutlet InventoryController *itemController;
+	IBOutlet MobController *mobController;
+	IBOutlet PlayersController *playersController;
+	IBOutlet NodeController *nodeController;
+	
+	
     IBOutlet NSView *view;
     NSNumber *_currentAddress;
     NSTimer *_refreshTimer;
@@ -77,11 +87,17 @@
     int _displayCount;
     //id callback;
 	
+	// new method to select non wow-processes
+	NSTimer *_instanceListTimer;
+	IBOutlet NSPopUpButton *instanceList;
+	pid_t _attachedPID;
+	MemoryAccess *_memory;
+	
 	// new pointer search
 	NSMutableDictionary *_pointerList;
     
     id _wowObject;
-
+	
     NSSize minSectionSize, maxSectionSize;
 }
 
@@ -123,5 +139,8 @@
 // pointer scanning
 - (IBAction)openPointerPanel: (id)sender;
 - (IBAction)pointerSelectAction: (id)sender;
+
+// new instance list
+- (IBAction)selectInstance: (id)sender;
 
 @end

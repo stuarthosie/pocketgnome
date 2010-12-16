@@ -157,6 +157,10 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 	}
 	
 	
+	//// PLUGIN
+	// Scan for plug-in character classes here, put in an array to load into the 
+	// list below.
+	
 	
 	// Now populate the list of custom Classes here:
 	[listCustomClasses addObject:[MPCustomClassPG classWithController:self]];

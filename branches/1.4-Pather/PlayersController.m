@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  PlayersController.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 5/25/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import "PlayersController.h"
 #import "Controller.h"
@@ -62,7 +45,7 @@ static PlayersController *sharedPlayers = nil;
         [[NSUserDefaults standardUserDefaults] registerDefaults: [NSDictionary dictionaryWithObject: @"0.5" forKey: @"PlayersControllerUpdateFrequency"]];
 		_playerNameList = [[NSMutableDictionary dictionary] retain];
     }
-
+	
     return self;
 }
 
@@ -116,7 +99,7 @@ static PlayersController *sharedPlayers = nil;
 - (BOOL)addPlayerName: (NSString*)name withGUID:(UInt64)guid{
 	
 	if ( name == nil ){
-		//PGLog(@"[Players] Name not added for 0x%qX, not found", guid);
+		//log(LOG_GENERAL, @"[Players] Name not added for 0x%qX, not found", guid);
 		return NO;
 	}
 	
@@ -137,7 +120,7 @@ static PlayersController *sharedPlayers = nil;
 }
 
 - (unsigned int)objectCount {
-	return [_objectList count];	
+	return [_objectList count];     
 }
 
 - (unsigned)playerCount {
@@ -163,10 +146,10 @@ static PlayersController *sharedPlayers = nil;
 	for(Unit *unit in _objectList) {
 		int faction = [unit factionTemplate];
 		BOOL isFriendly = [playerData isFriendlyWithFaction: faction];
-
+		
 		if ( isFriendly){
 			[friendlyUnits addObject: unit];
-		}	
+		}       
 	}
 	
 	return friendlyUnits;
@@ -199,35 +182,35 @@ static PlayersController *sharedPlayers = nil;
             BOOL isHostile = [playerData isHostileWithFaction: faction];
 			BOOL isNeutral = (!isHostile && ![playerData isFriendlyWithFaction: faction]);
 			
-			//PGLog(@"%d %d (%d || %d || %d) %d %d %d %d %@", [unit isValid], ![unit isDead], (friendly && isFriendly), (neutral && isNeutral), (hostile && isHostile), ((unitLevel >= lowLevel) && (unitLevel <= highLevel)), [unit isSelectable], 
-			//	  [unit isAttackable],  [unit isPVP], unit);
+			//log(LOG_GENERAL, @"%d %d (%d || %d || %d) %d %d %d %d %@", [unit isValid], ![unit isDead], (friendly && isFriendly), (neutral && isNeutral), (hostile && isHostile), ((unitLevel >= lowLevel) && (unitLevel <= highLevel)), [unit isSelectable], 
+			//        [unit isAttackable],  [unit isPVP], unit);
 			
             // only include:
             if(   [unit isValid]                                                // 1) valid units
                && ![unit isDead]                                                // 2) units that aren't dead
                && ((friendly && isFriendly)                                     // 3) friendly as specified
-                   || (neutral && isNeutral)									//    neutral as specified
+                   || (neutral && isNeutral)                                                                    //    neutral as specified
                    || (hostile && isHostile))                                   //    hostile as specified
                && (unitLevel >= lowLevel) && unitLevel <= highLevel             // 4) units within the level range
                && [unit isSelectable]                                           // 5) units that are selectable
                && [unit isAttackable]/*                                           // 6) units that are attackable
-               && [unit isPVP]*/ ){                                                // 7) units that are PVP
-                //PGLog(@"[PlayersController] Adding player %@", unit);
-				
-				[unitsWithinRange addObject: unit];
-				
-			}
+									  && [unit isPVP]*/ ){                                                // 7) units that are PVP
+										  //log(LOG_GENERAL, @"[PlayersController] Adding player %@", unit);
+										  
+										  [unitsWithinRange addObject: unit];
+										  
+									  }
         }
     }
 	
-	//PGLog(@"[PlayersController] Found %d players", [unitsWithinRange count]);
+	//log(LOG_GENERAL, @"[PlayersController] Found %d players", [unitsWithinRange count]);
     
     return unitsWithinRange;
 }
 
 - (BOOL)playerWithinRangeOfUnit: (float)distance Unit:(Unit*)unit includeFriendly:(BOOL)friendly includeHostile:(BOOL)hostile {
 	
-	PGLog(@"checking distance %0.2f  %@ %d %d", distance, unit, friendly, hostile);
+	log(LOG_DEV, @"checking distance %0.2f  %@ %d %d", distance, unit, friendly, hostile);
 	Position *position = [unit position];
 	
 	// loop through all players
@@ -238,11 +221,11 @@ static PlayersController *sharedPlayers = nil;
 		float range = [position distanceToPosition: [player position]];
 		
 		if (
-			range <= distance &&						// 1 - in range
-			(!friendly || (friendly && !isHostile)) &&	// 2 - friendly
-			(!hostile || (hostile && isHostile))		// 3 - hostile
+			range <= distance &&                                            // 1 - in range
+			(!friendly || (friendly && !isHostile)) &&      // 2 - friendly
+			(!hostile || (hostile && isHostile))            // 3 - hostile
 			){
-			PGLog(@"[Loot] Player %@ found %0.2f yards away! I scared! Friendly?(%d)  Hostile?(%d)", player, range, friendly, hostile);
+			log(LOG_GENERAL, @"[Loot] Player %@ found %0.2f yards away! I scared! Friendly?(%d)  Hostile?(%d)", player, range, friendly, hostile);
 			return YES;
 		}
 	}
@@ -272,8 +255,8 @@ static PlayersController *sharedPlayers = nil;
             shouldTrack = YES;
         }
         
-        if ( shouldTrack )	[unit trackUnit];
-        else				[unit untrackUnit];
+        if ( shouldTrack )      [unit trackUnit];
+        else                            [unit untrackUnit];
     }
 }
 
@@ -291,13 +274,13 @@ static PlayersController *sharedPlayers = nil;
 	
 	// remove old objects
 	[_objectDataList removeAllObjects];
-
+	
     if ( ![playerData playerIsValid:self] ) return;
 	
 	// is tab viewable?
 	if ( ![objectsController isTabVisible:Tab_Players] )
 		return;
-
+	
 	cachedPlayerLevel = [playerData level];
 	
 	for ( Player *player in _objectList ) {
@@ -316,7 +299,7 @@ static PlayersController *sharedPlayers = nil;
 		[_objectDataList addObject: [NSDictionary dictionaryWithObjectsAndKeys: 
 									 player,                                                                @"Player",
 									 [NSString stringWithFormat: @"0x%X", [player lowGUID]],                @"ID",
-									 [self playerNameWithGUID:[player GUID]],								@"Name",
+									 [self playerNameWithGUID:[player GUID]],                                                               @"Name",
 									 ([player isGM] ? @"GM" : [Unit stringForClass: [player unitClass]]),   @"Class",
 									 [Unit stringForRace: [player race]],                                   @"Race",
 									 [Unit stringForGender: [player gender]],                               @"Gender",
