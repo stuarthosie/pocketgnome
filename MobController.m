@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  MobController.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/17/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 #import <ScreenSaver/ScreenSaver.h>
 
 #import "MobController.h"
@@ -76,6 +59,12 @@ static MobController* sharedController = nil;
     return self;
 }
 
+- (void)dealloc{
+	[_objectList release];
+	[_objectDataList release];
+
+	[super dealloc];
+}
 
 #pragma mark Accessors
 
@@ -202,13 +191,14 @@ static MobController* sharedController = nil;
 - (NSArray*)mobsWithinDistance: (float)mobDistance MobIDs: (NSArray*)mobIDs position:(Position*)position aliveOnly:(BOOL)aliveOnly{
 	
 	NSMutableArray *withinRangeMobs = [NSMutableArray array];
+	BOOL tapCheckPassed = YES;
     for(Mob *mob in _objectList) {
-		
+		tapCheckPassed = YES;
 		// Just return nearby mobs
 		if ( mobIDs == nil ){
 			float distance = [position distanceToPosition: [mob position]];
 			if((distance != INFINITY) && (distance <= mobDistance)) {
-				PGLog(@"[Mob] Mob %@ is %0.2f away", mob, distance);
+//				log(LOG_DEV, @"Mob %@ is %0.2f away", mob, distance);
 				
 				// Living check?
 				if ( !aliveOnly || (aliveOnly && ![mob isDead]) ){
@@ -217,14 +207,19 @@ static MobController* sharedController = nil;
 			}
 		}
 		else{
-			for ( NSNumber *entryID in mobIDs ){
+			for ( NSNumber *entryID in mobIDs ) {
 				if ( [mob entryID] == [entryID intValue] ){
 					float distance = [position distanceToPosition: [mob position]];
 					if((distance != INFINITY) && (distance <= mobDistance)) {
-						
+						if ( [mob isTappedByOther] && !botController.theCombatProfile.partyEnabled && !botController.pvpIsInBG ) tapCheckPassed = NO;
+
 						// Living check?
-						if ( !aliveOnly || (aliveOnly && ![mob isDead]) ){
-							[withinRangeMobs addObject: mob];
+						if ( !aliveOnly || (aliveOnly && ![mob isDead]) ) {
+							if (tapCheckPassed) {
+								[withinRangeMobs addObject: mob];
+							} else {
+								log(LOG_DEV, @"Mob %@ is tapped by another player, not adding it to my mob list!", mob, distance);
+							}
 						}
 					}
 				}
@@ -245,15 +240,16 @@ static MobController* sharedController = nil;
     
     NSMutableArray *withinRangeMobs = [NSMutableArray array];
     
+	BOOL tapCheckPassed;
     BOOL ignoreLevelOne = ([playerData level] > 10) ? YES : NO;
     Position *playerPosition = [(PlayerDataController*)playerData position];
 	
-	//PGLog(@"[Mob] Total mobs: %d", [_objectList count]);
+	//log(LOG_GENERAL, @"[Mob] Total mobs: %d", [_objectList count]);
     
     for(Mob *mob in _objectList) {
         
         if ( !includeElite && [mob isElite] ){
-			//PGLog(@"[Mob] Ignoring elite %@", mob);
+			log(LOG_DEV, @"Ignoring elite %@", mob);
             continue;   // ignore elite if specified
 		}
 		
@@ -267,6 +263,9 @@ static MobController* sharedController = nil;
 			continue;
 		}
         
+		tapCheckPassed = YES;
+		if ( [mob isTappedByOther] && !botController.theCombatProfile.partyEnabled && !botController.pvpIsInBG ) tapCheckPassed = NO;
+		
         float distance = [playerPosition distanceToPosition: [mob position]];
                 
         if((distance != INFINITY) && (distance <= mobDistance)) {
@@ -281,7 +280,7 @@ static MobController* sharedController = nil;
             BOOL isHostile = [playerData isHostileWithFaction: faction];
 			BOOL isNeutral = (!isHostile && ![playerData isFriendlyWithFaction: faction]);
 			
-			//PGLog(@"%d %d (%d || %d || %d) %d %d %d %d %@", [mob isValid], ![mob isDead], (friendly && isFriendly), (neutral && isNeutral), (hostile && isHostile), ((mobLevel >= lowLevel) && (mobLevel <= highLevel)), [mob isSelectable], 
+			//log(LOG_GENERAL, @"%d %d (%d || %d || %d) %d %d %d %d %@", [mob isValid], ![mob isDead], (friendly && isFriendly), (neutral && isNeutral), (hostile && isHostile), ((mobLevel >= lowLevel) && (mobLevel <= highLevel)), [mob isSelectable], 
 			//	  [mob isAttackable],   ![mob isTappedByOther], mob);
 			
             // only include:
@@ -291,15 +290,15 @@ static MobController* sharedController = nil;
                    || (neutral && isNeutral)								//    neutral as specified
                    || (hostile && isHostile) )                              //    hostile as specified
                && ((mobLevel >= lowLevel) && (mobLevel <= highLevel))       // 4) mobs within the level range
-               //&& ![mob isPet]                                              // 5) mobs that are not player pets
+               //&& ![mob isPet]											// 5) mobs that are not player pets
                && [mob isSelectable]                                        // 6) mobs that are selectable
                && [mob isAttackable]                                        // 7) mobs that are attackable
-               && ![mob isTappedByOther] )                                  // 8) mobs that are not tapped by someone else
+               && tapCheckPassed )											// 8) mobs that are not tapped by someone else
                 [withinRangeMobs addObject: mob];
         }
     }
 	
-	//PGLog(@"[MobController] Found %d mobs", [withinRangeMobs count]);
+	//log(LOG_GENERAL, @"[MobController] Found %d mobs", [withinRangeMobs count]);
     
     return withinRangeMobs;
 }
@@ -319,7 +318,7 @@ static MobController* sharedController = nil;
         }
     }
 	
-    PGLog(@"[Mob] No mob for interaction");
+    log(LOG_GENERAL, @"[Mob] No mob for interaction");
     return nil;
 }
 
@@ -382,7 +381,7 @@ static MobController* sharedController = nil;
 		for(Mob *mob in _objectList) {
 			if ( [mob entryID] == nearbyEntryID && ![mob isDead] ){
 				[[NSSound soundNamed: @"alarm"] play];
-				PGLog(@"[Combat] Found %d nearby! Playing alarm!", nearbyEntryID);
+				log(LOG_GENERAL, @"[Combat] Found %d nearby! Playing alarm!", nearbyEntryID);
 			}
 		}
 	}

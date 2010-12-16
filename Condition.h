@@ -1,33 +1,16 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Condition.h
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 1/4/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import <Cocoa/Cocoa.h>
 
 typedef enum Variety {
     VarietyNone             = 0,
-    VarietyHealth           = 1,
+    VarietyPower           = 1,
     VarietyStatus           = 2,
     VarietyAura             = 3,
     VarietyDistance         = 4,
@@ -63,8 +46,9 @@ typedef enum UnitComponents {
     UnitPlayer = 1,
     UnitTarget = 2,
     UnitPlayerPet = 3,
-	UnitFriend = 4,
-	UnitAdd = 5,
+	UnitFriendlies = 4,
+	UnitEnemies = 5,
+	UnitAdd = 6,	// Deprecated I assume?
 } ConditionUnit;
 
 typedef enum QualityComponents {
@@ -84,6 +68,9 @@ typedef enum QualityComponents {
     QualityHappiness = 11,
     QualityFocus = 12,
     QualityRunicPower = 20,
+	QualityEclipse	= 33,
+	QualityHolyPower = 34,
+	QualitySoulShards = 35,
 
     QualityBuffType = 13,
     QualityDebuffType = 14,
@@ -95,7 +82,6 @@ typedef enum QualityComponents {
     
     QualityNPC          = 18,
     QualityPlayer       = 19,
-    // QualityRunicPower = 20
 	
 	QualityRuneBlood	= 21,
 	QualityRuneUnholy	= 22,
@@ -139,6 +125,10 @@ typedef enum StateComponents {
 
     StateMounted = 8,
     StateIndoors = 9,
+    StateSwimming = 10,
+    StateTargetingMe = 11,
+    StateTank = 12,
+	
     
 } ConditionState;
 

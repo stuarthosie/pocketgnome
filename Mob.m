@@ -1,40 +1,23 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Mob.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/20/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "Mob.h"
 #import "Offsets.h"
 
 
-#define MOB_NAMESTRUCT_POINTER_OFFSET     0x958
+#define MOB_NAMESTRUCT_POINTER_OFFSET     0xA10
 
 enum eMobNameStructFields {
     NAMESTRUCT_TITLE_PTR            = 0x4,
     NAMESTRUCT_NAMESPACE_END_PTR    = 0x8,  // this is bogus half the time, so I don't know
     NAMESTRUCT_CreatureType         = 0x10,
-    NAMESTRUCT_NAME_PTR             = 0x5C,
-    NAMESTRUCT_ENTRY_ID             = 0x6C,
+    NAMESTRUCT_NAME_PTR             = 0x60,
+    NAMESTRUCT_ENTRY_ID             = 0x70,
 };
 
 @interface Mob ()
@@ -46,6 +29,15 @@ enum eMobNameStructFields {
 @end
 
 @implementation Mob
+
+- (id)initWithAddress: (NSNumber*)address inMemory: (MemoryAccess*)memory {
+    
+    self = [super initWithAddress:address inMemory:memory];
+    if (self != nil) {
+        _creatureType = -1;
+    }
+    return self;
+}
 
 + (id)mobWithAddress: (NSNumber*)address inMemory: (MemoryAccess*)memory {
     return [[[Mob alloc] initWithAddress: address inMemory: memory] autorelease];
@@ -90,6 +82,7 @@ enum eMobNameStructFields {
             if([_memory loadDataForObject: self atAddress: (value + NAMESTRUCT_NAME_PTR) Buffer: (Byte *)&stringPtr BufLength: sizeof(stringPtr)] &&
                [_memory loadDataForObject: self atAddress: (value + NAMESTRUCT_ENTRY_ID) Buffer: (Byte *)&entryID BufLength: sizeof(entryID)])
             {
+				
                 if( (entryID == [self entryID]) && stringPtr )
                 {
                     // get title ptr if it exists; we dont care if this op fails
@@ -135,6 +128,27 @@ enum eMobNameStructFields {
 // broken at the moment
 - (UInt32)experience {
     return 0;
+}
+
+- (BOOL)isGasCloud{
+	
+	// we don't know yet :/
+	if ( _creatureType == -1 ){
+	
+		// pointer to the struct
+		UInt32 nameStructPtr = 0;
+		if ( [_memory loadDataForObject: self atAddress: ([self baseAddress] + MOB_NAMESTRUCT_POINTER_OFFSET) Buffer: (Byte *)&nameStructPtr BufLength: sizeof(nameStructPtr)] && nameStructPtr > 0 ){
+	
+			// pointer to the creature type
+			UInt32 creatureType = 0x0;
+			if ( [_memory loadDataForObject: self atAddress: (nameStructPtr + NAMESTRUCT_CreatureType) Buffer: (Byte *)&creatureType BufLength: sizeof(creatureType)] && creatureType > 0 )	{
+				_creatureType = creatureType;
+			}
+		}
+	}
+	
+	// gas cloud
+	return ( _creatureType == 13 );
 }
 
 #pragma mark -

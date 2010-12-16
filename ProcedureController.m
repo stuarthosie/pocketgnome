@@ -1,35 +1,19 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  ProcedureController.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 1/4/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import "ProcedureController.h"
 #import "SpellController.h"
 #import "InventoryController.h"
 #import "RuleEditor.h"
 #import "Rule.h"
-#import "SecureUserDefaults.h"
-#import "SaveData.h"
+#import "FileController.h"
+
+#import "FileObject.h"
 
 #import "BetterSegmentedControl.h"
 
@@ -39,16 +23,19 @@
 {
     self = [super init];
     if (self != nil) {
+		
+		_behaviors = [[NSMutableArray array] retain];
+		
+		if ( fileController == nil ){
+			fileController = [[FileController sharedFileController] retain];
+		}
+		
+		// get behaviors
+		NSArray *behaviors = [fileController getObjectsWithClass:[Behavior class]];
+		[_behaviors addObjectsFromArray:behaviors];
+		
         _behavior = nil;
 		_nameBeforeRename = nil;
-		
-		// old way
-		_behaviors = [[self loadAllDataForKey:@"Behaviors" withClass:[Behavior class]] retain];
-		
-		// new way!
-		if ( !_behaviors ){
-			_behaviors = [[self loadAllObjects] retain];
-		}
 
         [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(applicationWillTerminate:) name: NSApplicationWillTerminateNotification object: nil];
         
@@ -82,7 +69,17 @@
 }
 
 - (void)applicationWillTerminate: (NSNotification*)notification {
-    [self saveBehaviors];
+	NSMutableArray *objectsToSave = [NSMutableArray array];
+	for ( FileObject *obj in _behaviors ){
+		if ( [obj changed] ){
+			[objectsToSave addObject:obj];
+		}
+	}
+	
+    [fileController saveObjects:objectsToSave];
+	
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Behaviors"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 #pragma mark -
@@ -110,18 +107,6 @@
     return @"";
 }
 
-
-- (void)saveBehaviors {
-	
-	// save all for now
-	for ( Behavior *behavior in _behaviors ){
-		[self saveObject:behavior];
-	}
-	
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Behaviors"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
 - (NSArray*)behaviors {
     return [[_behaviors retain] autorelease];
 }
@@ -138,14 +123,15 @@
     
     [_behavior autorelease];
     _behavior = [behavior retain];
-    
-    [procedureEventSegment selectSegmentWithTag: 1];
+  // Let's just leave this at what ever was previously selected  
+//    [procedureEventSegment selectSegmentWithTag: 1];
     [self validateBindings];
 }
 
 #pragma mark Protocol Actions
 
 - (void)addBehavior: (Behavior*)behavior {
+	
     int num = 2;
     BOOL done = NO;
     if(![behavior isKindOfClass: [Behavior class]]) return;
@@ -164,22 +150,21 @@
         }
         if(!conflict) done = YES;
     }
-    
+	
     // save this route into our array
     [self willChangeValueForKey: @"behaviors"];
     [_behaviors addObject: behavior];
     [self didChangeValueForKey: @"behaviors"];
+	
+	// save our new behavior
+	[fileController saveObject: behavior];
 
     // update the current procedure
-    [self saveBehaviors];
     [self setCurrentBehavior: behavior];
-	
-	// we will want to save this later!
-	[self currentBehavior].changed = YES;
-	
+
     [ruleTable reloadData];
     
-    //PGLog(@"Added behavior: %@", [behavior name]);
+    //log(LOG_GENERAL, @"Added behavior: %@", [behavior name]);
 }
 
 - (IBAction)createBehavior: (id)sender {
@@ -189,8 +174,8 @@
         NSBeep();
         return;
     }
-    
-    // create a new route
+
+    // create a new behavior
     [self addBehavior: [Behavior behaviorWithName: behaviorName]];
     [sender setStringValue: @""];
 }
@@ -215,21 +200,22 @@
 
 - (IBAction)removeBehavior: (id)sender {
     if([self currentBehavior]) {
-        
         int ret = NSRunAlertPanel(@"Delete Behavior?", [NSString stringWithFormat: @"Are you sure you want to delete the behavior \"%@\"?", [[self currentBehavior] name]], @"Delete", @"Cancel", NULL);
         if(ret == NSAlertDefaultReturn) {
             [self willChangeValueForKey: @"behaviors"];
+			
+			// delete the object
+			[fileController deleteObject:[self currentBehavior]];
+			
+			// remove frm the list
 			[_behaviors removeObject: [self currentBehavior]];
 			
-			[self deleteObject:[self currentBehavior]];
-            
             if([self.behaviors count])
                 [self setCurrentBehavior: [self.behaviors objectAtIndex: 0]];
             else
                 [self setCurrentBehavior: nil];
             
             [self didChangeValueForKey: @"behaviors"];
-            [self saveBehaviors];
             [ruleTable reloadData];
         }
     }
@@ -257,33 +243,36 @@
     
 	// did the name change?
 	if ( ![_nameBeforeRename isEqualToString:[[self currentBehavior] name]] ){
-		[self currentBehavior].changed = YES;
-		[self deleteObjectWithName:_nameBeforeRename];
+		
+		// delete the old behavior
+		[fileController deleteObjectWithFilename:[NSString stringWithFormat:@"%@.behavior", _nameBeforeRename]];
+		
+		// save the new one
+		[fileController saveObject:[self currentBehavior]];
 	}
-}
-
-- (IBAction)updateOptions: (id)sender {
-    [self saveBehaviors];
 }
 
 #pragma mark Rule Actions
 
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-    if(returnCode == RuleEditorSaveRule) {
+	
+    if ( returnCode == RuleEditorSaveRule ) {
         Rule *rule = [ruleEditor rule];
         
         if( (Rule*)contextInfo ) {
             // we are editing (replacing) a rule
-            //PGLog(@"Replacing with rule: %@", rule);
+            //log(LOG_GENERAL, @"Replacing with rule: %@", rule);
             [[self currentProcedure] replaceRuleAtIndex: [ruleTable selectedRow] withRule: rule];
         } else {
             // we are adding a rule
-            //PGLog(@"Adding new rule: %@", rule);
+            //log(LOG_GENERAL, @"Adding new rule: %@", rule);
             [[self currentProcedure] addRule: rule];
         }
         
         [ruleTable reloadData];
-        [self saveBehaviors];
+		
+		// mark this behavior as changed!
+		[[self currentBehavior] setChanged:YES];
     }
 }
 
@@ -305,7 +294,11 @@
     
     [[self currentProcedure] removeRuleAtIndex: row];
     [ruleTable reloadData];
-    [self saveBehaviors];
+	[[self currentBehavior] setChanged:YES];
+}
+
+- (IBAction)showInFinder: (id)sender{
+	[fileController showInFinder:[self currentBehavior]];
 }
 
 #pragma mark -
@@ -505,7 +498,7 @@
     while(row != NSNotFound) {
         if([[self currentProcedure] ruleAtIndex: row]) {
             Rule *rule = [[self currentProcedure] ruleAtIndex: row];
-            // PGLog(@"Copy rule: %@, (0x%X)", rule, &rule);
+            // log(LOG_GENERAL, @"Copy rule: %@, (0x%X)", rule, &rule);
             [rulesToCopy addObject: rule];
             if(row == [selectedRows lastIndex]) [rulesDescription appendString: [rule description]];
             else                                [rulesDescription appendFormat: @"%@\n", [rule description]];
@@ -540,14 +533,14 @@
             else                pasteRow++;
             
             for(Rule *rule in copiedRules) {
-                // PGLog(@"Pasting rule: %@ (0x%X)", rule, &rule);
+                // log(LOG_GENERAL, @"Pasting rule: %@ (0x%X)", rule, &rule);
                 [[self currentProcedure] insertRule: rule atIndex: pasteRow];
             }
             
             [tableView reloadData];
             [tableView selectRowIndexes: [NSIndexSet indexSetWithIndexesInRange: NSMakeRange(pasteRow, [copiedRules count])] byExtendingSelection: NO];
 
-            [self saveBehaviors];
+            [[self currentBehavior] setChanged:YES];
             return YES;
         }
     }
@@ -557,6 +550,7 @@
 - (BOOL)tableViewCut: (NSTableView*)tableView {
     if( [self tableViewCopy: tableView] ) {
         [self deleteRule: nil];
+		[[self currentBehavior] setChanged:YES];
         return YES;
     }
     return NO;
@@ -610,7 +604,7 @@
     int dragRow = [rowIndexes firstIndex];
     
     if(dragRow < row) row--;
-    //PGLog(@"Got drag for row %d to row %d", dragRow, row);
+    //log(LOG_GENERAL, @"Got drag for row %d to row %d", dragRow, row);
     
     // Move the specified row to its new location...
     Rule *dragRule = [[self currentProcedure] ruleAtIndex: dragRow];
@@ -618,19 +612,10 @@
     [[self currentProcedure] insertRule: dragRule atIndex: row];
     
     [aTableView reloadData];
+	
+	[[self currentBehavior] setChanged:YES];
     
     return YES;
 }
-
-#pragma mark SaveData
-// for saving
-- (NSString*)objectExtension{
-	return @"behavior";
-}
-
-- (NSString*)objectName:(id)object{
-	return [(Behavior*)object name];
-}
-
 
 @end

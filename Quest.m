@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Quest.m
+//  Pocket Gnome
+//
+//  Created by Josh on 4/23/09.
+//	Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "Quest.h"
 #import "QuestItem.h"
@@ -81,7 +64,7 @@
         if(self.name) {
             NSRange range = [self.name rangeOfString: @"html>"];
             if( ([self.name length] == 0) || (range.location != NSNotFound)) {
-                PGLog(@"Name for quest %@ is invalid.", self.questID);
+                log(LOG_GENERAL, @"Name for quest %@ is invalid.", self.questID);
                 self.name = nil;
             }
         }
@@ -106,7 +89,7 @@
 	self.level = nil;
 	self.requiredLevel = nil;
 	self.startNPC = nil;
-    self.endNPC = nil;
+    self.endNPC;
 	self.itemRequirements = nil;
 	
     [_connection release];
@@ -144,7 +127,6 @@
 #define ITEM_NUM_SEPERATOR		@"</a></span>&nbsp;("
 #define REWARDS_SEPERATOR		@"<h3>Rewards</h3>"
 
-#define RANK_SEPARATOR      @"<b class=\"q0\">Rank "
 #define SCHOOL_SEPARATOR    @"School</th><td>"
 #define DISPEL_SEPARATOR    @"Dispel type</th><td style=\"border-bottom: 0\">"
 #define COST_SEPARATOR      @"Cost</th><td style=\"border-top: 0\">"
@@ -161,7 +143,7 @@
     
     [_connection cancel];
     [_connection release];
-    _connection = [[NSURLConnection alloc] initWithRequest: [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithFormat: @"http://www.wowhead.com/?quest=%@", [self questID]]]] delegate: self];
+    _connection = [[NSURLConnection alloc] initWithRequest: [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithFormat: @"http://wowhead.com/?quest=%@", [self questID]]]] delegate: self];
     if(_connection) {
         [_downloadData release];
         _downloadData = [[NSMutableData data] retain];
@@ -187,7 +169,7 @@
     [_downloadData release]; _downloadData = nil;
 	
     // inform the user
-    PGLog(@"Connection failed! Error - %@ %@",
+    log(LOG_GENERAL, @"Connection failed! Error - %@ %@",
           [error localizedDescription],
           [[error userInfo] objectForKey:NSErrorFailingURLStringKey]);
 }
@@ -214,12 +196,12 @@
                     break;
             }
             
-            PGLog(@"Quest %d does not exist on wowhead.", questID);
+            log(LOG_GENERAL, @"Quest %d does not exist on wowhead.", questID);
             return;
         } else {
             if( [scanner scanUpToString: @"Bad Request" intoString: nil] && ![scanner isAtEnd]) {
                 int questID = [[self questID] intValue];
-                PGLog(@"Error loading quest %d.", questID);
+                log(LOG_GENERAL, @"Error loading quest %d.", questID);
                 return;
             } else {
                 [scanner setScanLocation: 0];
@@ -328,7 +310,7 @@
 						
 						// Add it to our required items list
 						[items addObject:questItem];
-						//PGLog(@"%@ %@ %@", self.name, questItem.item, questItem.quantity );
+						//log(LOG_GENERAL, @"%@ %@ %@", self.name, questItem.item, questItem.quantity );
 					}
 				} else {
 					searching = false;
@@ -345,7 +327,7 @@
 	
 	
 	
-	//PGLog(@"%@ %@ %@ %@ %@", self.name, self.level, self.requiredlevel, self.startnpc, self.endnpc);
+	//log(LOG_GENERAL, @"%@ %@ %@ %@ %@", self.name, self.level, self.requiredlevel, self.startnpc, self.endnpc);
 }
 
 @end

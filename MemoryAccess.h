@@ -22,7 +22,7 @@
  * $Id$
  *
  */
- 
+
 #import <Cocoa/Cocoa.h>
 
 
@@ -67,11 +67,21 @@
 // save record to application addresses
 - (BOOL)saveDataForAddress: (UInt32)address Buffer: (Byte *)DataBuffer BufLength: (vm_size_t)Bytes;
 
+// force a save
+- (BOOL)saveDataForAddressForce:(UInt32)Address Buffer:(Byte *)DataBuffer BufLength:(vm_size_t)Bytes;
+
 // load record from application addresses
 - (BOOL)loadDataForObject: (id)object atAddress: (UInt32)address Buffer: (Byte *)DataBuffer BufLength: (vm_size_t)Bytes;
 //- (BOOL)loadDataForAddress: (UInt32)address Buffer: (Byte *)DataBuffer BufLength: (vm_size_t)Bytes;
 
 // raw reading, minimal error checking, actual return result
 - (kern_return_t)readAddress: (UInt32)address Buffer: (Byte *)DataBuffer BufLength: (vm_size_t)Bytes;
+
+- (int)readInt: (UInt32)address withSize:(size_t)size;
+- (long long)readLongLong: (UInt32)address;
+- (NSNumber*)readNumber: (UInt32)address withSize:(size_t)size;
+
+// must be null terminated!
+- (NSString*)readString: (UInt32)address;
 
 @end

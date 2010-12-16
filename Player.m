@@ -1,33 +1,17 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Player.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 5/25/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import "Player.h"
 #import "WoWObject.h"
 #import "Mob.h"
 #import "Offsets.h"
 
+#import "OffsetController.h"
 #import "PlayersController.h"
 
 enum PlayerFlags
@@ -53,6 +37,7 @@ enum PlayerFlags
 
 @interface Player (Internal)
 - (UInt32)playerFlags;
+- (UInt32)playerFieldsAddress;
 @end
 
 @implementation Player
@@ -70,9 +55,17 @@ enum PlayerFlags
 }
 #pragma mark -
 
+- (UInt32)playerFieldsAddress{
+	UInt32 value = 0;
+	if ( [_memory loadDataForObject: self atAddress: ([self baseAddress] + [[OffsetController sharedController] offset:@"PlayerField_Pointer"]) Buffer: (Byte *)&value BufLength: sizeof(value)] ){
+		return value;
+	}
+	return 0;
+}
+
 - (UInt32)playerFlags {
     UInt32 value = 0;
-    if([self isValid] && [_memory loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_Flags) Buffer: (Byte *)&value BufLength: sizeof(value)] && (value != 0xDDDDDDDD)) {
+    if([self isValid] && [_memory loadDataForObject: self atAddress: ([self playerFieldsAddress] + PLAYER_FLAGS) Buffer: (Byte *)&value BufLength: sizeof(value)] && (value != 0xDDDDDDDD)) {
         return value;
     }
     return 0;
@@ -88,7 +81,7 @@ enum PlayerFlags
     if(slot < 0 || slot >= SLOT_MAX) return 0;
     
     GUID value = 0;
-    if([_memory loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_CharacterSlot + sizeof(GUID)*slot) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
+    if([_memory loadDataForObject: self atAddress: ([self playerFieldsAddress] + PLAYER_FIELD_INV_SLOT_HEAD + sizeof(GUID)*slot) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
         //if(GUID_HIPART(value) == HIGHGUID_ITEM) - As of 3.1.3 I had to comment out this - i'm not sure why
 		return value;
     }
@@ -103,7 +96,7 @@ enum PlayerFlags
 	uint i;
 	GUID value = 0;
 	for ( i = 0; i < numberOfItems; i++ ){
-		if([_memory loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_BackPackStart + sizeof(GUID)*i) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
+		if([_memory loadDataForObject: self atAddress: ([self playerFieldsAddress] + PLAYER_FIELD_PACK_SLOT_1 + sizeof(GUID)*i) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
 			[itemGUIDs addObject:[NSNumber numberWithLongLong:value]];
 		}
 	}
@@ -118,7 +111,7 @@ enum PlayerFlags
 	uint i;
 	GUID value = 0;
 	for ( i = 0; i < numberOfBags; i++ ){
-		if([_memory loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_BagStart + sizeof(GUID)*i) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
+		if([_memory loadDataForObject: self atAddress: ([self playerFieldsAddress] + PLAYER_FIELD_INV_SLOT_HEAD + sizeof(GUID)*SLOT_EMPTY + sizeof(GUID)*i) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
 			[bagGUIDs addObject:[NSNumber numberWithLongLong:value]];
 		}
 	}
@@ -132,7 +125,7 @@ enum PlayerFlags
 	uint slot;
 	GUID value = 0;
 	for ( slot = 0; slot <= SLOT_TABARD; slot++ ){
-		if([_memory loadDataForObject: self atAddress: ([self infoAddress] + PlayerField_CharacterSlot + sizeof(GUID)*slot) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
+		if([_memory loadDataForObject: self atAddress: ([self playerFieldsAddress] + PLAYER_FIELD_INV_SLOT_HEAD + sizeof(GUID)*slot) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
 			[itemGUIDs addObject:[NSNumber numberWithLongLong:value]];
 		}
 	}

@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  WoWObject.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/29/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "WoWObject.h"
 #import "Offsets.h"
@@ -38,6 +21,8 @@
         _baseAddress = nil;
         _infoAddress = nil;
 		_notInObjectListCounter = 0;
+		_objectFieldAddress = 0;
+		_unitFieldAddress = 0;
         self.memoryAccess = nil;
         self.refreshDate = [NSDate distantFuture];
     }
@@ -118,6 +103,29 @@
     return _infoAddress ? [_infoAddress unsignedIntValue] : 0;
 }
 
+- (UInt32)objectFieldAddress{
+	
+	if ( _objectFieldAddress ){
+		return _objectFieldAddress;
+	}
+	
+	// read it
+	[_memory loadDataForObject: self atAddress: ([self baseAddress] + OBJECT_FIELDS_PTR) Buffer: (Byte *)&_objectFieldAddress BufLength: sizeof(_objectFieldAddress)];
+	return _objectFieldAddress;
+}
+
+- (UInt32)unitFieldAddress{
+	
+	if ( _unitFieldAddress ){
+		return _unitFieldAddress;
+	}
+	
+	// read it
+	[_memory loadDataForObject: self atAddress: ([self baseAddress] + OBJECT_UNIT_FIELDS_PTR) Buffer: (Byte *)&_unitFieldAddress BufLength: sizeof(_unitFieldAddress)];
+
+	return _unitFieldAddress;
+}
+
 #pragma mark -
 #pragma mark Accessors
 
@@ -166,8 +174,9 @@
 // 1 read
 - (UInt64)GUID {
     UInt64 value = 0;
-    if([_memory loadDataForObject: self atAddress: [self infoAddress] Buffer: (Byte *)&value BufLength: sizeof(value)])
+    if([_memory loadDataForObject: self atAddress: [self infoAddress] Buffer: (Byte *)&value BufLength: sizeof(value)]){
         return value;
+	}
     return 0;
 }
 
@@ -225,7 +234,7 @@
         return YES;
 	if ( _notInObjectListCounter >= MAX_NOT_IN_LIST_UNTIL_STALE )
 		return YES;
-	
+
     return NO;
 }
 
@@ -310,6 +319,12 @@
             case OBJECT_STRUCT4_POINTER:;
                 desc = @"Next Structure Pointer";
                 break;
+			case OBJECT_UNIT_FIELDS_PTR:;
+                desc = @"Unit Fields Pointer";
+                break;
+			case ITEM_FIELDS_PTR:;
+                desc = @"Item Fields Pointer";
+                break;
         }
     } else {
         offset = offset - ([self infoAddress] - [self baseAddress]);
@@ -331,6 +346,10 @@
     }
 
     return desc;
+}
+
+- (BOOL)validToLoot{
+	return YES;
 }
 
 @end

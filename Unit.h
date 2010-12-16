@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Unit.h
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 5/26/08.
+//  Copyright 2008 Savory Software, LLC. All rights reserved.
+//
 
 #import <Cocoa/Cocoa.h>
 #import "WoWObject.h"
@@ -35,149 +18,49 @@ enum MovementFlags{
 };
 
 enum eUnitBaseFields {
-    BaseField_XLocation                 = 0x790,  // 3.0.9: 0x7C4
-    BaseField_YLocation                 = 0x794,  // 3.0.9: 0x7C8
-    BaseField_ZLocation                 = 0x798,  // 3.0.9: 0x7CC
-    BaseField_Facing_Horizontal         = 0x79C,  // 3.0.9: 0x7D0  // [0, 2pi]
-    BaseField_Facing_Vertical           = 0x7A0,  // 3.0.9: 0x7D0  // [-pi/2, pi/2]
+    BaseField_XLocation                 = 0x888,  // 3.0.9: 0x7C4
+    BaseField_YLocation                 = 0x88C,  // 3.0.9: 0x7C8
+    BaseField_ZLocation                 = 0x890,  // 3.0.9: 0x7CC
+    BaseField_Facing_Horizontal         = 0x894,  // 3.0.9: 0x7D0  // [0, 2pi]
+    BaseField_Facing_Vertical           = 0x898,  // 3.0.9: 0x7D0  // [-pi/2, pi/2]
     
-    BaseField_MovementFlags             = 0x7C0,  // 3.0.9: 0x7F0
+    BaseField_MovementFlags             = 0x8B8,  // 3.0.9: 0x7F0
     
-    BaseField_RunSpeed_Current          = 0x808,	// 3.0.9: 0x838
-    BaseField_RunSpeed_Walk             = 0x80C,	// (you sure this is runspeed walk? - i noticed it was 2.5, yet current speed when walking was 7.0) 3.0.9: 0x83C
-    BaseField_RunSpeed_Max              = 0x810,	// 3.0.9: 0x840
-    BaseField_RunSpeed_Back             = 0x814,	// 3.0.9: 0x844
-    BaseField_AirSpeed_Max              = 0x820,	// 3.0.9: 0x850
+    BaseField_RunSpeed_Current          = 0x900,	// 3.0.9: 0x838
+    BaseField_RunSpeed_Walk             = 0x904,	// (you sure this is runspeed walk? - i noticed it was 2.5, yet current speed when walking was 7.0) 3.0.9: 0x83C
+    BaseField_RunSpeed_Max              = 0x908,	// 3.0.9: 0x840
+    BaseField_RunSpeed_Back             = 0x90C,	// 3.0.9: 0x844
+    BaseField_AirSpeed_Max              = 0x918,	// 3.0.9: 0x850
     
-
-    BaseField_Spell_ToCast              = 0xA54,	// 3.0.9: 0xA28
-    BaseField_Spell_Casting             = 0xA58,	// 3.0.9: 0xA2C
-    BaseField_Spell_TargetGUID_Low      = 0xA5C,	// 3.0.9: 0xA30  (not sure how to verify if 3.1.0 offset is correct)
-    BaseField_Spell_TargetGUID_High     = 0xA62,	// 3.0.9: 0xA34  (not sure how to verify if 3.1.0 offset is correct)
-    BaseField_Spell_TimeStart           = 0xA6C,	// 3.0.9: 0xA38
-    BaseField_Spell_TimeEnd             = 0xA70,	// 3.0.9: 0xA3C
+	// lua_SpellStopCasting
+    //BaseField_Spell_ToCast              = 0xB00,	// This is the spell we WANT to cast, and are waiting for the server to realize it should cast (the below will be set when it's been verified by the server) 
     
-    BaseField_Spell_Channeling          = 0xA74,	// 3.0.9: 0xA40
-    BaseField_Spell_ChannelTimeStart    = 0xA78,	// 3.0.9: 0xA44
-    BaseField_Spell_ChannelTimeEnd      = 0xA7C,	// 3.0.9: 0xA48
+	// lua_UnitCastingInfo	
+	//BaseField_Spell_Casting             = 0xB0C,	// spell the player is casting
+    //BaseField_Spell_TargetGUID_Low      = 0xB10,	(in lua_UnitCastingInfo, but I don't use them)
+    //BaseField_Spell_TargetGUID_High     = 0xB14,
+    //BaseField_Spell_TimeStart           = 0xB18,
+    //BaseField_Spell_TimeEnd             = 0xB1C,
     
-    BaseField_SelectionFlags            = 0xA80,	// (1 << 12) when a unit is selected, (1 << 13) when it is focused
+	// lua_UnitChannelInfo
+    //BaseField_Spell_Channeling          = 0xB20,	// this is the spell ID
+    BaseField_Spell_ChannelTimeStart    = 0xB24,	// same time value as currentTime
+    BaseField_Spell_ChannelTimeEnd      = 0xB28,
     
-    BaseField_Player_CurrentTime        = 0xAB0,
+    BaseField_SelectionFlags            = 0xB30,	// (1 << 12) when a unit is selected, (1 << 13) when it is focused
+    
+    //BaseField_Player_CurrentTime        = 0xAB0,	// disappeared as of 4.x
     
     // BaseField_CurrentStance          = 0xB40, // this seems to have dissapeared in 3.0.8
     
-    BaseField_Auras_ValidCount          = 0xDBC,
-    BaseField_Auras_Start               = 0xC3C,
+    BaseField_Auras_ValidCount          = 0xF3C,
+    BaseField_Auras_Start               = 0xCFC,
     
     // I'm not entirely sure what the story is behind these pointers
     // but it seems that once the player hits > 16 buffs/debuffs (17 or more)
     // the Aura fields in the player struct is abandoned and moves elsewhere
-    BaseField_Auras_OverflowValidCount  = 0xC40,
-    BaseField_Auras_OverflowPtr1        = 0xC44,    // 3.0.8-9: i could not verify overflow 2, 3, 4
-    // BaseField_Auras_OverflowPtr2        = 0xEA4, // but since they aren't actually used, I don't think it matters.
-    // BaseField_Auras_OverflowPtr3        = 0xF3C,
-    // BaseField_Auras_OverflowPtr4        = 0xF94,
-};
-
-enum eUnitFields {
-	UnitField_Charm                     = 0x18,
-	UnitField_Summon                    = 0x20,
-	UnitField_Critter                   = 0x28,
-	UnitField_CharmedBy                 = 0x30,
-	UnitField_SummonedBy                = 0x38,
-	UnitField_CreatedBy                 = 0x40,
-	UnitField_Target                    = 0x48,
-	//UnitField_Persuaded                 = 0x48,
-	UnitField_Channel_Object            = 0x50,
-    
-    Unit_Channel_Spell                  = 0x58, // Added in 3.3.3
-    UnitField_Bytes0                    = 0x5C,
-    
-    UnitField_Health                    = 0x60,
-    UnitField_Power1                    = 0x64, // Mana
-    UnitField_Power2                    = 0x68, // Rage
-    UnitField_Power3                    = 0x6C, // Focus
-    UnitField_Power4                    = 0x70, // Energy
-    UnitField_Power5                    = 0x74, // Happiness
-    UnitField_Power6                    = 0x78, // unknown
-    UnitField_Power7                    = 0x7C, // Runic Power
-    UnitField_MaxHealth                 = 0x80,
-    UnitField_MaxPower1                 = 0x84,
-    UnitField_MaxPower2                 = 0x88,
-    UnitField_MaxPower3                 = 0x8C,
-    UnitField_MaxPower4                 = 0x90,
-    UnitField_MaxPower5                 = 0x94,
-    UnitField_MaxPower6                 = 0x98,
-    UnitField_MaxPower7                 = 0x9C,
-    
-    UnitField_PowerRegen_FlatMod        = 0xA0,
-    // 0xA0 - 0xB4 are not known
-    UnitField_PowerRegen_Interrupted_FlatMod = 0xBC,
-    
-    
-    UnitField_Level                     = 0xD8,
-    UnitField_FactionTemplate           = 0xDC,
-    // UNIT_VIRTUAL_ITEM_SLOT_ID
-    
-    UnitField_StatusFlags               = 0xEC,
-    UnitField_StatusFlags2              = 0xF0,
-    
-    UnitField_MainhandSpeed             = 0xF8, // these speeds are in milliseconds, eg 2000 = 2.0sec
-    UnitField_OffhandSpeed              = 0xFC,
-    UnitField_RangedSpeed               = 0x100,
-    
-    UnitField_BoundingRadius            = 0x104,
-    UnitField_CombatReach               = 0x108,
-    
-    UnitField_DisplayID                 = 0x10C,
-    UnitField_NativeDisplayID           = 0x110,
-    UnitField_MountDisplayID            = 0x114,
-    
-    UnitField_Bytes_1                   = 0x128,    // sit, lie, kneel and so on (stealth = 0x20000)
-    
-    UnitField_PetNumber                 = 0x12C,    // not the same as entry ID
-    UnitField_PetNameTimestamp          = 0x130,
-    UnitField_PetExperience             = 0x134,
-    UnitField_PetNextLevelExp           = 0x138,
-    
-    UnitField_DynamicFlags              = 0x13C,    // tracking, tapped
-    UnitField_ChannelSpell              = 0x140,
-    UnitField_ModCastSpeed              = 0x144,
-    UnitField_UnitCreatedBySpell        = 0x148,
-    UnitField_NPCFlags                  = 0x14C,    // repairer, auctioneer, etc
-    UnitField_NPCEmoteState             = 0x150,
-    
-    // 5x stats
-    // 5x +states
-    // 5x -stats
-    // 7x resistances
-    // 7x resistances mod positive
-    // 7x resistances mod negative
-    
-	UnitField_BaseMana                  = 0x1E0,
-	UnitField_BaseHealth                = 0x1E4,
-    UnitField_Bytes_2                   = 0x1E8,    // 0x1001 for most mobs. 0x2801 for totems?
-
-    UnitField_AttackPower               = 0x1EC,
-    UnitField_AttackPower_Mod           = 0x1F0,
-    UnitField_AttackPower_Mult          = 0x1F4,
-    UnitField_Ranged_AttackPower        = 0x1F8,
-    UnitField_Ranged_AttackPower_Mod    = 0x1FC,
-    UnitField_Ranged_AttackPower_Mult   = 0x200,
-    UnitField_Ranged_MinDamage          = 0x204,
-    UnitField_Ranged_MaxDamage          = 0x208,
-    UnitField_PowerCost_Mod             = 0x20C,
-    // 7 total fields ^^
-    UnitField_PowerCost_Mult            = 0x228,
-    // 7 total fields ^^
-    
-    UnitField_MaxHealth_Modifier        = 0x244,
-    UnitField_HoverHeight               = 0x248,
-    // padding
-	
-    UnitField_TotalUnitFields           = 0x59,
-    
+    BaseField_Auras_OverflowValidCount  = 0xD00,
+    BaseField_Auras_OverflowPtr1        = 0xD04,
 };
 
 // Added from: http://www.mmowned.com/forums/wow-memory-editing/257771-wow-constant-data-enums-structs-etc.html
@@ -323,8 +206,12 @@ typedef enum {
     UnitPower_Focus         = 2,
     UnitPower_Energy        = 3,
     UnitPower_Happiness     = 4,
+	UnitPower_Runes			= 5,
     UnitPower_RunicPower    = 6,
-    UnitPower_Max           = 7,
+	UnitPower_SoulShard		= 7,
+	UnitPower_Eclipse		= 8,
+	UnitPower_HolyPower		= 9,
+    UnitPower_Max			= 10,
 } UnitPower;
 
 typedef enum {
@@ -505,7 +392,12 @@ typedef enum MovementFlag {
     MovementFlag_Max                = (1 << 31),
 } MovementFlag;
 
+@class PlayerDataController;
+
 @interface Unit : WoWObject <UnitPosition> {
+	
+	IBOutlet PlayerDataController	*playerController;
+	
 }
 
 + (id)unitWithAddress: (NSNumber*)address inMemory: (MemoryAccess*)memory;
@@ -535,8 +427,7 @@ typedef enum MovementFlag {
 - (UInt32)movementFlags;
 - (UInt32)mountID;
 
-- (UInt32)currentStance; // only works for the current player
-
+- (UInt32)unitPowerWithQuality: (int)quality andType:(int)type;
 - (UInt32)maxPowerOfType: (UnitPower)powerType;
 - (UInt32)currentPowerOfType: (UnitPower)powerType;
 - (UInt32)percentPowerOfType: (UnitPower)powerType;
@@ -565,6 +456,7 @@ typedef enum MovementFlag {
 - (BOOL)isMounted;
 - (BOOL)isOnGround;
 - (BOOL)isSwimming;
+- (BOOL)isTargetingMe;
 - (BOOL)isFlyingMounted;
 
 - (UInt32)stateFlags;

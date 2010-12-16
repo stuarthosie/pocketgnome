@@ -25,10 +25,17 @@
 
 #import <Cocoa/Cocoa.h>
 
+#define	OffsetsLoaded	@"OffsetsLoaded"
+
+#ifndef IS_PPC
+#define IS_X86 (CFByteOrderGetCurrent() == CFByteOrderLittleEndian)
+#define IS_PPC (CFByteOrderGetCurrent() == CFByteOrderBigEndian)
+#endif
+
 @class Controller;
 
 @interface OffsetController : NSObject {
-
+	
 	NSMutableDictionary *offsets;
 	NSDictionary *_offsetDictionary;
 	
@@ -37,10 +44,11 @@
 	BOOL _offsetsLoaded;
 }
 
++ (OffsetController *)sharedController;
+
 - (unsigned long) offset: (NSString*)key;
 
-- (NSArray*) offsetWithByteSignature: (NSString*)signature 
-							withMask:(NSString*)mask 
-					   withEmulation:(BOOL)emulatePPC;
+- (NSDictionary*) offsetWithByteSignature: (NSString*)signature 
+								 withMask:(NSString*)mask;
 
 @end

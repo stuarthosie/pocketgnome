@@ -44,7 +44,7 @@ static MemoryAccess *sharedMemoryAccess = nil;
 - (id)initWithPID:(pid_t)PID {
     [super init];
     AppPid = PID;
-    PGLog(@"Got WoW PID: %d; GodMode: %d", PID, MEMORY_GOD_MODE);
+    log(LOG_MEMORY, @"Got WoW PID: %d; GodMode: %d", PID, MEMORY_GOD_MODE);
     task_for_pid(current_task(), AppPid, &MySlaveTask);
     
     _loaderDict = [[NSMutableDictionary dictionary] retain];
@@ -83,7 +83,7 @@ static MemoryAccess *sharedMemoryAccess = nil;
         usleep(50000);
         err = GetProcessForPID(AppPid, &psn);
         if( err != noErr) {
-            PGLog(@"appPID = %d; err = %d; pSN = { %d, %d }", AppPid, err, psn.lowLongOfPSN, psn.highLongOfPSN);
+            log(LOG_MEMORY, @"appPID = %d; err = %d; pSN = { %d, %d }", AppPid, err, psn.lowLongOfPSN, psn.highLongOfPSN);
             return NO;
         }
     }
@@ -95,13 +95,12 @@ static MemoryAccess *sharedMemoryAccess = nil;
 }
 
 - (void)printLoadCount {
-    PGLog(@"%@ has processed %d reads.", self, readsProcessed);
+    log(LOG_MEMORY, @"%@ has processed %d reads.", self, readsProcessed);
 }
 
 - (int)loadCount {
     return readsProcessed;
 }
-
 
 - (BOOL)saveDataForAddress:(UInt32)Address Buffer:(Byte *)DataBuffer BufLength:(vm_size_t)Bytes
 {
@@ -119,9 +118,53 @@ static MemoryAccess *sharedMemoryAccess = nil;
         NS_HANDLER
         retVal = false;
         NS_ENDHANDLER
+
+        return retVal;
+    }
+}
+
+- (BOOL)saveDataForAddressForce:(UInt32)Address Buffer:(Byte *)DataBuffer BufLength:(vm_size_t)Bytes
+{
+    if(![self isValid])                 return NO;
+    if(Address == 0)                    return NO;
+    if(DataBuffer == NULL)              return NO;
+    if(Bytes <= 0)                      return NO;
+	
+	_totalWritesProcessed++;
+    
+    if(MEMORY_GOD_MODE) {
+		
+		// what is the current protection mode for this block of memory?
+		vm_address_t SourceAddress = Address;
+		vm_size_t SourceSize = Bytes;
+		vm_region_basic_info_data_t SourceInfo;
+		mach_msg_type_number_t SourceInfoSize = VM_REGION_BASIC_INFO_COUNT;
+		mach_port_t ObjectName = MACH_PORT_NULL;
+		int result = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName);
+		if ( result == KERN_SUCCESS ){
+			NSLog(@"Protection type: 0x%X", SourceInfo.protection);			
+		}
+
+		// make the location writable!
+		vm_protect( MySlaveTask,
+						 (vm_address_t) Address,
+						 Bytes, false, (VM_PROT_ALL | VM_PROT_COPY | VM_PROT_READ) );
+		
+        bool retVal;
+        NS_DURING
+		NSLog(@"Writing 0x%X to 0x%X", DataBuffer, Address);
+		int val = vm_write(MySlaveTask,Address,(vm_offset_t)DataBuffer,Bytes);
+        retVal = (KERN_SUCCESS == val);
+        NS_HANDLER
+        retVal = false;
+        NS_ENDHANDLER
+		
+		// set it back!
+		vm_protect( MySlaveTask,
+						 (vm_address_t) Address, Bytes, false,
+						 SourceInfo.protection );
         
         return retVal;
-        
     }
 }
 
@@ -138,18 +181,20 @@ static MemoryAccess *sharedMemoryAccess = nil;
     
     
     NSString *className = [object className];
-    if( [_loaderDict objectForKey: className]) {
-        [_loaderDict setObject: [NSNumber numberWithInt: [[_loaderDict objectForKey: className] intValue]+1] forKey: className];
-    } else {
-        [_loaderDict setObject: [NSNumber numberWithInt: 1] forKey: className];
-    }
+	if ( className ){
+		if( [_loaderDict objectForKey: className]) {
+			[_loaderDict setObject: [NSNumber numberWithInt: [[_loaderDict objectForKey: className] intValue]+1] forKey: className];
+		} else {
+			[_loaderDict setObject: [NSNumber numberWithInt: 1] forKey: className];
+		}
+	}
 	
 	/*
-    if(readsProcessed % 20000 == 0) {
-        [self printLoadCount];
-        PGLog(@"Loader Dict: %@", loaderDict);
-    }*/
-
+	 if(readsProcessed % 20000 == 0) {
+	 [self printLoadCount];
+	 PGLog(@"Loader Dict: %@", loaderDict);
+	 }*/
+	
     if(MEMORY_GOD_MODE) {
         bool retVal;
         vm_size_t retBytes = Bytes;
@@ -164,10 +209,54 @@ static MemoryAccess *sharedMemoryAccess = nil;
     }
 }
 
+- (int)readInt: (UInt32)address withSize:(size_t)size{
+	
+	int buffer[size];
+	
+	if ( [self loadDataForObject: self atAddress:address Buffer:(Byte *)&buffer BufLength:size] ){
+		int val = 0;
+		val = (int)*buffer;
+		return val;
+	}
+	
+	return 0;
+}
+
+- (long long)readLongLong: (UInt32)address{
+	UInt64 val = 0;
+	[self loadDataForObject: self atAddress:address Buffer:(Byte *)&val BufLength:sizeof(val)];
+	return val;
+}
+
+- (NSString*)readString: (UInt32)address{
+	
+	char str[256];
+	str[255] = 0;
+	
+	if ( [self loadDataForObject: self atAddress:address Buffer:(Byte *)&str BufLength:sizeof(str)-1] ){
+		NSString *newStr = [NSString stringWithUTF8String: str];
+		return [[newStr retain] autorelease];
+	}
+	
+	return nil;
+}
+
+- (NSNumber*)readNumber: (UInt32)address withSize:(size_t)size{
+	void *buffer = malloc(size);
+	if ( [self loadDataForObject: self atAddress:address Buffer:buffer BufLength:size] ){
+		NSNumber *num = [NSNumber numberWithInt:(int)buffer];
+		free(buffer);
+		return num;
+	}
+	
+	return nil;
+}
+
+
 // basically just a raw reading function.
 // use this method if you need the actual return value from the kernel and want to do your own error checking.
 - (kern_return_t)readAddress: (UInt32)address Buffer: (Byte *)DataBuffer BufLength: (vm_size_t)Bytes {
-
+	
     if(![self isValid])                 return KERN_FAILURE;
     if(address == 0)                    return KERN_FAILURE;
     if(DataBuffer == NULL)              return KERN_FAILURE;
@@ -210,10 +299,10 @@ static MemoryAccess *sharedMemoryAccess = nil;
 	for ( NSString *key in keys ){
 		NSNumber *readsPerSecond = [NSNumber numberWithInt:[[_loaderDict objectForKey:key] intValue]/timeIntervalInSeconds];
 		
-		[dict setObject:readsPerSecond forKey:key];		
+		[dict setObject:readsPerSecond forKey:key];             
 	}
 	
-	return dict;	
+	return dict;    
 }
 
 - (void)resetCounters{

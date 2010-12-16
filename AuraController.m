@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  AuraController.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/26/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "AuraController.h"
 #import "Controller.h"
@@ -73,14 +56,11 @@ static AuraController* sharedController = nil;
     return self;
 }
 
-- (void) dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver: self];
+- (void) dealloc{
     [_playerAuras release];
     [_auras release];
     [super dealloc];
 }
-
 
 - (void)awakeFromNib {
     [aurasPanel setCollectionBehavior: NSWindowCollectionBehaviorCanJoinAllSpaces];
@@ -108,6 +88,9 @@ typedef struct WoWAura {
     UInt32  bytes;
     UInt32  duration;
     UInt32  expiration;
+	UInt32	unk1;
+	UInt32	unk2;
+	UInt32	unk3;
 } WoWAura;
 
 
@@ -124,20 +107,8 @@ typedef struct WoWAura {
  
  */
 
-/*
- BaseField_Auras_ValidCount          = 0xDC0,
- BaseField_Auras_Start               = 0xC40,
- 
- // I'm not entirely sure what the story is behind these pointers
- // but it seems that once the player hits > 16 buffs/debuffs (17 or more)
- // the Aura fields in the player struct is abandoned and moves elsewhere
- BaseField_Auras_OverflowValidCount  = 0xC44,
- BaseField_Auras_OverflowPtr1        = 0xC58,    // 3.0.8-9: i could not verify overflow 2, 3, 4
- */
-
-
 - (NSArray*)aurasForUnit: (Unit*)unit idsOnly: (BOOL)IDs {
-    // PGLog(@"Loading for unit: %@ (0x%X)", unit, [unit baseAddress]);
+    // log(LOG_GENERAL, @"Loading for unit: %@ (0x%X)", unit, [unit baseAddress]);
     UInt32 validAuras = 0;
     MemoryAccess *wowMemory = [controller wowMemoryAccess];
     if(!unit || !wowMemory || ![playerController playerIsValid:self])
@@ -146,75 +117,31 @@ typedef struct WoWAura {
     // get the number of valid aura buckets
     [wowMemory readAddress: ([unit baseAddress] + BaseField_Auras_ValidCount) Buffer: (Byte*)&validAuras BufLength: sizeof(validAuras)];
 	
-	/*
-	SInt32 tableLocation = 0;
-	UInt32 tableAddress = 0;
-	[wowMemory readAddress: ([unit baseAddress] + 0xDB4) Buffer: (Byte*)&tableLocation BufLength: sizeof(tableLocation)];
-	
-	if ( tableLocation == -1 ){
-		tableAddress = [unit baseAddress] + 0xC4C;
-	}
-	else{
-		tableAddress = [unit baseAddress] + 0xC34;
-	}
-	
-	
-	
-	NSMutableArray *auras = [NSMutableArray array];
-	// Read the first aura!
-	WoWAura aura;
-	[wowMemory loadDataForObject: self atAddress: (tableAddress) + sizeof(aura) Buffer:(Byte*)&aura BufLength: sizeof(aura)];
-	if(IDs) [auras addObject: [NSNumber numberWithUnsignedInt: aura.entryID]];
-	else    [auras addObject: [Aura auraEntryID: aura.entryID 
-										   GUID: aura.guid
-										  bytes: aura.bytes 
-									   duration: aura.duration 
-									 expiration: aura.expiration]];
-	
-	// While we have valid spells!
-	UInt i = 1;
-	while ( aura.entryID != 0 ){
-		
-		[wowMemory loadDataForObject: self atAddress: (tableAddress) + i*sizeof(aura) Buffer:(Byte*)&aura BufLength: sizeof(aura)];
-		
-		
-		if(IDs) [auras addObject: [NSNumber numberWithUnsignedInt: aura.entryID]];
-		else    [auras addObject: [Aura auraEntryID: aura.entryID 
-											   GUID: aura.guid
-											  bytes: aura.bytes 
-										   duration: aura.duration 
-										 expiration: aura.expiration]];
-		
-		//PGLog(@"Found aura %d.", aura.entryID);
-		
-		i++;
-	}
-	*/
-	
     // we're overflowing. try the backup.
-    if(validAuras == 0xFFFFFFFF) {
+    if ( validAuras == 0xFFFFFFFF) {
         [wowMemory readAddress: ([unit baseAddress] + BaseField_Auras_OverflowValidCount) Buffer: (Byte*)&validAuras BufLength: sizeof(validAuras)];
-		//PGLog(@"[Auras] Lot of auras! Switching to backup!");
+		log(LOG_GENERAL, @"[Auras] Lot of auras! Switching to backup!");
 	}
     
     if ( validAuras <= 0 || validAuras > 500 ) {
-		//PGLog(@"[Auras] Not a valid aura count %d", validAuras);
+		log(LOG_GENERAL, @"[Auras] Not a valid aura count %d", validAuras);
 		return nil;
 	}
 	
     UInt32 aurasAddress = [unit baseAddress] + BaseField_Auras_Start;
-    if(validAuras > 16) {
+    if ( validAuras > 16 ) {
+		
         // aura overflow
         UInt32 newAddr = 0;
         if([wowMemory loadDataForObject: self atAddress: ([unit baseAddress] + BaseField_Auras_OverflowPtr1) Buffer: (Byte*)&newAddr BufLength: sizeof(newAddr)] && newAddr) {
             aurasAddress = newAddr;
         } else {
-            PGLog(@"[Auras] Error finding aura overflow pointer.");
+            log(LOG_GENERAL, @"[Auras] Error finding aura overflow pointer.");
             return nil;
         }
     }
 	
-	//PGLog(@"[Auras] Address start: 0x%X", aurasAddress);
+	//log(LOG_GENERAL, @"[Auras] Address start: 0x%X", aurasAddress);
     
     
     int i;
@@ -226,8 +153,8 @@ typedef struct WoWAura {
         if([wowMemory loadDataForObject: self atAddress: (aurasAddress) + i*sizeof(aura) Buffer:(Byte*)&aura BufLength: sizeof(aura)]) {
             aura.bytes = CFSwapInt32HostToLittle(aura.bytes);
 			
-			//PGLog(@"[auras] Bytes: %d", aura.bytes);
-			//PGLog(@"[Auras] 0x%X Entry ID: %d", (aurasAddress) + i*sizeof(aura), aura.entryID);
+			//log(LOG_GENERAL, @"[auras] Bytes: %d", aura.bytes);
+			//log(LOG_GENERAL, @"[Auras] 0x%X Entry ID: %d", (aurasAddress) + i*sizeof(aura), aura.entryID);
 			
             // skip empty buckets
             if(aura.entryID == 0) continue;
@@ -235,7 +162,7 @@ typedef struct WoWAura {
 			// As of 3.1.0 - I don't think expiration is needed, if you remove the buff, it sets that memory space to 0
             // skip expired buffs; they seem to linger until the space is needed for something else
             /*if((currentTime > aura.expiration) && (aura.expiration != 0)) {
-                PGLog(@"%d is expired (%d).", aura.entryID, aura.expiration);
+                log(LOG_GENERAL, @"%d is expired (%d).", aura.entryID, aura.expiration);
                 continue;
             }*/
             
@@ -273,7 +200,7 @@ typedef struct WoWAura {
                                                duration: aura.duration 
                                              expiration: aura.expiration]];
             
-            //PGLog(@"Found aura %d.", aura.entryID);
+            //log(LOG_GENERAL, @"Found aura %d.", aura.entryID);
         }
     }
     
@@ -311,7 +238,7 @@ typedef struct WoWAura {
             NSRange range = [[spell name] rangeOfString: spellName 
                                                 options: NSCaseInsensitiveSearch | NSAnchoredSearch | NSDiacriticInsensitiveSearch];
             if(range.location != NSNotFound) {
-                //PGLog(@"Found player buff '%@' at index %d.", spellName, i);
+                //log(LOG_GENERAL, @"Found player buff '%@' at index %d.", spellName, i);
                 return aura.stacks ? aura.stacks : YES;
             }
         }
@@ -327,7 +254,7 @@ typedef struct WoWAura {
             NSRange range = [[spell name] rangeOfString: spellName 
                                                 options: NSCaseInsensitiveSearch | NSAnchoredSearch | NSDiacriticInsensitiveSearch];
             if(range.location != NSNotFound) {
-                //PGLog(@"Found player buff '%@' at index %d.", spellName, i);
+                //log(LOG_GENERAL, @"Found player buff '%@' at index %d.", spellName, i);
                 return aura.stacks ? aura.stacks : YES;
             }
         }
@@ -342,7 +269,7 @@ typedef struct WoWAura {
             NSRange range = [[spell name] rangeOfString: spellName 
                                                 options: NSCaseInsensitiveSearch | NSAnchoredSearch | NSDiacriticInsensitiveSearch];
             if(range.location != NSNotFound) {
-                //PGLog(@"Found player buff '%@' at index %d.", spellName, i);
+                //log(LOG_GENERAL, @"Found player buff '%@' at index %d.", spellName, i);
                 return aura.stacks ? aura.stacks : YES;
             }
         }
@@ -422,7 +349,7 @@ typedef struct WoWAura {
         for(i=0; i<PLAYER_BUFF_SLOTS; i++) {
             if(auras[i] == 0) continue;
             if(auras[i] == spellID) {
-                //PGLog(@"Found player buff %d at index %d.", spellID, i);
+                //log(LOG_GENERAL, @"Found player buff %d at index %d.", spellID, i);
                 return YES;
             }
         }
@@ -439,7 +366,7 @@ typedef struct WoWAura {
         for(i=0; i<PLAYER_DEBUFF_SLOTS; i++) {
             if(auras[i] == 0) continue;
             if(auras[i] == spellID) {
-                //PGLog(@"Found player debuff %d at index %d.", spellID, i);
+                //log(LOG_GENERAL, @"Found player debuff %d at index %d.", spellID, i);
                 return YES;
             }
         }
@@ -460,7 +387,7 @@ typedef struct WoWAura {
                 NSRange range = [[spell name] rangeOfString: spellName 
                                                     options: NSCaseInsensitiveSearch | NSAnchoredSearch | NSDiacriticInsensitiveSearch];
                 if(range.location != NSNotFound) {
-                    //PGLog(@"Found player buff '%@' at index %d.", spellName, i);
+                    //log(LOG_GENERAL, @"Found player buff '%@' at index %d.", spellName, i);
                     return YES;
                 }
             }
@@ -482,7 +409,7 @@ typedef struct WoWAura {
                 NSRange range = [[spell name] rangeOfString: spellName 
                                                     options: NSCaseInsensitiveSearch | NSAnchoredSearch | NSDiacriticInsensitiveSearch];
                 if(range.location != NSNotFound) {
-                    //PGLog(@"Found player debuff '%@' at index %d.", spellName, i);
+                    //log(LOG_GENERAL, @"Found player debuff '%@' at index %d.", spellName, i);
                     return YES;
                 }
             }
@@ -645,7 +572,7 @@ typedef struct WoWAura {
         NSArray *petAuras = [self aurasForUnit: [playerController pet] idsOnly: YES];
         NSArray *tarAuras = [self aurasForUnit: [mobController playerTarget] idsOnly: YES];
         
-        // PGLog(@"%d buffs on player", [newAuras count]);
+        // log(LOG_GENERAL, @"%d buffs on player", [newAuras count]);
         
         // gather all buffs
         /*unsigned buffs[PLAYER_BUFF_SLOTS];
@@ -687,7 +614,7 @@ typedef struct WoWAura {
         }*/
         
         // report status
-        // PGLog(@"Player has %d buffs and %d debuffs.", [buffsArray count], [debuffsArray count]);
+        // log(LOG_GENERAL, @"Player has %d buffs and %d debuffs.", [buffsArray count], [debuffsArray count]);
         
         // check for buff losses
         for(Aura *aura in _auras) {
@@ -704,7 +631,7 @@ typedef struct WoWAura {
             if( !foundAura && (aura.entryID > 0) && (aura.entryID  <= MaxSpellID) ) {
                 Spell *spell = [spellController spellForID: [NSNumber numberWithUnsignedInt: aura.entryID]];
                 if(spell) {
-                    // PGLog(@"::: %@ fades from you.", spell);
+                    // log(LOG_GENERAL, @"::: %@ fades from you.", spell);
                     [[NSNotificationCenter defaultCenter] postNotificationName: BuffFadeNotification 
                                                                         object: self 
                                                                       userInfo: [NSDictionary dictionaryWithObject: spell forKey: @"Spell"]];
@@ -737,7 +664,7 @@ typedef struct WoWAura {
                 // reload the spell name if we dont have it
                 Spell *spell = [spellController spellForID: auraID];
                 if(spell) {
-                    // PGLog(@"::: You gain %@.", spell);
+                    // log(LOG_GENERAL, @"::: You gain %@.", spell);
                     [[NSNotificationCenter defaultCenter] postNotificationName: BuffGainNotification 
                                                                         object: self 
                                                                       userInfo: [NSDictionary dictionaryWithObject: spell forKey: @"Spell"]];
@@ -746,15 +673,14 @@ typedef struct WoWAura {
                         [spell reloadSpellData];
                     }
                 } else {
-                    // PGLog(@"[Auras] Failed to create valid spell from ID %@.", num);
+                    // log(LOG_GENERAL, @"[Auras] Failed to create valid spell from ID %@.", num);
                 }
             }
             
             // build our info dict for the auras window
             Spell *spell = [[SpellController sharedSpells] spellForID: auraID];
             NSString *name = ([spell name] ? [spell name] : @"(Unknown)");
-            
-            
+
             float timeRemaining = [aura expiration] ? ([aura expiration] - currentTime)/1000.0f : INFINITY;
             NSDate *expiration = [aura expiration] ? [NSDate dateWithTimeIntervalSinceNow: timeRemaining] : [NSDate distantFuture];
             
@@ -794,7 +720,7 @@ typedef struct WoWAura {
             Spell *spell = [spellController spellForID: num];
             if( spell && (![spell name] || ![[spell name] length])) {
                 [spell reloadSpellData];
-                // PGLog(@"Loading pet spell %@", num);
+                // log(LOG_GENERAL, @"Loading pet spell %@", num);
             }
         }
         
@@ -809,7 +735,7 @@ typedef struct WoWAura {
             Spell *spell = [spellController spellForID: num];
             if( spell && (![spell name] || ![[spell name] length])) {
                 [spell reloadSpellData];
-                // PGLog(@"Loading target spell %@", num);
+                // log(LOG_GENERAL, @"Loading target spell %@", num);
             }
         }
         
@@ -820,7 +746,7 @@ typedef struct WoWAura {
         [_playerAuras sortUsingDescriptors: [aurasPanelTable sortDescriptors]];
         [aurasPanelTable reloadData];
     }
-    
+
     _firstRun = NO;
     [self performSelector: @selector(scanAllBuffs:) withObject: nil afterDelay: 1.0];
 }

@@ -1,28 +1,11 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
-// NEW
+//
+//  Controller.m
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/15/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
+//
 
 #import "Controller.h"
 #import "NoAccessApplication.h"
@@ -40,9 +23,9 @@
 #import "PatherController.h"
 #import "OffsetController.h"
 #import "StatisticsController.h"
-#import "CombatProfileEditor.h"
 #import "ObjectsController.h"
 #import "PvPController.h"
+#import "ProfileController.h"
 
 #import "CGSPrivate.h"
 
@@ -110,24 +93,40 @@ typedef enum {
     [NSValueTransformer setValueTransformer: hexTransformer forName: @"NSNumberToHexString"];
     
     NSDictionary *defaultValues = [NSDictionary dictionaryWithObjectsAndKeys:
-                                   [NSNumber numberWithFloat: 7.0],     @"CombatBlacklistDelay",
-                                   [NSNumber numberWithFloat: 10.0],    @"CombatBlacklistVerticalOffset",
+                                   [NSNumber numberWithFloat: 7.0],     @"BlacklistTriggerNotInCombat",
+                                   [NSNumber numberWithFloat: 45.0],    @"BlacklistDurationNotInCombat",
+                                   [NSNumber numberWithFloat: 20.0],    @"BlacklistDurationNotInLos",
+                                   [NSNumber numberWithFloat: 10.0],    @"BlacklistVerticalOffset",
+								   [NSNumber numberWithInt: 3],			@"BlacklistTriggerNodeFailedToReach",
+                                   [NSNumber numberWithInt: 4],			@"BlacklistTriggerNodeFailedToLoot",
+                                   [NSNumber numberWithInt: 2],			@"BlacklistTriggerNodeMadeMeFall",
                                    [NSNumber numberWithBool: YES],      @"MovementUseSmoothTurning",
                                    [NSNumber numberWithFloat: 2.0],     @"MovementMinJumpTime",
                                    [NSNumber numberWithFloat: 6.0],     @"MovementMaxJumpTime",
                                    [NSNumber numberWithBool: YES],      @"GlobalSendGrowlNotifications",
                                    [NSNumber numberWithBool: YES],      @"SUCheckAtStartup",
-                                   [NSNumber numberWithBool: YES],      @"SecurityDisableGUIScripting",
-                                   [NSNumber numberWithBool: NO],       @"SecurityUseBlankWindowTitles",
-                                   [NSNumber numberWithBool: NO],       @"SecurityPreferencesUnreadable",
-                                   [NSNumber numberWithBool: NO],       @"SecurityShowRenameSettings",
-                                   [NSNumber numberWithBool: NO],       @"SecurityDisableLogging",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingEnable",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingDev",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingEvaluate",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingBindings",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingMacro",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingMovement",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingWaypoint",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingCondition",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingRule",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingBlacklist",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingStatistics",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingFunction",
+								   [NSNumber numberWithBool: NO],       @"ExtendedLoggingMemory",
 								   [NSNumber numberWithInt: 1],			@"MountType",
-                                   
                                    nil];
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey: @"SUFeedURL"];
+	[[NSUserDefaults standardUserDefaults] setObject: @"http://pg.savorydeviate.com/appcast.xml" forKey: @"SUFeedURL"];
+    //[[NSUserDefaults standardUserDefaults] removeObjectForKey: @"SUFeedURL"];
     [[NSUserDefaults standardUserDefaults] registerDefaults: defaultValues];
     [[NSUserDefaultsController sharedUserDefaultsController] setInitialValues: defaultValues];
+	
+	// allow GUI scripting
+	[NSApp setAllowAccessibility: YES];
 }
 
 static Controller* sharedController = nil;
@@ -144,6 +143,7 @@ static Controller* sharedController = nil;
 		[self release];
 		self = sharedController;
 	} else if(self != nil) {
+		
         sharedController = self;
         _items = [[NSMutableArray array] retain];
         _mobs = [[NSMutableArray array] retain];
@@ -162,11 +162,10 @@ static Controller* sharedController = nil;
 		
 		// new search
 		_objectAddresses = [[NSMutableArray array] retain];		// stores the start address for all objects
+		_objectGUIDs = [[NSMutableArray array] retain];
 		_currentAddress = 0;
 		_totalObjects = 0;
 		_currentObjectManager = 0;
-        
-        [SecureUserDefaults secureUserDefaults];
         
         // load in our faction dictionary
         factionTemplate = [[NSDictionary dictionaryWithContentsOfFile: [[NSBundle mainBundle] pathForResource: @"FactionTemplate" ofType: @"plist"]] retain];
@@ -179,16 +178,33 @@ static Controller* sharedController = nil;
     return self;
 }
 
+- (void)dealloc {
+	[_items release];
+	[_mobs release];
+	[_players release];
+	[_corpses release];
+	[_gameObjects release];
+	[_dynamicObjects release];
+	[_nameListAddresses release];
+	[_objectAddresses release];
+	[_objectGUIDs release];
+	[factionTemplate release];
+	[currentStatusText release];
+	[_wowMemoryAccess release];
+
+	[super dealloc];
+}
+
 - (void)checkWoWVersion {
     
     NSString *appVers = [[[NSBundle mainBundle] infoDictionary] objectForKey: @"CFBundleShortVersionString"];
     
     if([self isWoWVersionValid]) {
         [aboutValidImage setImage: [NSImage imageNamed: @"good"]];
-        [versionInfoText setStringValue: [NSString stringWithFormat: @"%@ (v%@) is up to date with WoW %@.", [self appName], appVers, [self wowVersionShort]]];
+	[versionInfoText setStringValue: [NSString stringWithFormat: @"%@ v%@ is up to date with WoW %@.", [self appName], appVers, [self wowVersionShort]]];
     } else {
         [aboutValidImage setImage: [NSImage imageNamed: @"bad"]];
-        [versionInfoText setStringValue: [NSString stringWithFormat: @"%@ (v%@) may require WoW %@. Check the site below for more details.", [self appName], appVers, VALID_WOW_VERSION]];
+	[versionInfoText setStringValue: [NSString stringWithFormat: @"%@ v%@ may require WoW %@. Check the site below for more details.", [self appName], appVers, VALID_WOW_VERSION]];
     }
 }
 
@@ -201,7 +217,7 @@ static Controller* sharedController = nil;
     [GrowlApplicationBridge setGrowlDelegate: self];
     [GrowlApplicationBridge setWillRegisterWhenGrowlIsReady: YES];
     /*if( [GrowlApplicationBridge isGrowlInstalled] && [GrowlApplicationBridge isGrowlRunning]) {
-        PGLog(@"Growl running.");
+        log(LOG_CONTROLLER, @"Growl running.");
         [GrowlApplicationBridge notifyWithTitle: @"RUNNING"
                                     description: [NSString stringWithFormat: @"You have reached level %d.", 1]
                                notificationName: @"PlayerLevelUp"
@@ -210,33 +226,9 @@ static Controller* sharedController = nil;
                                        isSticky: NO
                                    clickContext: nil];             
     } else {
-        PGLog(@"Growl not running.");
+        log(LOG_CONTROLLER, @"Growl not running.");
     }*/
 	
-	
-	// make sure all the toolbar items are added!
-	
-	BOOL foundChat = NO, foundPvP = NO, foundStats = NO, foundObjects = NO;
-	for ( NSToolbarItem *item in [mainToolbar items] ){
-		
-		if ( [[item itemIdentifier] isEqualToString: [chatLogToolbarItem itemIdentifier]] )
-			foundChat = YES;
-		else if ( [[item itemIdentifier] isEqualToString: [pvpToolbarItem itemIdentifier]] )
-			foundPvP = YES;
-		else if ( [[item itemIdentifier] isEqualToString: [statisticsToolbarItem itemIdentifier]] )
-			foundStats = YES;
-		else if ( [[item itemIdentifier] isEqualToString: [objectsToolbarItem itemIdentifier]] )
-			foundObjects = YES;
-	}
-	
-	if ( !foundChat )
-		[mainToolbar insertItemWithItemIdentifier: [chatLogToolbarItem itemIdentifier] atIndex: 1];
-	if ( !foundPvP )
-		[mainToolbar insertItemWithItemIdentifier: [pvpToolbarItem itemIdentifier] atIndex: 5];
-	if ( !foundStats )
-		[mainToolbar insertItemWithItemIdentifier: [statisticsToolbarItem itemIdentifier] atIndex: 8];
-	if ( !foundObjects )
-		[mainToolbar insertItemWithItemIdentifier: [objectsToolbarItem itemIdentifier] atIndex: 4];
 }
 
 - (void)finalizeUserDefaults {
@@ -253,11 +245,12 @@ static Controller* sharedController = nil;
     [settings removeObjectForKey: @"LicenseEmail"];
     [settings removeObjectForKey: @"LicenseHash"];
     [settings removeObjectForKey: @"LicenseID"];
-	[settings removeObjectForKey: @"DoMounting"];
-	[settings removeObjectForKey: @"MountType"];
+	[settings removeObjectForKey: @"SecurityDisableGUIScripting"];
+	[settings removeObjectForKey: @"SecurityDisableLogging"];
+	[settings removeObjectForKey: @"SecurityPreferencesUnreadable"];
+	[settings removeObjectForKey: @"SecurityUseBlankWindowTitles"];
+	[settings removeObjectForKey: @"SecurityShowRenameSettings"];
     [settings synchronize];
-    
-    [self toggleGUIScripting: nil];
     
     // make us the front process
 	if ( ![self isWoWFront] ){
@@ -270,13 +263,16 @@ static Controller* sharedController = nil;
 	// check for update?
 	//[[SUUpdater sharedUpdater] checkForUpdatesInBackground];
     
+    // validate game version
+    //if(![self isWoWVersionValid]) {
+    //    NSRunCriticalAlertPanel(@"No valid version of WoW detected!", @"You have version %@ of WoW installed, and this program requires version %@.  There is no gaurantee that this program will work with your version of World of Warcraft.  Please check for an updated version.", @"Okay", nil, nil, [self wowVersionShort], VALID_WOW_VERSION);
+    //}
+    
     [self performSelector: @selector(scanObjectGraph) withObject: nil afterDelay: 0.5];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     [self finalizeUserDefaults];
-    
-    [[SecureUserDefaults secureUserDefaults] updatePermissions];
 }
 
 - (void)applicationDidBecomeActive:(NSNotification *)aNotification {
@@ -306,23 +302,18 @@ static Controller* sharedController = nil;
         [mainToolbar setSelectedItemIdentifier: [behavsToolbarItem itemIdentifier]];
         return YES;
     }
-	else if ( [[filename pathExtension] isEqualToString: @"combatprofile"] || [[filename pathExtension] isEqualToString: @"combatProfile"] ) {
-        id combatProfile = [combatProfileEditor importCombatProfileAtPath: filename];
-		
-		if ( combatProfile ){
-			[self toolbarItemSelected: botToolbarItem];
-			[mainToolbar setSelectedItemIdentifier: [botToolbarItem itemIdentifier]];
-			
-			[[CombatProfileEditor sharedEditor] showEditorOnWindow: [[botController view] window] 
-												   forProfileNamed: [(CombatProfile*)combatProfile name]];
-		}
-        return YES;
-    }
 	else if ( [[filename pathExtension] isEqualToString: @"pvpbehavior"] ) {
         [pvpController importBehaviorAtPath: filename];
         [self toolbarItemSelected: pvpToolbarItem];
         [mainToolbar setSelectedItemIdentifier: [pvpToolbarItem itemIdentifier]];
         return YES;
+    }
+	// mail action profile or combat profile
+	else if ( [[filename pathExtension] isEqualToString: @"mailprofile"] || [[filename pathExtension] isEqualToString: @"combatprofile"] || [[filename pathExtension] isEqualToString: @"combatProfile"] ) {
+	        [self toolbarItemSelected: profilesToolbarItem];
+	        [mainToolbar setSelectedItemIdentifier: [profilesToolbarItem itemIdentifier]];
+			[profileController importProfileAtPath: filename];
+	        return YES;
     }
     
     return NO;
@@ -335,13 +326,13 @@ static Controller* sharedController = nil;
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data { return; }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    // PGLog(@"Registration connection error.");
+    // log(LOG_CONTROLLER, @"Registration connection error.");
     [connection autorelease];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    // PGLog(@"Registration connection done.");
+    // log(LOG_CONTROLLER, @"Registration connection done.");
     [connection autorelease];
 }
 
@@ -450,7 +441,7 @@ typedef struct NameObjectStruct{
 			[memory loadDataForObject: self atAddress: curObjAddress Buffer: (Byte*)&nameListStruct BufLength: sizeof(nameListStruct)];
 		}
 		
-		//PGLog(@"[Controller] Player names updated after %d memory reads", [memory loadCount]);
+		//log(LOG_CONTROLLER, @"[Controller] Player names updated after %d memory reads", [memory loadCount]);
 	}
 }
 
@@ -470,7 +461,7 @@ typedef struct NameObjectStruct{
 		_currentAddress = objectAddress;
 		
 		// save the object addresses
-		[_objectAddresses addObject:[NSNumber numberWithInt:objectAddress]];
+		[_objectAddresses addObject:[NSNumber numberWithUnsignedInt:objectAddress]];
 	}
 	
 	// we have the addresses now, lets add them to our respective controllers
@@ -504,7 +495,7 @@ typedef struct NameObjectStruct{
 			}
 		}
 	}
-	
+
 	UInt32 nextObjectAddress = 0;
 	if([memory loadDataForObject: self atAddress: _currentAddress + 0x34 Buffer: (Byte*)&nextObjectAddress BufLength: sizeof(nextObjectAddress)] && nextObjectAddress) {
 		return nextObjectAddress;
@@ -515,12 +506,20 @@ typedef struct NameObjectStruct{
 
 - (void)sortObjects: (MemoryAccess*)memory{
 	
+	// remove all known
+	[_objectGUIDs removeAllObjects];
+	
 	UInt32 objectAddress = 0;
 	for ( NSNumber *objAddress in _objectAddresses ){
-		objectAddress = [objAddress intValue];
-		
+		objectAddress = [objAddress unsignedIntValue];
+
 		int objectType = TYPEID_UNKNOWN;
 		if ( [memory loadDataForObject: self atAddress: (objectAddress + OBJECT_TYPE_ID) Buffer: (Byte*)&objectType BufLength: sizeof(objectType)] ) {
+
+			// store object GUIDs
+			UInt32 guid = 0x0;
+			[memory loadDataForObject: self atAddress: (objectAddress + OBJECT_GUID_LOW32) Buffer: (Byte*)&guid BufLength: sizeof(guid)];
+			[_objectGUIDs addObject:[NSNumber numberWithInt:guid]];
 
 			// item
 			if ( objectType == TYPEID_ITEM || objectType == TYPEID_CONTAINER ) {
@@ -537,12 +536,10 @@ typedef struct NameObjectStruct{
 			// player
 			if ( objectType == TYPEID_PLAYER ) {
 				
-				// read player GUID
-				UInt32 guid = 0;
-				if ( [memory loadDataForObject: self atAddress: (objectAddress + OBJECT_GUID_LOW32) Buffer: (Byte*)&guid BufLength: sizeof(guid)] && guid == GUID_LOW32(_globalGUID) ){
+				if ( guid == GUID_LOW32(_globalGUID) ){
 					if ( objectAddress != [playerData baselineAddress] ){
 						
-						PGLog(@"[Controller] Player base address 0x%X changed to 0x%X, verifying change...", [playerData baselineAddress], objectAddress);
+						log(LOG_CONTROLLER, @"[Controller] Player base address 0x%X changed to 0x%X, verifying change...", [playerData baselineAddress], objectAddress);
 						
 						// reset mobs, nodes, and inventory for the new player address
 						[mobController resetAllObjects];
@@ -553,13 +550,13 @@ typedef struct NameObjectStruct{
 						// tell our player controller its new address
 						[playerData setStructureAddress: objAddress];
 						Player *player = [playerData player];
-						PGLog(@"[Player] Level %d %@ %@", [player level], [Unit stringForRace: [player race]], [Unit stringForClass: [player unitClass]]);
+						log(LOG_CONTROLLER, @"[Player] Level %d %@ %@", [player level], [Unit stringForRace: [player race]], [Unit stringForClass: [player unitClass]]);
 						
 						[self setCurrentState: playerValidState];
 					}			
 				}
 				
-				//PGLog(@"[Controller] Player GUID: 0x%X Yours: 0x%X 0x%qX", guid, GUID_LOW32(_globalGUID), _globalGUID);
+				//log(LOG_CONTROLLER, @"Player GUID: 0x%X Yours: 0x%X 0x%qX", guid, GUID_LOW32(_globalGUID), _globalGUID);
 
 				[_players addObject: objAddress];
 				continue;
@@ -607,7 +604,7 @@ typedef struct NameObjectStruct{
 	
 	// grab our global GUID
 	[memory loadDataForObject: self atAddress: [offsetController offset:@"PLAYER_GUID_NAME"] Buffer: (Byte*)&_globalGUID BufLength: sizeof(_globalGUID)];
-	//PGLog(@"[Controller] Player GUID: 0x%qX 0x%qX Low32:0x%X High32:0x%X HiPart:0x%X", _globalGUID, CFSwapInt64HostToLittle(_globalGUID), GUID_LOW32(_globalGUID), GUID_HIGH32(_globalGUID), GUID_HIPART(_globalGUID));
+	//log(LOG_CONTROLLER, @"[Controller] Player GUID: 0x%qX 0x%qX Low32:0x%X High32:0x%X HiPart:0x%X", _globalGUID, CFSwapInt64HostToLittle(_globalGUID), GUID_LOW32(_globalGUID), GUID_HIGH32(_globalGUID), GUID_HIPART(_globalGUID));
 	
 	// object manager
 	if ( memory ){
@@ -618,7 +615,7 @@ typedef struct NameObjectStruct{
 			// our object manager has changed (wonder if this happens often?)
 			if ( _currentObjectManager > 0x0 && _currentObjectManager != objectManager ){
 				_validObjectListManager = NO;
-				PGLog(@"[Controller] Object manager changed from 0x%X to 0x%X", _currentObjectManager, objectManager);
+				log(LOG_CONTROLLER, @"[Controller] Object manager changed from 0x%X to 0x%X", _currentObjectManager, objectManager);
 			}
 			
 			_currentObjectManager = objectManager;
@@ -646,10 +643,10 @@ typedef struct NameObjectStruct{
         //NSDate *date = [NSDate date];
 		[memory resetLoadCount];
 		[self scanObjectList:memory];
-		//PGLog(@"[Controller] Found %d objects in game with %d memory operations", _totalObjects, [memory loadCount]);
-		//PGLog(@"New name scan took %.2f seconds and %d memory operations.", [date timeIntervalSinceNow]*-1.0, [memory loadCount]);
+		//log(LOG_CONTROLLER, @"[Controller] Found %d objects in game with %d memory operations", _totalObjects, [memory loadCount]);
+		//log(LOG_CONTROLLER, @"New name scan took %.2f seconds and %d memory operations.", [date timeIntervalSinceNow]*-1.0, [memory loadCount]);
 		
-        //PGLog(@"Memory scan took %.4f sec for %d total objects.", [date timeIntervalSinceNow]*-1.0f, [_mobs count] + [_items count] + [_gameObjects count] + [_players count]);
+        //log(LOG_CONTROLLER, @"Memory scan took %.4f sec for %d total objects.", [date timeIntervalSinceNow]*-1.0f, [_mobs count] + [_items count] + [_gameObjects count] + [_players count]);
         //date = [NSDate date];
         
         [mobController addAddresses: _mobs];
@@ -658,7 +655,7 @@ typedef struct NameObjectStruct{
         [playersController addAddresses: _players];
 		//[corpseController addAddresses: _corpses];
 		
-        //PGLog(@"Controller adding took %.4f sec", [date timeIntervalSinceNow]*-1.0f);
+        //log(LOG_CONTROLLER, @"Controller adding took %.4f sec", [date timeIntervalSinceNow]*-1.0f);
         //date = [NSDate date];
 		
         // clean-up; we don't need this crap sitting around
@@ -677,8 +674,8 @@ typedef struct NameObjectStruct{
 			[self setCurrentState: playerValidState];
 		}
         
-        //PGLog(@"Total scan took %.4f sec", [start timeIntervalSinceNow]*-1.0f);
-        //PGLog(@"-----------------");
+        //log(LOG_CONTROLLER, @"Total scan took %.4f sec", [start timeIntervalSinceNow]*-1.0f);
+        //log(LOG_CONTROLLER, @"-----------------");
     }
     
     // run this every second
@@ -743,12 +740,6 @@ typedef struct NameObjectStruct{
     
     [mainWindow setFrame: newFrame display: YES animate: YES];
     [mainBackgroundBox setContentView: newView];
-    
-    if( [[[NSUserDefaults standardUserDefaults] objectForKey: @"SecurityUseBlankWindowTitles"] boolValue] ) {
-        [mainWindow setTitle: @""];
-    } else {
-        [mainWindow setTitle: title];
-    }
         
     [[NSNotificationCenter defaultCenter] postNotificationName: DidLoadViewInMainWindowNotification object: newView];
 }
@@ -821,6 +812,12 @@ typedef struct NameObjectStruct{
         minSize = [pvpController minSectionSize];
         maxSize = [pvpController maxSectionSize];
 	}
+	if ( [sender tag] == 17 ) {
+		newView = [profileController view];
+		addToTitle = [profileController sectionTitle];
+        minSize = [profileController minSectionSize];
+        maxSize = [profileController maxSectionSize];
+	}
     if( [sender tag] == 42) {  
         newView = [patherController view];
         addToTitle = [patherController sectionTitle];
@@ -875,7 +872,7 @@ typedef struct NameObjectStruct{
 
 - (void)setCurrentStatus: (NSString*)statusMsg {
 	
-	PGLog(@"[Controller] Setting status to: %@", statusMsg);
+	log(LOG_CONTROLLER, @"[Controller] Setting status to: %@", statusMsg);
 	
     NSString *currentText = [[currentStatusText stringValue] retain];
     [currentStatusText setStringValue: statusMsg];
@@ -890,6 +887,10 @@ typedef struct NameObjectStruct{
 
 - (NSArray*)allObjectAddresses{
 	return [[_objectAddresses copy] autorelease];
+}
+
+- (NSArray*)allObjectGUIDs{
+	return [[_objectGUIDs copy] autorelease];
 }
 
 @synthesize currentState = _currentState;
@@ -950,7 +951,7 @@ typedef struct NameObjectStruct{
 - (MemoryAccess*)wowMemoryAccess {
     // dont do anything until the app finishes launching
     if(!_appFinishedLaunching) {
-        //PGLog(@"App still launching; nil");
+        //log(LOG_CONTROLLER, @"App still launching; nil");
         return nil;
     }
 
@@ -964,7 +965,7 @@ typedef struct NameObjectStruct{
         [self willChangeValueForKey: @"wowMemoryAccess"];
 
         // send notification of invalidity
-        PGLog(@"Memory access is invalid.");
+        log(LOG_CONTROLLER, @"Memory access is invalid.");
         [self setCurrentState: memoryInvalidState];
 
         [_wowMemoryAccess release];
@@ -979,13 +980,13 @@ typedef struct NameObjectStruct{
     
     if(_wowMemoryAccess == nil) {
         if([self isWoWOpen]) {
-            // PGLog(@"Initializing memory access.");
+            // log(LOG_CONTROLLER, @"Initializing memory access.");
             // otherwise, create one if possible
             pid_t wowPID = 0;
             ProcessSerialNumber wowPSN = [self getWoWProcessSerialNumber];
             OSStatus err = GetProcessPID(&wowPSN, &wowPID);
             
-            //PGLog(@"Got PID: %d", wowPID);
+            //log(LOG_CONTROLLER, @"Got PID: %d", wowPID);
             
             // make sure the old one is disposed of, just incase
             [_wowMemoryAccess release];
@@ -999,23 +1000,23 @@ typedef struct NameObjectStruct{
                 
                 // send notification of validity
                 if(_wowMemoryAccess && [_wowMemoryAccess isValid]) {
-                    PGLog(@"Memory access is valid for PID %d.", wowPID);
+                    log(LOG_CONTROLLER, @"Memory access is valid for PID %d.", wowPID);
                     [self setCurrentState: memoryValidState];
                     [[NSNotificationCenter defaultCenter] postNotificationName: MemoryAccessValidNotification object: nil];
                     return [[_wowMemoryAccess retain] autorelease];
                 } else {
-                    PGLog(@"Even after re-creation, memory access is nil (wowPID = %d).", wowPID);
+                    log(LOG_CONTROLLER, @"Even after re-creation, memory access is nil (wowPID = %d).", wowPID);
                     return nil;
                 }
             } else {
-                PGLog(@"Error %d while retrieving WoW's PID.", err);
+                log(LOG_CONTROLLER, @"Error %d while retrieving WoW's PID.", err);
             }
         } else {
             [self setCurrentState: wowNotOpenState];
         }
     }
     
-    //PGLog(@"Unable to get a handle on WoW's memory.");
+    //log(LOG_CONTROLLER, @"Unable to get a handle on WoW's memory.");
     return nil;
 }
 
@@ -1067,10 +1068,10 @@ typedef struct NameObjectStruct{
         
         BOOL isDir;
         if ([[NSFileManager defaultManager] fileExistsAtPath: fullPath isDirectory: &isDir] && isDir) {
-            //PGLog(@"Got full path: %@", fullPath);
+            //log(LOG_CONTROLLER, @"Got full path: %@", fullPath);
             return fullPath;
         }
-        //PGLog(@"Unable to get path (%@)", fullPath);
+        //log(LOG_CONTROLLER, @"Unable to get path (%@)", fullPath);
     }
     return @"";
 }
@@ -1257,7 +1258,7 @@ typedef struct NameObjectStruct{
 				err = CGSGetWindowProperty(myConnectionID, window, (CGSValue)CFSTR("kCGSWindowTitle"), &windowTitle);
                 //if(titleKey) CFRelease(titleKey);
 				if((err == noErr) && windowTitle) {
-                    // PGLog(@"%d: %@", window, windowTitle);
+                    // log(LOG_CONTROLLER, @"%d: %@", window, windowTitle);
 					return window;
 				}
             }
@@ -1272,58 +1273,24 @@ typedef struct NameObjectStruct{
     return value;
 }
 
-- (unsigned)refreshDelayReal {
-    UInt32 refreshDelay = 0;
-    if([[self wowMemoryAccess] loadDataForObject: self atAddress:( REFRESH_DELAY ) Buffer: (Byte *)&refreshDelay BufLength: sizeof(refreshDelay)]) {
-        return refreshDelay;
-    }
-    return 0;
-}
-
 - (unsigned)refreshDelay {
+	
+	return 50000;
+	
+	/*
     UInt32 refreshDelay = [self refreshDelayReal];
 
     if(refreshDelay > 1000000)  refreshDelay = 50000;   // incase we get a bogus number
     if(refreshDelay < 15000)    refreshDelay = 15000;   // incase we get a bogus number
 
-    return refreshDelay*2;
-    
-
-    /* // this table was removed from wow in 2.4.3
-    int refreshCurrentStep = 0;
-    [[self wowMemoryAccess] loadDataForObject: self atAddress: REFRESH_DELAY_STRUCT + REFRESH_CURR_STEP Buffer: (Byte *)&refreshCurrentStep BufLength: sizeof(refreshCurrentStep)];
-    
-    // 
-    if(refreshCurrentStep == 0)
-        refreshCurrentStep = REFRESH_ARRAY_SIZE - 1;
-    else
-        refreshCurrentStep--;
-    
-    unsigned refreshEntryToLoad = (REFRESH_DELAY_STRUCT + REFRESH_ARRAY_START) + (REFRESH_ARRAY_ENTRY_SIZE * refreshCurrentStep) + REFRESH_ARRAY_ENTRY_DELAY, refreshDelay = 0;
-    [[self wowMemoryAccess] loadDataForObject: self atAddress: refreshEntryToLoad Buffer: (Byte *)&refreshDelay BufLength: sizeof(refreshDelay)];
-    
-    //PGLog(@"Refresh: %d ms, %.2f FPS", refreshDelay, 1000000.0f/refreshDelay);
-    
-    */
-
-    /* // refresh delay with float avg
-    float realRefreshDelay[30];
-    [[self wowMemoryAccess] loadDataForObject: self atAddress: CURRENT_REFRESH_DELAY_STATIC Buffer: (Byte *)&realRefreshDelay BufLength: sizeof(realRefreshDelay)];
-    int i;
-    float count = 0;
-    for(i=0; i<30; i++) {
-        count += realRefreshDelay[i];
-    }
-    count = count / 30.0f;
-    unsigned realDelay = count*1000000;
-    PGLog(@"Real refresh: %d", realDelay); */
+    return refreshDelay*2;*/
 }
 
 - (CGRect)wowWindowRect {
     CGRect windowRect;
 	int Connection = _CGSDefaultConnection();
 	int windowID = [self getWOWWindowID];
-	PGLog(@"Connection: %d, Window id: %d", Connection, windowID);
+	log(LOG_CONTROLLER, @"Connection: %d, Window id: %d", Connection, windowID);
     CGSGetWindowBounds(Connection, windowID, &windowRect);
     windowRect.origin.y += 22;      // cut off the title bar
     windowRect.size.height -= 22;
@@ -1367,46 +1334,46 @@ typedef struct NameObjectStruct{
     float ay = -[gP zPosition];
     float az = [gP yPosition];
     
-    PGLog(@"Game position: { %.2f, %.2f, %.2f } (%@)", ax, ay, az, gP);
+    log(LOG_CONTROLLER, @"Game position: { %.2f, %.2f, %.2f } (%@)", ax, ay, az, gP);
     
     float cx = -[cP xPosition];
     float cy = -[cP zPosition];
     float cz = [cP yPosition];
 
-    PGLog(@"Camera position: { %.2f, %.2f, %.2f } (%@)", cx, cy, cz, cP);
+    log(LOG_CONTROLLER, @"Camera position: { %.2f, %.2f, %.2f } (%@)", cx, cy, cz, cP);
     
     float facing = [self cameraFacing];
     if(facing > M_PI) facing -= 2*M_PI;
-    PGLog(@"Facing: %.2f (%.2f), tilt = %.2f", facing, [self cameraFacing], [self cameraTilt]);
+    log(LOG_CONTROLLER, @"Facing: %.2f (%.2f), tilt = %.2f", facing, [self cameraFacing], [self cameraTilt]);
     
     float ox = [self cameraTilt];
     float oy = -facing;
     float oz = 0;
     
-    PGLog(@"Camera direction: { %.2f, %.2f, %.2f }", ox, oy, oz);
+    log(LOG_CONTROLLER, @"Camera direction: { %.2f, %.2f, %.2f }", ox, oy, oz);
 
     
     float dx = cosf(oy) * ( sinf(oz) * (ay - cy) + cosf(oz) * (ax - cx)) - sinf(oy) * (az - cz);
     float dy = sinf(ox) * ( cosf(oy) * (az - cz) + sinf(oy) * ( sinf(oz) * (ay - cy) + cosf(oz) * (ax - cx))) + cosf(ox) * ( cosf(oz) * (ay - cy) - sinf(oz) * (ax - cx) );
     float dz = cosf(ox) * ( cosf(oy) * (az - cz) + sinf(oy) * ( sinf(oz) * (ay - cy) + cosf(oz) * (ax - cx))) - sinf(ox) * ( cosf(oz) * (ay - cy) - sinf(oz) * (ax - cx) );
     
-    PGLog(@"Calcu position: { %.2f, %.2f, %.2f }", dx, dy, dz);
+    log(LOG_CONTROLLER, @"Calcu position: { %.2f, %.2f, %.2f }", dx, dy, dz);
     
     float bx = (dx - cx) * (cz/dz);
     float by = (dy - cy) * (cz/dz);
 
-    PGLog(@"Projected 2d position: { %.2f, %.2f }", bx, by);
+    log(LOG_CONTROLLER, @"Projected 2d position: { %.2f, %.2f }", bx, by);
     
     if(dz <= 0) {
-        PGLog(@"behind the camera1");
+        log(LOG_CONTROLLER, @"behind the camera1");
         //return CGPointMake(-1, -1);
     }
     
     CGRect wowSize = [self wowWindowRect];
     CGPoint wowCenter = CGPointMake( wowSize.origin.x+wowSize.size.width/2.0f, wowSize.origin.y+wowSize.size.height/2.0f);
     
-    PGLog(@"WowWindowSize: %@", NSStringFromRect(NSRectFromCGRect(wowSize)));
-    PGLog(@"WoW Center: %@", NSStringFromPoint(NSPointFromCGPoint(wowCenter)));
+    log(LOG_CONTROLLER, @"WowWindowSize: %@", NSStringFromRect(NSRectFromCGRect(wowSize)));
+    log(LOG_CONTROLLER, @"WoW Center: %@", NSStringFromPoint(NSPointFromCGPoint(wowCenter)));
     
     float FOV1 = 0.1;
     float FOV2 = 3 /* 7.4 */ * wowSize.size.width;
@@ -1415,83 +1382,10 @@ typedef struct NameObjectStruct{
     
     // ensure on screen
     if(sx < wowSize.origin.x || sy < wowSize.origin.y || sx >= wowSize.origin.x+wowSize.size.width || sy >= wowSize.origin.y+wowSize.size.height) {
-        PGLog(@"behind the camera2");
+        log(LOG_CONTROLLER, @"behind the camera2");
         //return CGPointMake(-1, -1);
     }
     return CGPointMake(sx, sy);
-}
-
-#pragma mark WorldState/LoginState
-
-- (int)gameState{
-	
-	// we want to check the object list pointer to make sure it's valid, if it is, we can assume we'll have a valid player (altho maybe we shouldn't?)
-	
-	MemoryAccess *memory = [self wowMemoryAccess];
-	
-	if ( memory && [memory isValid] ){
-		
-		UInt32 offset = [offsetController offset:@"LoginState"];
-		
-		char state[21];
-		state[20] = 0;
-		if ( [memory loadDataForObject: self atAddress: offset Buffer: (Byte *)&state BufLength: sizeof(state)-1] ){
-			
-			NSString *stateAsString = [NSString stringWithUTF8String: state];
-			if ( [stateAsString length] ){
-				
-				if ( [stateAsString isEqualToString:@"login"] ){
-					return GameState_LoggingIn;
-				}
-				else if ( [stateAsString isEqualToString:@"charcreate"] ){
-					return GameState_LoggingIn;
-				}
-				else if ( [stateAsString isEqualToString:@"patchdownload"] ){
-					return GameState_LoggingIn;
-				}
-				// we don't check for charselect, since it is always charselect even if we're logged in
-			}
-		}
-		
-		// if we get this far we now need to check WorldState
-		offset = [offsetController offset:@"WorldState"];
-		UInt32 worldState = 0;
-		if ( [memory loadDataForObject: self atAddress: offset Buffer: (Byte *)&worldState BufLength: sizeof(worldState)] ){
-			
-			if ( worldState == 10 ){
-				return GameState_Loading;
-			}
-			/*else if ( worldState == 0 ){
-				return GameState_Valid;
-			}*/
-			else if ( (worldState >=0 && worldState <= 3) || worldState == 7 || worldState == 8 || worldState == 9 ){
-				return GameState_LoggingIn;
-			}
-		}
-		
-		// check object list pointer!
-		offset = [offsetController offset:@"OBJECT_LIST_LL_PTR"];
-		UInt32 objectManager = 0x0;	
-		
-		if ( [memory loadDataForObject: self atAddress:offset  Buffer: (Byte*)&objectManager BufLength: sizeof(objectManager)] ){
-			if ( objectManager > 0x0 ){
-				return GameState_Valid;
-			}			
-		}
-	}
-
-	// WorldState
-	// connecting/auth/success = 1,2
-	// char list retreiving = 3
-	// race/faction change (or customize) in progress? = 9
-	// char decline in progress = 8
-	// char rename in progress = 7
-	// game loading = 10?
-	// game loaded = 0 (it can also be 0 when we're on the login screen :( )
-	
-	// LoginState - charselect, login, charcreate, patchdownload		
-	
-	return GameState_Unknown;
 }
 
 #pragma mark -
@@ -1551,6 +1445,7 @@ typedef struct NameObjectStruct{
 			[pvpToolbarItem itemIdentifier],
             [routesToolbarItem itemIdentifier], 
             [behavsToolbarItem itemIdentifier],
+			[profilesToolbarItem itemIdentifier],
             NSToolbarFlexibleSpaceItemIdentifier,
 			[statisticsToolbarItem itemIdentifier],
             [memoryToolbarItem itemIdentifier],
@@ -1571,7 +1466,8 @@ typedef struct NameObjectStruct{
             [chatLogToolbarItem itemIdentifier], 
 			[statisticsToolbarItem itemIdentifier],
 			[objectsToolbarItem itemIdentifier],
-			[pvpToolbarItem itemIdentifier], nil];
+			[pvpToolbarItem itemIdentifier], 
+			[profilesToolbarItem itemIdentifier], nil];
 }
 
 #pragma mark -
@@ -1593,21 +1489,31 @@ typedef struct NameObjectStruct{
 }
 
 - (NSImage *) applicationIconForGrowl {
-    //PGLog(@"applicationIconForGrowl");
+    //log(LOG_CONTROLLER, @"applicationIconForGrowl");
     return [NSApp applicationIconImage]; // [NSImage imageNamed: @"gnome2"];
 }
 
 - (NSData *) applicationIconDataForGrowl {
-    //PGLog(@"applicationIconDataForGrowl");
+    //log(LOG_CONTROLLER, @"applicationIconDataForGrowl");
     return [[NSApp applicationIconImage] TIFFRepresentation];
 }
 
 #pragma mark Sparkle - Auto Updater
 
+// Sent when a valid update is found by the update driver.		
+- (void)updater:(SUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)update {		
+	PGLog(@"[Update] didFindValidUpdate: %@", [update fileURL]);		
+}		
+	
+- (void)updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update {		
+	PGLog(@"[Update] willInstallUpdate: %@", [update fileURL]);		
+}
+
+
 - (BOOL)updater: (SUUpdater *)updater shouldPostponeRelaunchForUpdate: (SUAppcastItem *)update untilInvoking: (NSInvocation *)invocation {
 	
     if( ![[self appName] isEqualToString: @"Pocket Gnome"] ) {
-		// PGLog(@"[Update] We've been renamed.");
+		// log(LOG_CONTROLLER, @"[Update] We've been renamed.");
         
         NSAlert *alert = [NSAlert alertWithMessageText: @"SECURITY ALERT: PLEASE BE AWARE" 
                                          defaultButton: @"Understood" 
@@ -1621,393 +1527,13 @@ typedef struct NameObjectStruct{
                             contextInfo: (void*)[invocation retain]];
         return YES;
     }
-    //PGLog(@"[Update] Relaunching as expected.");
+    //log(LOG_CONTROLLER, @"[Update] Relaunching as expected.");
     return NO;
 }
 
 - (void)updateAlertConfirmed:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo {
     NSInvocation *invocation = (NSInvocation*)contextInfo;
     [invocation invoke];
-}
-
-#pragma mark -
-#pragma mark Security
-
-- (void)doQuickAlertSheetWithTitle: (NSString*)title text: (NSString*)text style: (NSAlertStyle)style {
-    NSAlert *alert = [NSAlert alertWithMessageText: title 
-                                     defaultButton: @"Okay" 
-                                   alternateButton: nil
-                                       otherButton: nil 
-                         informativeTextWithFormat: text];
-    [alert setAlertStyle: style]; 
-    [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-}
-
-- (IBAction)toggleGUIScripting: (id)sender {
-    [NSApp setAllowAccessibility: (self.isRegistered && ![disableGUIScriptCheckbox state])];
-}
-
-- (IBAction)toggleSecurePrefs: (id)sender {
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-- (IBAction)confirmAppRename: (id)sender {
-
-    // make sure the other app is not open
-    if(self.matchExistingApp) {
-        for(NSDictionary *dict in [[NSWorkspace sharedWorkspace] launchedApplications]) {
-            if([[dict objectForKey: @"NSApplicationPath"] isEqualToString: self.matchExistingApp]) {
-                [self doQuickAlertSheetWithTitle: @"Quit Matched Application" text: @"You must quit the application you are matching before performing the renaming process." style: NSInformationalAlertStyle];
-                return;
-            }
-        }
-    }
-    
-    int result = NSRunCriticalAlertPanel(@"Really Rename Application?", 
-                                         @"If an error occurs during this process, you may need to redownload the program.\n\nThe application will automatically quit if the renaming process completes successfully.",
-                                         @"Rename", @"Cancel", NULL);
-    
-    if(result != NSAlertDefaultReturn) {
-        return;
-    }
-    
-    BOOL madeModifications = NO;
-    NSString *appPath = [[NSBundle mainBundle] bundlePath];
-    NSString *infoPath = [[appPath stringByAppendingPathComponent: @"Contents"] stringByAppendingPathComponent: @"Info.plist"];
-    NSString *pkgInfoPath = [[appPath stringByAppendingPathComponent: @"Contents"] stringByAppendingPathComponent: @"PkgInfo"];
-    NSMutableDictionary *infoDict = [NSMutableDictionary dictionaryWithContentsOfFile: infoPath];
-    
-    PGLog(@"AppPath: %@", appPath);
-    
-    // verify everything is in working order
-    if(!infoDict || ![[NSFileManager defaultManager] fileExistsAtPath: appPath] || ![[NSFileManager defaultManager] fileExistsAtPath: infoPath]) {
-        PGLog(@"[Rename] Error locating correct files."); 
-        NSBeep();
-        [self doQuickAlertSheetWithTitle: @"Rename Failed"
-                                    text: @"The correct files to modify could not be located.  Nothing was changed." 
-                                   style: NSCriticalAlertStyle];
-        return;
-    }
-    
-    BOOL doMove = NO;
-    NSString *execPath = nil, *newExecPath = nil, *newAppPath = nil;
-    if([[newNameField stringValue] length] && ![[newNameField stringValue] isEqualToString: [infoDict objectForKey: @"CFBundleName"]]) {
-        PGLog(@"[Rename] Setting application name to \"%@\".", [newNameField stringValue]);
-        [infoDict setObject: [newNameField stringValue] forKey: @"CFBundleDisplayName"];
-        [infoDict setObject: [newNameField stringValue] forKey: @"CFBundleExecutable"];
-        [infoDict setObject: [newNameField stringValue] forKey: @"CFBundleName"];
-        [infoDict setObject: [NSString stringWithFormat: @"%@ %@", [newNameField stringValue], [[NSBundle mainBundle] objectForInfoDictionaryKey: @"CFBundleVersion"]] forKey: @"CFBundleGetInfoString"];
-        
-        execPath = [[NSBundle mainBundle] executablePath];
-        newExecPath = [[execPath stringByDeletingLastPathComponent] stringByAppendingPathComponent: [newNameField stringValue]];
-        newAppPath = [[[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent: [newNameField stringValue]] stringByAppendingPathExtension: @"app"];
-        
-        PGLog(@"newAppPath: %@", newAppPath);
-        
-        doMove = YES;
-        madeModifications = YES;
-        
-        // sanity check the new paths
-        if([[NSFileManager defaultManager] fileExistsAtPath: newAppPath]) {
-            if(self.matchExistingApp && [newAppPath moveToTrash]) {
-                PGLog(@"[Reaname] Matched application moved to trash.");
-            } else {
-                NSAlert *alert = [NSAlert alertWithMessageText: @"File Already Exists" 
-                                                 defaultButton: @"Okay" 
-                                               alternateButton: nil
-                                                   otherButton: nil 
-                                     informativeTextWithFormat: @"Application could not be renamed to \"%@\" because a file with this name already exists.  Please choose a new name or remove the other file.", [newExecPath lastPathComponent]];
-                [alert setAlertStyle: NSCriticalAlertStyle]; 
-                [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-                return;
-            }
-        }
-    } else {
-        PGLog(@"[Rename] No changes to application name.");
-    }
-    
-    // set new signature
-    if(![[newSignatureField stringValue] isEqualToString: [infoDict objectForKey: @"CFBundleSignature"]]) {
-        NSString *newSig = [[newSignatureField stringValue] stringByPaddingToLength: 4 withString: @"?" startingAtIndex: 0];
-        PGLog(@"[Rename] Changing the signature to \"%@\".", newSig);
-        [infoDict setObject: newSig forKey: @"CFBundleSignature"];
-        
-        // write out the new Pkginfo file
-        [[NSString stringWithFormat: @"APPL%@", newSig] writeToFile: pkgInfoPath atomically: NO encoding: NSUTF8StringEncoding error: NULL];
-        
-        madeModifications = YES;
-    } else {
-        PGLog(@"[Rename] No changes to application signature.");
-    }
-    
-    // set new identifier
-    NSString *newIdentifier = [newIdentifierField stringValue];
-    NSString *oldIdentifier = [[[infoDict objectForKey: @"CFBundleIdentifier"] retain] autorelease];
-    if([newIdentifier length] && ![newIdentifier isEqualToString: oldIdentifier]) {
-        PGLog(@"[Rename] Changing app identifier from \"%@\" to \"%@\".", oldIdentifier, newIdentifier);
-        [infoDict setObject: newIdentifier forKey: @"CFBundleIdentifier"];
-        madeModifications = YES;
-    } else {
-        oldIdentifier = nil;
-        PGLog(@"[Rename] No changes to application identifier.");
-    }
-    
-    // did we even change anything?
-    if(!madeModifications) {
-        PGLog(@"[Rename] No action necessary.");
-        NSAlert *alert = [NSAlert alertWithMessageText: @"No Action Taken" 
-                                         defaultButton: @"Okay" 
-                                       alternateButton: nil
-                                           otherButton: nil 
-                             informativeTextWithFormat: @"No changes were necessary."];
-        [alert setAlertStyle: NSCriticalAlertStyle]; 
-        [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-        return;
-    }
-    
-    // remove the old info.plist
-    id permissions = [[NSFileManager defaultManager] fileAttributesAtPath: infoPath traverseLink: YES];
-    if(![[NSFileManager defaultManager] removeFileAtPath: infoPath handler: nil]) {
-        PGLog(@"[Rename] Rename failed.");
-        NSAlert *alert = [[[NSAlert alloc] init] autorelease]; 
-        [alert addButtonWithTitle: @"Okay"];
-        [alert setMessageText: @"Rename Failed"]; 
-        [alert setInformativeText: @"There was an unknown error while trying to remove the old Info.plist file.  You may have to re-download the application if it has become corrupted."];
-        [alert setAlertStyle: NSCriticalAlertStyle]; 
-        [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil]; 
-        
-        return;
-    }
-    
-    // write out new info dict
-    if([infoDict writeToFile: infoPath atomically: YES]) {
-        if(permissions) {
-            [[NSFileManager defaultManager] changeFileAttributes: permissions atPath: infoPath];
-            permissions = nil;
-        }
-        PGLog(@"[Rename] Wrote out info dict.");
-        if(doMove) {
-            // rename executable
-            PGLog(@"[Rename] Renaming executable to: %@", [newExecPath lastPathComponent]);
-            
-            permissions = [[NSFileManager defaultManager] fileAttributesAtPath: execPath traverseLink: YES];
-            if(![[NSFileManager defaultManager] moveItemAtPath: execPath toPath: newExecPath error: NULL]) {
-                PGLog(@"[Rename] Rename failed.");
-                NSAlert *alert = [[[NSAlert alloc] init] autorelease]; 
-                [alert addButtonWithTitle: @"Okay"];
-                [alert setMessageText: @"Rename Failed"]; 
-                [alert setInformativeText: @"There was an error while renaming the executable file.  You may have to re-download the application if it has become corrupted."];
-                [alert setAlertStyle: NSCriticalAlertStyle]; 
-                [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil]; 
-                return;
-            } else {
-                // reset permissions
-                if(permissions) {
-                    [[NSFileManager defaultManager] changeFileAttributes: permissions atPath: newExecPath];
-                    permissions = nil;
-                }
-            }
-            
-            // rename application
-            PGLog(@"[Rename] Renaming application to: %@", [newAppPath lastPathComponent]);
-            permissions = [[NSFileManager defaultManager] fileAttributesAtPath: appPath traverseLink: YES];
-            if(![[NSFileManager defaultManager] moveItemAtPath: appPath toPath: newAppPath error: NULL]) {
-                PGLog(@"[Rename] Rename failed.");
-                NSAlert *alert = [[[NSAlert alloc] init] autorelease]; 
-                [alert addButtonWithTitle: @"Okay"];
-                [alert setMessageText: @"Rename Failed"]; 
-                [alert setInformativeText: @"There was an error while renaming the application.  You may have to re-download the application if it has become corrupted."];
-                [alert setAlertStyle: NSCriticalAlertStyle]; 
-                [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil]; 
-                return;
-            } else {
-                // reset permissions
-                if(permissions) {
-                    [[NSFileManager defaultManager] changeFileAttributes: permissions atPath: newAppPath];
-                }
-            }
-        }
-        
-        // move the old prefs into place if necessary
-        if(oldIdentifier && !self.matchExistingApp) {
-            // save out our current user defaults
-            [self finalizeUserDefaults];
-
-            // generate paths for copying prefs
-            NSString *prefFolderPath = [[[@"~/" stringByExpandingTildeInPath] stringByAppendingPathComponent: @"Library"] stringByAppendingPathComponent: @"Preferences"];
-            NSString *prefPath = [[prefFolderPath stringByAppendingPathComponent: oldIdentifier] stringByAppendingPathExtension: @"plist"];
-            NSString *newPrefPath = [[prefFolderPath stringByAppendingPathComponent: [infoDict objectForKey: @"CFBundleIdentifier"]] stringByAppendingPathExtension: @"plist"];
-            PGLog(@"Copying prefs file at %@ to %@", prefPath, newPrefPath);
-            
-            // does the preference file exist?
-            if([[NSFileManager defaultManager] fileExistsAtPath: prefPath]) {
-                // does the destination exist?
-                if([[NSFileManager defaultManager] fileExistsAtPath: newPrefPath]) {
-                    // move the old one to the trash
-                    if([newPrefPath moveToTrash]) {
-                        PGLog(@"[Rename] Old preference file moved to the trash.");
-                    } else {
-                        NSAlert *alert = [NSAlert alertWithMessageText: @"Error Moving Preferences" 
-                                                         defaultButton: @"Okay" 
-                                                       alternateButton: nil
-                                                           otherButton: nil 
-                                             informativeTextWithFormat: @"The old preferences file \"%@\" could not be moved to the trash.",
-                                          [newPrefPath lastPathComponent]];
-                        [alert setAlertStyle: NSCriticalAlertStyle]; 
-                        [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-                        return;
-                    }
-                }
-                
-                // copy the preferences file
-                if(![[NSFileManager defaultManager] copyPath: prefPath toPath: newPrefPath handler: NULL]) {
-                    PGLog(@"[Rename] Error moving prefs.");
-                    NSAlert *alert = [NSAlert alertWithMessageText: @"Error Moving Preferences" 
-                                                     defaultButton: @"Okay" 
-                                                   alternateButton: nil
-                                                       otherButton: nil 
-                                         informativeTextWithFormat: @"The preferences file \"%@\" could not be renamed.  You will need to manually rename your preferences file to \"%@\" or you will lose all your settings.",
-                                      [prefPath lastPathComponent],
-                                      [newPrefPath lastPathComponent]];
-                    [alert setAlertStyle: NSCriticalAlertStyle]; 
-                    [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-                    return;
-                } else {
-                    // chmod the new prefs to only owner readable
-                    [[NSFileManager defaultManager] changeFileAttributes: [NSDictionary dictionaryWithObject: [NSNumber numberWithUnsignedLong: S_IRWXU] forKey: @"NSFilePosixPermissions"] atPath: newPrefPath];
-                }
-            } else {
-                // could not find prefs
-                PGLog(@"[Rename] Can't find old preferences.");
-                NSAlert *alert = [[[NSAlert alloc] init] autorelease]; 
-                [alert addButtonWithTitle: @"Okay"];
-                [alert setMessageText: @"Error Locating Preferences"]; 
-                [alert setInformativeText: [NSString stringWithFormat: @"The preference file expected at \"%@\" could not be located.  You will need to manually rename your preference file to \"%@\" or you will lose all your settings.", 
-                                            prefPath, 
-                                            [newPrefPath lastPathComponent]]];
-                [alert setAlertStyle: NSCriticalAlertStyle]; 
-                [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-                // dont return, since we're otherwise good to go
-            }
-            
-        }
-    } else {
-        PGLog(@"Error writing new Info.plist.");
-        NSAlert *alert = [NSAlert alertWithMessageText: @"Rename Failed" 
-                                         defaultButton: @"Okay" 
-                                       alternateButton: nil
-                                           otherButton: nil 
-                             informativeTextWithFormat: @"There was an unknown error while trying to modify the Info.plist file.  You may have to re-download the application if it has become corrupted."];
-        [alert setAlertStyle: NSCriticalAlertStyle]; 
-        [alert beginSheetModalForWindow: mainWindow modalDelegate: self didEndSelector: nil contextInfo: nil];
-        return;
-    }
-    
-    // launch the new copy of the app
-    NSURL *url = [NSURL fileURLWithPath: newAppPath];
-    LSLaunchURLSpec launchSpec;
-    launchSpec.appURL = (CFURLRef)url;
-    launchSpec.itemURLs = NULL;
-    launchSpec.passThruParams = NULL;
-    launchSpec.launchFlags = kLSLaunchDefaults | kLSLaunchNewInstance;
-    launchSpec.asyncRefCon = NULL;
-    
-    LSOpenFromURLSpec(&launchSpec, NULL);
-    exit(0);    // and then bail because we're about to crash
-
-}
-
-
-- (IBAction)renameUseExisting: (id)sender {
-    if( [sender state] ) {
-        NSOpenPanel *openPanel = [NSOpenPanel openPanel];
-        
-        [openPanel setTitle: @"Select Another Application"];
-        [openPanel setCanChooseDirectories: NO];
-        [openPanel setCanCreateDirectories: NO];
-        [openPanel setPrompt: @"Match This"];
-        [openPanel setCanChooseFiles: YES];
-        [openPanel setAllowsMultipleSelection: NO];
-        
-        int ret = [openPanel runModalForDirectory: @"/Applications/"
-                                             file: nil
-                                            types: [NSArray arrayWithObject: @"app"]];
-        
-        if( (ret == NSOKButton) && ([[openPanel filenames] count] == 1)) {
-            NSString *appPath = [[openPanel filenames] objectAtIndex: 0];
-            NSDictionary *infoDict = [NSDictionary dictionaryWithContentsOfFile: [[appPath stringByAppendingPathComponent: @"Contents"] stringByAppendingPathComponent: @"Info.plist"]];
-            
-            if(([infoDict objectForKey: @"CFBundleName"] || [infoDict objectForKey: @"CFBundleExecutable"]) && 
-               [infoDict objectForKey: @"CFBundleIdentifier"] && 
-               [infoDict objectForKey: @"CFBundleSignature"])
-            {
-                self.matchExistingApp = [[openPanel filenames] objectAtIndex: 0];
-                [matchExistingCheckbox setState: NSOnState];
-                
-                [newNameField setStringValue: ([infoDict objectForKey: @"CFBundleName"] ? [infoDict objectForKey: @"CFBundleName"] : [infoDict objectForKey: @"CFBundleExecutable"])];
-                [newSignatureField setStringValue: [infoDict objectForKey: @"CFBundleSignature"]];
-                [newIdentifierField setStringValue: [infoDict objectForKey: @"CFBundleIdentifier"]];
-                return;
-            } else {
-                // not valid
-                PGLog(@"Selected application does not have the appropriate keys necessary to match.");
-                NSBeep();
-            }
-        }
-    }
-    
-    self.matchExistingApp = nil;
-    [matchExistingCheckbox setState: NSOffState];
-}
-
-- (IBAction)renameShowHelp: (id)sender {
-    [self doQuickAlertSheetWithTitle: @"For Advanced Users" text: @"The Rename Application function will completely rename the Pocket Gnome application such that it will no longer be recognized in process list scans.\n\nIt is an advanced feature, and should only be used by people who know what Signatures and Identifiers are.\n\nBacking up of your preference file before renaming would be a fantastic idea." style: NSInformationalAlertStyle];
-}
-
-
-- (IBAction)testFront: (id)sender {
-    ProcessSerialNumber wowProcess = [self getWoWProcessSerialNumber];
-    int thisSpace, wowSpace;
-    int delay = 10000, timeWaited = 0;
-    BOOL wasWoWHidden = [self isWoWHidden];
-    int err = 0;
-    if(wasWoWHidden) {
-        NSLog(@"wow was hidden");
-        err = ShowHideProcess( &wowProcess, YES);
-        NSLog(@"show/hide err = %d", err);
-    } else {
-        NSLog(@"wow was NOT hidden");
-    }
-    CGSConnection cgsConnection = _CGSDefaultConnection();
-    CGSGetWorkspace(cgsConnection, &thisSpace);
-    NSLog(@"thisSpace: %d", thisSpace);
-    while(!IsProcessVisible(&wowProcess) && (timeWaited < 500000)) {
-        usleep(delay);
-        timeWaited += delay;
-        NSLog(@":: not visible");
-    }
-    CGSGetWindowWorkspace(cgsConnection, [self getWOWWindowID], &wowSpace);
-    
-    BOOL weMadeWoWFront = NO;
-    
-    // move wow to the front if necessary
-    if(![self isWoWFront]) {
-        NSLog(@"not front!!!");
-        // move to WoW's workspace
-        if(thisSpace != wowSpace) {
-            CGSSetWorkspace(cgsConnection, wowSpace);
-            usleep(100000);
-        }
-        
-        // and set it as front process
-        err = SetFrontProcess(&wowProcess);
-        NSLog(@"SetFrontProcess error =%d", err);
-        usleep(100000);
-        
-        weMadeWoWFront = YES;
-    } else {
-        NSLog(@"front");
-    }
 }
 
 - (void)killWOW{
@@ -2073,6 +1599,27 @@ AEDisposeDesc(&targetProcess);
 	}
 
 	return 0.0f;
+}
+
+- (void)selectCombatProfileTab{
+	[self toolbarItemSelected: profilesToolbarItem];
+	[mainToolbar setSelectedItemIdentifier: [profilesToolbarItem itemIdentifier]];
+	[profileController openEditor:TabCombat];
+}
+
+- (void)selectBehaviorTab{
+	[self toolbarItemSelected: behavsToolbarItem];
+	[mainToolbar setSelectedItemIdentifier: [behavsToolbarItem itemIdentifier]];
+}
+
+- (void)selectRouteTab{
+	[self toolbarItemSelected: routesToolbarItem];
+	[mainToolbar setSelectedItemIdentifier: [routesToolbarItem itemIdentifier]];
+}
+
+- (void)selectPvPRouteTab{
+	[self toolbarItemSelected: pvpToolbarItem];
+	[mainToolbar setSelectedItemIdentifier: [pvpToolbarItem itemIdentifier]];
 }
 
 @end

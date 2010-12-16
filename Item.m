@@ -1,27 +1,10 @@
-/*
- * Copyright (c) 2007-2010 Savory Software, LLC, http://pg.savorydeviate.com/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * $Id$
- *
- */
+//
+//  Item.m[self itemFieldsAddress]
+//  Pocket Gnome
+//
+//  Created by Jon Drummond on 12/20/07.
+//  Copyright 2007 Savory Software, LLC. All rights reserved.
+//
 
 #import "Item.h"
 #import "ObjectConstants.h"
@@ -31,32 +14,8 @@ enum eItemObject {
     // they are back-to-back values that look like bit fields, eg
     // 1) 0x8FF0204 [?] [?] [subType] [itemType]
     // 2) 0x5       [?] [?] [EquipLoc2?] [EquipLoc1]
-    Item_InfoField1     = 0x390,
-    Item_InfoField2     = 0x394,
-};
-
-enum eItemFields {
-	ITEM_FIELD_OWNER =                  0x18,
-	ITEM_FIELD_CONTAINED =              0x20,
-	ITEM_FIELD_CREATOR =                0x28,
-	ITEM_FIELD_GIFTCREATOR =            0x30,
-	ITEM_FIELD_STACK_COUNT =            0x38,
-	ITEM_FIELD_DURATION =               0x3C,
-	ITEM_FIELD_SPELL_CHARGES =          0x40,
-	ITEM_FIELD_SPELL_CHARGES2 =         0x44, // ?
-	ITEM_FIELD_SPELL_CHARGES3 =         0x48, // ?
-	ITEM_FIELD_SPELL_CHARGES4 =         0x4C, // ?
-	ITEM_FIELD_SPELL_CHARGES5 =         0x50, // ?
-	ITEM_FIELD_FLAGS =                  0x54,
-	ITEM_FIELD_ENCHANTMENT =            0x58,
-        // size: 0x90; 12 enchant slots, each size 0xC
-	ITEM_FIELD_PROPERTY_SEED =          0xE8,
-	ITEM_FIELD_RANDOM_PROPERTIES_ID =   0xEC,
-    // ITEM_FIELD_ITEM_TEXT_ID =           0xF0,  // Removed in 3.3.3
-    ITEM_FIELD_DURABILITY =             0xF0,
-    ITEM_FIELD_MAXDURABILITY =          0xF4,
-    ITEM_FIELD_PADDING =                0xF8,
-	TOTAL_ITEM_FIELDS =                 0x26
+    Item_InfoField1     = 0x3FC,
+    Item_InfoField2     = 0x400,
 };
 
 enum EnchantmentSlot {
@@ -83,12 +42,13 @@ enum EnchantmentOffset {
     ENCHANTMENT_MAX_OFFSET          = 3,
 };
 
-enum eContainerFields {
+// TO DO: UPDATE THIS!
+/*enum eContainerFields {
 	CONTAINER_FIELD_NUM_SLOTS =         0x100,
 	CONTAINER_ALIGN_PAD =               0x104,
 	CONTAINER_FIELD_SLOT_1 =            0x108,
 	TOTAL_CONTAINER_FIELDS =            3
-};
+};*/
 
 enum InventoryType
 {
@@ -330,6 +290,7 @@ enum ItemFlags
     self = [super init];
     if (self != nil) {
         _name = nil;
+		_itemFieldsAddress = 0;
     }
     return self;
 }
@@ -364,6 +325,17 @@ enum ItemFlags
         return [NSString stringWithFormat: @"<Item \"%@\" (%d) x%d>", [self name], [self entryID], stack];
 }
 
+- (UInt32)itemFieldsAddress{
+	if ( _itemFieldsAddress ){
+		return _itemFieldsAddress;
+	}
+	
+	// read it
+	[_memory loadDataForObject: self atAddress: ([self baseAddress] + ITEM_FIELDS_PTR) Buffer: (Byte *)&_itemFieldsAddress BufLength: sizeof(_itemFieldsAddress)];
+	
+	return _itemFieldsAddress; 
+}
+
 #pragma mark -
 
 - (NSString*)name {
@@ -389,7 +361,7 @@ enum ItemFlags
 
     [_connection cancel];
     [_connection release];
-    _connection = [[NSURLConnection alloc] initWithRequest: [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithFormat: @"http://www.wowhead.com/?item=%d&xml", [self entryID]]]] delegate: self];
+    _connection = [[NSURLConnection alloc] initWithRequest: [NSURLRequest requestWithURL: [NSURL URLWithString: [NSString stringWithFormat: @"http://wowhead.com/?item=%d&xml", [self entryID]]]] delegate: self];
     if(_connection) {
         [_downloadData release];
         _downloadData = [[NSMutableData data] retain];
@@ -416,7 +388,7 @@ enum ItemFlags
     [_connection release];      _connection = nil;
     [_downloadData release];    _downloadData = nil;
     // inform the user
-    PGLog(@"Connection failed! Error - %@ %@",
+    log(LOG_GENERAL, @"Connection failed! Error - %@ %@",
           [error localizedDescription],
           [[error userInfo] objectForKey: NSErrorFailingURLStringKey]);
 }
@@ -436,7 +408,7 @@ enum ItemFlags
         
         // check to see if this is a valid item
         if([scanner scanUpToString: @"Error - Wowhead" intoString: nil] && ![scanner isAtEnd]) {
-            PGLog(@"Item %@ does not exist.", self);
+            log(LOG_GENERAL, @"Item %@ does not exist.", self);
             return;
         } else {
             [scanner setScanLocation: 0];
@@ -448,7 +420,7 @@ enum ItemFlags
             if([scanner scanUpToString: @"]]></name>" intoString: &newName]) {
                 if(newName && [newName length]) {
                     [self setName: newName];
-                    //PGLog(@"Loaded name: %@", newName);
+                    //log(LOG_GENERAL, @"Loaded name: %@", newName);
                     [[NSNotificationCenter defaultCenter] postNotificationName: ItemNameLoadedNotification object: self];
                 }
             }
@@ -848,44 +820,44 @@ enum ItemFlags
 
 - (UInt64)ownerUID {
     UInt64 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_OWNER) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_OWNER) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 - (UInt64)containerUID {
     UInt64 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_CONTAINED) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_CONTAINED) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 - (UInt64)creatorUID {
     UInt64 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_CREATOR) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_CREATOR) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 - (UInt64)giftCreatorUID {
     UInt64 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_GIFTCREATOR) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_GIFTCREATOR) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 // 1 read
 - (UInt32)count {
     UInt32 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_STACK_COUNT) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_STACK_COUNT) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 - (UInt32)duration {
     UInt32 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_DURATION) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_DURATION) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 - (UInt32)charges {
     UInt32 value[5];
-    if([_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_SPELL_CHARGES) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
+    if([_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_SPELL_CHARGES) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
         int i;
         for(i=0; i<5; i++) {
             if(value[i] > 0) {
@@ -898,21 +870,21 @@ enum ItemFlags
 
 - (UInt32)flags {
     UInt32 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_FLAGS) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_FLAGS) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
 }
 
 // 1 read
 - (NSNumber*)durability {
     UInt32 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_DURABILITY) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_DURABILITY) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return [NSNumber numberWithUnsignedInt: value];
 }
 
 // 1 read
 - (NSNumber*)maxDurability {
     UInt32 value = 0;
-    [_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_MAXDURABILITY) Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_MAXDURABILITY) Buffer: (Byte *)&value BufLength: sizeof(value)];
     return [NSNumber numberWithUnsignedInt: value];
 }
 
@@ -920,7 +892,7 @@ enum ItemFlags
     if(slotNum < 0 || slotNum >= MAX_ENCHANTMENT_SLOT) return 0;
     
     UInt32 value = 0;
-    if([_memory loadDataForObject: self atAddress: ([self infoAddress] + ITEM_FIELD_ENCHANTMENT + ENCHANTMENT_MAX_OFFSET*sizeof(value)*slotNum) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
+    if([_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + ITEM_FIELD_ENCHANTMENT_1_1 + ENCHANTMENT_MAX_OFFSET*sizeof(value)*slotNum) Buffer: (Byte *)&value BufLength: sizeof(value)]) {
         return value;
     }
     return 0;
@@ -949,22 +921,23 @@ enum ItemFlags
 - (UInt32)bagSize {
     if([self isBag]) {
         UInt32 value = 0;
-        if([_memory loadDataForObject: self atAddress: ([self infoAddress] + CONTAINER_FIELD_NUM_SLOTS) Buffer: (Byte *)&value BufLength: sizeof(value)])
+        if([_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + CONTAINER_FIELD_NUM_SLOTS) Buffer: (Byte *)&value BufLength: sizeof(value)])
             return value;
     }
     return 0;
 }
 
 
-- (UInt64)itemUIDinSlot: (UInt32)slotNum {
-    if(slotNum < 1 || slotNum > [self bagSize])
+- (UInt64)itemGUIDinSlot: (UInt32)slotNum {
+    if ( slotNum < 1 || slotNum > [self bagSize] )
         return 0;
 
-    if([self isBag]) {
+    if ( [self isBag] ) {
         UInt64 value = 0;
-        if([_memory loadDataForObject: self atAddress: ([self infoAddress] + CONTAINER_FIELD_SLOT_1 + (CONTAINER_FIELD_SLOT_SIZE*(slotNum-1)) ) Buffer: (Byte *)&value BufLength: sizeof(value)])
+        if([_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + CONTAINER_FIELD_SLOT_1 + (CONTAINER_FIELD_SLOT_SIZE*(slotNum-1)) ) Buffer: (Byte *)&value BufLength: sizeof(value)])
             return value;
     }
+	
     return 0;
 }
 

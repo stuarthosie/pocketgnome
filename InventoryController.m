@@ -23,15 +23,25 @@
  *
  */
 
+
+#import "ObjectsController.h"
+#import "PlayerDataController.h"
+#import "MacroController.h"
+#import "BotController.h"
+#import "NodeController.h"
 #import "InventoryController.h"
 #import "Controller.h"
 #import "MemoryViewController.h"
+#import "OffsetController.h"
+
 #import "Offsets.h"
+
 #import "Item.h"
 #import "WoWObject.h"
-#import "PlayerDataController.h"
-#import "ObjectsController.h"
 #import "Player.h"
+#import "Node.h"
+
+#import "MailActionProfile.h"
 
 @implementation InventoryController
 
@@ -53,7 +63,7 @@ static InventoryController *sharedInventory = nil;
         sharedInventory = self;
 		_itemsPlayerIsWearing = nil;
 		_itemsInBags = nil;
-
+		
 		// set to 20 to ensure it updates right away
 		_updateDurabilityCounter = 20;
 		
@@ -78,6 +88,16 @@ static InventoryController *sharedInventory = nil;
     return self;
 }
 
+- (void)dealloc{
+	[_objectList release];
+	[_objectDataList release];
+	[_itemNameList release];
+	[_itemsPlayerIsWearing release];
+	[_itemsInBags release];
+	
+	[super dealloc];
+}
+
 #pragma mark -
 
 - (void)applicationWillTerminate: (NSNotification*)notification {
@@ -90,7 +110,7 @@ static InventoryController *sharedInventory = nil;
     
     NSString *name = [item name];
     if(name) {
-        // PGLog(@"Saving item: %@", item);
+        // log(LOG_ITEM, @"Saving item: %@", item);
         [_itemNameList setObject: name forKey: [NSNumber numberWithInt: [item entryID]]];
     }
 }
@@ -98,9 +118,22 @@ static InventoryController *sharedInventory = nil;
 #pragma mark -
 
 - (Item*)itemForGUID: (GUID)guid {
+	
+	if ( guid == 0x0 ){
+		return nil;
+	}
+	
+	/*if ( GUID_LOW32(guid) != 0x4580000 ){
+	 NSLog(@"...0x%X", GUID_LOW32(guid));
+	 return nil;
+	 
+	 }*/
+	
 	NSArray *itemList = [[_objectList copy] autorelease];
-
+	
     for(Item *item in itemList) {
+		//NSLog(@"%qd == %qd", [item GUID], guid);
+		
         if( [item GUID] == guid )
             return [[item retain] autorelease];
     }
@@ -139,27 +172,27 @@ static InventoryController *sharedInventory = nil;
 - (int)collectiveCountForItem: (Item*)refItem {
     if(![refItem isValid]) return 0;
     int count = 0;
-	int itemEntryID = [refItem entryID];	// cache this, saves on memory reads
+	int itemEntryID = [refItem entryID];    // cache this, saves on memory reads
     for ( Item *item in _objectList ) {
 		// same type
         if ( [item entryID] == itemEntryID ) {
             count += [item count];
         }
     }
-    //PGLog(@"Found count %d for item %@", count, refItem);
+    //log(LOG_ITEM, @"Found count %d for item %@", count, refItem);
     return count;
 }
 
 - (int)collectiveCountForItemInBags: (Item*)refItem{
 	if(![refItem isValid]) return 0;
     int count = 0;
-	int itemEntryID = [refItem entryID];	// cache this, saves on memory reads
+	int itemEntryID = [refItem entryID];    // cache this, saves on memory reads
     for ( Item* item in [self itemsInBags] ) {
         if ( [item entryID] == itemEntryID ) {
             count += [item count];
         }
     }
-    //PGLog(@"Found count %d for item %@", count, refItem);
+    //log(LOG_ITEM, @"Found count %d for item %@", count, refItem);
     return count;
 }
 
@@ -292,7 +325,7 @@ static InventoryController *sharedInventory = nil;
                              [coalescedItems objectForKey: key],    @"list", nil]];
     }
     [nameMap sortUsingDescriptors: [NSArray arrayWithObject: [[[NSSortDescriptor alloc] initWithKey: @"name" ascending: YES] autorelease]]];
-   
+	
     // finally generate the NSMenu from the sorted list of coalesced items 
     NSMenuItem *menuItem;
     NSMenu *menu = [[[NSMenu alloc] initWithTitle: @"Items"] autorelease];
@@ -370,18 +403,18 @@ static InventoryController *sharedInventory = nil;
 	for ( Item *item in _objectList ){
 		
 		switch ( [item entryID] ){
-			case 20560:		// Alterac Valley Mark of Honor
-			case 20559:		// Arathi Basin Mark of Honor
-			case 29024:		// Eye of Storm Mark of Honor
-			case 47395:		// Isle of Conquest Mark of Honor
-			case 42425:		// Strand of the Ancients Mark of Honor
-			case 20558:		// Warsong Gulch Mark of Honor
+			case 20560:             // Alterac Valley Mark of Honor
+			case 20559:             // Arathi Basin Mark of Honor
+			case 29024:             // Eye of Storm Mark of Honor
+			case 47395:             // Isle of Conquest Mark of Honor
+			case 42425:             // Strand of the Ancients Mark of Honor
+			case 20558:             // Warsong Gulch Mark of Honor
 				stacks += [item count];
 				break;
 		}
 	}
 	
-	return stacks;	
+	return stacks;  
 }
 
 // return an array of items for an array of guids
@@ -395,13 +428,13 @@ static InventoryController *sharedInventory = nil;
 		}
 	}
 	
-	return items;	
+	return items;   
 }
 
 // return ONLY the items the player is wearing (herro % durability calculation)
 - (NSArray*)itemsPlayerIsWearing{
 	NSArray *items = [self itemsForGUIDs:[[playerData player] itemGUIDsPlayerIsWearing]];
-	return [[items retain] autorelease];	
+	return [[items retain] autorelease];    
 }
 
 // will return an array of Item objects
@@ -433,11 +466,11 @@ static InventoryController *sharedInventory = nil;
 		}
 	}
 	
-	return [[items retain] autorelease];	
+	return [[items retain] autorelease];    
 }
 
 - (int)bagSpacesAvailable{
-	return [self bagSpacesTotal] - [[self itemsInBags] count];	
+	return [self bagSpacesTotal] - [[self itemsInBags] count];      
 }
 
 - (int)bagSpacesTotal{
@@ -457,8 +490,239 @@ static InventoryController *sharedInventory = nil;
 }
 
 - (BOOL)arePlayerBagsFull{
-	//PGLog(@"%d == %d", [self bagSpacesAvailable], [self bagSpacesTotal]);
+	//log(LOG_ITEM, @"%d == %d", [self bagSpacesAvailable], [self bagSpacesTotal]);
 	return [self bagSpacesAvailable] == 0;
+}
+
+#define MAX_BAGS 4
+#define MAX_SLOTSIZE 40         // i think it's really 32, but just to be safe ;)
+
+- (int)mailItemsWithProfile:(MailActionProfile*)profile{
+	
+	int itemsMailed = 0;
+	
+	// array of objects which contains:
+	//      item ID, slot $, bag #
+	Item *allItems[MAX_BAGS+1][MAX_SLOTSIZE] = {{0}};
+	int currentSlot = 1;
+	
+	// backpack items first
+	NSArray *backpackGUIDs = [[playerData player] itemGUIDsInBackpack];
+	for ( NSNumber *guid in backpackGUIDs ){
+		Item *item = [self itemForGUID:[guid unsignedLongLongValue]];
+		
+		if ( item ){
+			allItems[0][currentSlot++] = [item retain];
+		}
+	}
+	
+	// now for bags!
+	UInt32 bagListOffset = [offsetController offset:@"BagListOffset"];
+	MemoryAccess *memory = [controller wowMemoryAccess];
+	
+	if ( memory && [memory isValid] ){
+		
+		// loop through all valid bags (up to 4)!
+		int bag = 0;
+		for ( ; bag < 4; bag++ ){
+			
+			// valid bag?
+			GUID bagGUID = [memory readLongLong:bagListOffset + ( bag * 8)];
+			if ( bagGUID > 0x0 ){
+				Item *itemBag = [self itemForGUID:bagGUID];
+				
+				if ( itemBag ){
+					int bagSlot = 1;
+					int bagSize = [itemBag bagSize];        // 1 read
+					for ( ; bagSlot <= bagSize; bagSlot++ ){
+						
+						// valid item at this slot?
+						GUID guid = [itemBag itemGUIDinSlot:bagSlot];
+						Item *item = [self itemForGUID:guid];
+						if ( item ){
+							allItems[bag+1][bagSlot] = [item retain];
+						}                                                       
+					}
+				}
+			}
+		}
+	}
+	
+	// items to exclude/include!
+	NSArray *exclusions = [profile exclusions];
+	NSArray *inclusions = [profile inclusions];
+	
+	// now remove items from the list we shouldn't mail!
+	int k = 0;
+	for ( ; k < MAX_BAGS; k++ ){
+		int j = 0;
+		for ( ; j < MAX_SLOTSIZE; j++ ){
+			if ( allItems[k][j] != nil ){
+				Item *item = allItems[k][j];
+				
+				// remove exclusions
+				if ( exclusions != nil ){
+					for ( NSString *itemName in exclusions ){
+						if ( [[item name] isCaseInsensitiveLike:itemName] ){
+							log(LOG_ITEM, @"[Mail] Removing item %@ to be mailed", item);
+							allItems[k][j] = nil;
+						}
+					}
+				}
+				
+				// check for inclusions
+				if ( inclusions != nil ){
+					BOOL found = NO;
+					for ( NSString *itemName in inclusions ){
+						if ( [[item name] isCaseInsensitiveLike:itemName] ){
+							found = YES;
+							log(LOG_ITEM, @"[Mail] Saving %@ to be mailed", item);
+							itemsMailed++;
+							
+							// in case our exclusion removed it
+							allItems[k][j] = item;
+						}
+					}
+					
+					// we will want to check for types here, once I figure this out!
+					if ( !found ){
+						log(LOG_ITEM, @"[Mail] Removing %@ to be mailed", item);
+						allItems[k][j] = nil;
+					}
+				}
+			}
+		}
+	}
+	
+	// time to mail some items!
+	if ( itemsMailed > 0 ){
+		
+		// open up the mailbox
+		Node *mailbox = [nodeController closestNodeWithName:@"Mailbox"];
+		
+		if ( mailbox ){
+			[botController interactWithMouseoverGUID:[mailbox GUID]];
+			usleep(500000);
+			
+			[macroController useMacroOrSendCmd:@"/click MailFrameTab2"];
+			usleep(100000);
+		}
+		else{
+			log(LOG_ITEM, @"[Mail] No mailbox found, aborting");
+			return 0;
+		}
+		
+		log(LOG_ITEM, @"[Mail] Found %d items to mail! Beginning process with %@!", itemsMailed, mailbox);
+		
+		int totalAdded = 0;
+		
+		// while we have items to mail!
+		while ( itemsMailed > 0 ){
+			
+			// we have items to mail!
+			if ( totalAdded > 0 ){
+				log(LOG_ITEM, @"[Mail] Sending %d items", totalAdded );
+				itemsMailed -= totalAdded;
+				
+				// send the mail
+				NSString *macroCommand = [NSString stringWithFormat:@"/script SendMail( \"%@\", \" \", \" \");", profile.sendTo];
+				[macroController useMacroOrSendCmd:macroCommand];
+				usleep(100000);
+				totalAdded = 0;
+				continue;
+			}
+			
+			int k = 0;
+			for ( ; k < MAX_BAGS; k++ ){
+				// time to mail!
+				if ( totalAdded == 12 ){
+					break;
+				}
+				
+				int j = 0;
+				for ( ; j < MAX_SLOTSIZE; j++ ){
+					
+					// time to mail!
+					if ( totalAdded == 12 ){
+						break;
+					}
+					
+					// we have an item to mail!
+					if ( allItems[k][j] != nil ){
+						log(LOG_ITEM, @"[%d] Found item %@ to mail", totalAdded, allItems[k][j]);
+						
+						// move the item to the mail
+						NSString *macroCommand = [NSString stringWithFormat:@"/script UseContainerItem(%d, %d);", k, j];
+						[macroController useMacroOrSendCmd:macroCommand];
+						usleep(50000);
+						
+						totalAdded++;
+						allItems[k][j] = nil;
+					}
+				}
+			}
+		}
+	}
+	
+	return itemsMailed;
+}
+
+- (Item*)getBagItem: (int)bag withSlot:(int)slot{
+	
+	int currentSlot = 1;
+	
+	// backpack!
+	if ( bag == 0 ){
+		
+		NSArray *backpackGUIDs = [[playerData player] itemGUIDsInBackpack];
+		NSLog(@"Backpack");
+		for ( NSNumber *guid in backpackGUIDs ){
+			Item *item = [self itemForGUID:[guid unsignedLongLongValue]];
+			
+			if ( item ){
+				NSLog(@" {%d, %d} %@", 0, currentSlot++, [item name]);
+				return [[item retain] autorelease];
+			}
+		}               
+	}
+	
+	else{
+		UInt32 bagListOffset = 0xD92660;
+		MemoryAccess *memory = [controller wowMemoryAccess];
+		
+		if ( memory && [memory isValid] ){
+			
+			// loop through all valid bags (up to 4)!
+			int bag = 0;
+			for ( ; bag < 4; bag++ ){
+				
+				// valid bag?
+				GUID bagGUID = [memory readLongLong:bagListOffset + ( bag * 8)];
+				if ( bagGUID > 0x0 ){
+					Item *itemBag = [self itemForGUID:bagGUID];
+					
+					if ( itemBag ){
+						NSLog(@"Bag: %@", [itemBag name]);
+						
+						int bagSlot = 1;
+						int bagSize = [itemBag bagSize];        // 1 read
+						for ( ; bagSlot <= bagSize; bagSlot++ ){
+							
+							// valid item at this slot?
+							GUID guid = [itemBag itemGUIDinSlot:bagSlot];
+							Item *item = [self itemForGUID:guid];
+							if ( item ){
+								NSLog(@" {%d, %d} %@", bag+1, bagSlot, [item name]);
+								return [[item retain] autorelease];
+							}                                                       
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return nil;
 }
 
 #pragma mark Sub Class implementations
@@ -492,7 +756,7 @@ static InventoryController *sharedInventory = nil;
 	if ( ![playerData playerIsValid:self] ) return;
 	
 	// why do we only update on every 20th read?
-	//	to save memory reads of course!
+	//      to save memory reads of course!
 	int freq = (int)(20.0f / _updateFrequency);
 	
 	if ( _updateDurabilityCounter > freq || _itemsPlayerIsWearing == nil || _itemsInBags == nil ){
@@ -542,17 +806,17 @@ static InventoryController *sharedInventory = nil;
 		}
         
         [_objectDataList addObject: [NSDictionary dictionaryWithObjectsAndKeys: 
-                                   item,                                                @"Item",
-                                   ([item name] ? [item name] : @""),                   @"Name",
-                                   [NSNumber numberWithUnsignedInt: [item cachedEntryID]],    @"ItemID",
-                                   [NSNumber numberWithUnsignedInt: [item isBag] ? [item bagSize] : [item count]],      @"Count",
-                                   [item itemTypeString],                               @"Type",
-                                   [item itemSubtypeString],                            @"Subtype",
-                                   durString,                                           @"Durability",
-                                   durPercent,                                          @"DurabilityPercent",
-								   location,											@"Location",
-								   [NSNumber numberWithInt:[item notInObjectListCounter]],	@"Invalid",
-                                   nil]];
+									 item,                                                @"Item",
+									 ([item name] ? [item name] : @""),                   @"Name",
+									 [NSNumber numberWithUnsignedInt: [item cachedEntryID]],    @"ItemID",
+									 [NSNumber numberWithUnsignedInt: [item isBag] ? [item bagSize] : [item count]],      @"Count",
+									 [item itemTypeString],                               @"Type",
+									 [item itemSubtypeString],                            @"Subtype",
+									 durString,                                           @"Durability",
+									 durPercent,                                          @"DurabilityPercent",
+									 location,                                                                                    @"Location",
+									 [NSNumber numberWithInt:[item notInObjectListCounter]],      @"Invalid",
+									 nil]];
     }
 	
 	// sort
@@ -560,8 +824,8 @@ static InventoryController *sharedInventory = nil;
 	
 	// reload table
 	[objectsController loadTabData];
-
-    //PGLog(@"enumerateInventory took %.2f seconds...", [date timeIntervalSinceNow]*-1.0);
+	
+    //log(LOG_ITEM, @"enumerateInventory took %.2f seconds...", [date timeIntervalSinceNow]*-1.0);
 }
 
 - (WoWObject*)objectForRowIndex:(int)rowIndex{

@@ -27,59 +27,59 @@
 #import "MemoryAccess.h"
 #import "Controller.h"
 
+//PPather
+#import <Cocoa/Cocoa.h>
+#import "LogController.h"
+#import "Globals.h"
+#import <mach/vm_map.h>
 
-// Rough estimate of where the text segment ends (0x8291E0 for 3.2.2a)
-#define TEXT_SEGMENT_MAX_ADDRESS				0x830000
+
+// Rough estimate of where the text segment ends (0xB32E98 for 3.3.5a)
+#define TEXT_SEGMENT_MAX_ADDRESS				0xB32E98
 
 @interface OffsetController (Internal)
 
 - (void)loadEveryOffset;
-- (void)findAllOffsets: (Byte*)data Len:(unsigned long)len StartAddress:(unsigned long)startAddress;
+- (void)findOffsets: (const void*)data Len:(unsigned long)len;
+- (NSData*)getAllMemory;
 
-- (unsigned long) dwFindPattern: (unsigned char*)bMask 
-				 withStringMask:(char*)szMask 
-					   withData:(Byte*)dw_Address 
-						withLen:(unsigned long)dw_Len 
-			   withStartAddress:(unsigned long)startAddressOffset 
-				  withMinOffset:(long)minOffset 
-					  withCount:(int)count;
-
-- (unsigned long) dwFindPatternPPC: (unsigned char*)bMask 
-					withStringMask:(char*)szMask 
-						  withData:(Byte*)dw_Address 
-						   withLen:(unsigned long)dw_Len 
-				  withStartAddress:(unsigned long)startAddressOffset 
-					 withMinOffset:(long)minOffset 
-						 withCount:(int)count;
-
-- (void)findPPCOffsets: (Byte*)data Len:(unsigned long)len StartAddress:(unsigned long)startAddress;
 BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const char* szMask);
 
-
 // new scans
-- (NSArray*) findPatternPPC: (unsigned char*)bMask 
-			 withStringMask:(char*)szMask 
-				   withData:(Byte*)dw_Address 
-					withLen:(unsigned long)dw_Len 
-			  withMinOffset:(long)minOffset;
-- (NSArray*) findPattern: (unsigned char*)bMask 
-		  withStringMask:(char*)szMask 
-				withData:(Byte*)dw_Address 
-				 withLen:(unsigned long)dw_Len 
-		   withMinOffset:(long)minOffset ;
+- (NSDictionary*) findPattern: (unsigned char*)bMask 
+			   withStringMask:(char*)szMask 
+					 withData:(const void*)dw_Address 
+					  withLen:(unsigned long)dw_Len;
 @end
+
+
 
 @implementation OffsetController
 
+static OffsetController* sharedController = nil;
+
++ (OffsetController *)sharedController {
+	if (sharedController == nil)
+		sharedController = [[[self class] alloc] init];
+	return sharedController;
+}
+
 - (id)init{
     self = [super init];
-    if (self != nil) {
+	if ( sharedController ){
+		[self release];
+		self = sharedController;
+	}
+    else if (self != nil) {
+		
+		sharedController = self;
+		
 		offsets = [[NSMutableDictionary alloc] init];
 		_offsetsLoaded = NO;
 		
 		_offsetDictionary = [[NSDictionary dictionaryWithContentsOfFile: [[NSBundle mainBundle] pathForResource: @"OffsetSignatures" ofType: @"plist"]] retain];
 		if ( !_offsetDictionary ){
-			PGLog(@"[Offsets] Error, offset dictionary not found!");
+			NSLog(@"[Offsets] Error, offset dictionary not found!");
 		}
 		[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(memoryIsValid:) name: MemoryAccessValidNotification object: nil];
     }
@@ -96,26 +96,64 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
     [self loadEveryOffset];
 }
 
-// new and improved offset finder, will loop through our plist file to get the signatures! yay! Easier to store PPC/Intel
-- (void)findOffsets: (Byte*)data Len:(unsigned long)len StartAddress:(unsigned long)startAddress{
+// tries to find all of our offsets!
+- (void)loadEveryOffset{
+	
+	/* We used to prevent offset reloading, but PG could re-attach to a different wow version (i.e. we close the cata beta)
+	if ( _offsetsLoaded )
+		return;
+	*/
+	
+	// remove old offsets
+	[offsets removeAllObjects];
+	
+	// find the offsets!
+	NSData *rawMemory = [self getAllMemory];
+	[self findOffsets: [rawMemory bytes] Len:[rawMemory length]];
+	
+	// print out the offsets we have!
+	for ( NSString *key in [_offsetDictionary allKeys] ){
+		UInt32 offset = [self offset:key];
+		if ( offset > 0 ){
+			NSLog(@"%@: 0x%X", key, offset);
+		}
+	}
+	
+	// print out ones we didn't find
+	for ( NSString *key in [_offsetDictionary allKeys] ){
+		
+		if ( [self offset:key] == 0 ){
+			NSLog(@"[Offset] Error! No offset found for key %@", key);
+		}
+	}
+	
+	NSLog(@"[Offset] Loaded %d offsets!", [offsets count]);
+	
+	// can hard code some here
+	
+	_offsetsLoaded = YES;
+	[[NSNotificationCenter defaultCenter] postNotificationName: OffsetsLoaded object: nil];
+}
 
-	// should only be set to yes during testing!
-	BOOL emulatePPC = NO;
+// we now no longer have to check start address! Yay new sweet method from Pocket Goblin!
+- (void)findOffsets: (const void*)data Len:(unsigned long)len{
+	
+	if ( IS_PPC ){
+		NSLog(@"[Offset] Power PC is not currently supported by Pocket Gnome!");
+		return;
+	}
 	
 	if ( _offsetDictionary ){
 		
 		NSArray *allKeys = [_offsetDictionary allKeys];
 		
 		// Intel or PPC?
-		NSString *arch = (IS_X86) ? @"Intel" : @"ppc";
+		NSString *arch = @"Intel";
 		NSRange range;
 		
-		if ( emulatePPC )
-			arch = @"ppc";
-
 		// this will be a key, such as PLAYER_NAME_STATIC
 		for ( NSString *key in allKeys ){
-
+			
 			// grab our offset masks for our appropriate instruction set
 			NSDictionary *offsetData = [[_offsetDictionary valueForKey:key] valueForKey:arch];
 			
@@ -124,14 +162,14 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			//	Signature
 			//	StartOffset
 			//	Count	(which pattern # is the correct offset? Sadly we have to use this if there isn't a unique function using an offset)
-
+			
 			// lets get the raw data from our objects!
 			NSString *dictMask					= [offsetData objectForKey: @"Mask"];
 			NSString *dictSignature				= [offsetData objectForKey: @"Signature"];
-			NSString *dictStartScanAddress		= [offsetData objectForKey: @"StartScanAddress"];
 			NSString *dictCount					= [offsetData objectForKey: @"Count"];
 			NSString *dictAdditionalOffset		= [offsetData objectForKey: @"AdditionalOffset"];
 			NSString *dictSubtractOffset		= [offsetData objectForKey: @"SubtractOffset"];
+			BOOL useAddress						= [[offsetData objectForKey: @"UseAddress"] boolValue];
 			
 			// no offset data found, move on to the next one!
 			if ( [dictMask length] == 0 || [dictSignature length] == 0 )
@@ -141,16 +179,6 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			unsigned int count = 1;
 			if ( dictCount != nil ){
 				count = [dictCount intValue];
-			}
-
-			// start offset specified?
-			unsigned long startScanAddress = 0x0;
-			if ( [dictStartScanAddress length] > 0 ){
-				range.location = 2;
-				range.length = [dictStartScanAddress length]-range.location;
-				
-				const char *szStartScanAddressInHex = [[dictStartScanAddress substringWithRange:range] UTF8String];
-				startScanAddress = strtol(szStartScanAddressInHex, NULL, 16);
 			}
 			
 			unsigned long additionalOffset = 0x0;
@@ -174,7 +202,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			// allocate our bytes variable which will store our signature
 			Byte *bytes = calloc( [dictSignature length]/2, sizeof( Byte ) );
 			unsigned int i = 0, k = 0;
-
+			
 			// incrementing by 4 (to skip the beginning \x)
 			for ( ;i < [dictSignature length]; i+=4 ){
 				range.length = 2;
@@ -189,82 +217,68 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			const char *szMaskUTF8 = [dictMask UTF8String];
 			char *szMask = strdup(szMaskUTF8);
 			
-			unsigned long offset = 0x0;
-			// Intel
-			if ( IS_X86 && !emulatePPC ){
-				offset = [self dwFindPattern:bytes
-										withStringMask:szMask 
-											  withData:data
-											   withLen:len
-									  withStartAddress:startAddress 
-										 withMinOffset:startScanAddress
-											 withCount:count] + additionalOffset - subtractOffset;
-			}
-			// PPC
-			else {
-				offset = [self dwFindPatternPPC:bytes
-							  withStringMask:szMask 
+			NSDictionary *offsetDict = nil;
+			
+			offsetDict = [self findPattern:bytes
+							withStringMask:szMask 
 									withData:data
-									 withLen:len
-							withStartAddress:startAddress 
-							   withMinOffset:startScanAddress
-								   withCount:count] + additionalOffset - subtractOffset;
-			}
+									withLen:len];
+			
+			// we have results! yay!
+			if ( [offsetDict count] ){
 				
-			[offsets setObject: [NSNumber numberWithUnsignedLong:offset] forKey:key];
-			if ( offset > 0x0 ){
-				PGLog(@"%@: 0x%X", key, offset);
-			}
-			else{
-				PGLog(@"[Offset] Error! No offset found for key %@", key);
+				// the key is the ADDRESS in which we found the offset!
+				NSArray *allKeys = [[offsetDict allKeys] sortedArrayUsingSelector:@selector(compare:)];
+				int i = 1;
+				
+				for ( NSNumber *address in allKeys ){
+					
+					UInt32 offset = [[offsetDict objectForKey:address] unsignedIntValue];
+					
+					if ( count == i ){
+						
+						// we are looking for the ADDRESS at which this sig was found (good for identifying the start of a function!)
+						if ( useAddress ){
+							[offsets setObject: [NSNumber numberWithUnsignedLong:([address unsignedLongValue] + additionalOffset - subtractOffset)] forKey:key];
+							break;
+						}
+						// the offset we wanted that is in the signature
+						else{
+							[offsets setObject: [NSNumber numberWithUnsignedLong:(offset + additionalOffset - subtractOffset)] forKey:key];
+							break;
+						}
+					}
+					i++;
+				}
 			}
 		}
-		
-		// can hard code some here
-		
-		// world state: 0xC7A350		// 3.3.2
-		
-		// connecting/auth/success = 1,2
-		// char list retreiving = 3
-		// race/faction change (or customize) in progress? = 9
-		// char decline in progress = 8
-		// char rename in progress = 7
-		// game loading = 10?
-		// game loaded = 0
-		
-		//[offsets setObject:[NSNumber numberWithUnsignedLong:0xC7A350] forKey:@"WorldState"];				// 3.3.2
-        //[offsets setObject:[NSNumber numberWithUnsignedLong:0xE06660] forKey:@"Lua_GetPartyMember"];		// 3.3.2
- 		
-
-        // 0xD8BD20 - charselect, login, charcreate, patchdownload		
-		
-        _offsetsLoaded = YES;
 	}
 	// technically should never be here
 	else{
-		PGLog(@"[Offsets] No offset dictionary found, PG will be unable to function!");
+		NSLog(@"[Offsets] No offset dictionary found, PG will be unable to function!");
 	}
 }
 
-- (void)loadEveryOffset{
+- (NSData*)getAllMemory{
 	
-	// don't need to load them more than once!
-	if ( _offsetsLoaded )
-		return;
-	
-    // get the WoW PID
+	// this will store all the raw data!
+	NSMutableData *data = [[NSMutableData alloc] init];
+
+	// get the WoW PID
     pid_t wowPID = 0;
     ProcessSerialNumber wowPSN = [controller getWoWProcessSerialNumber];
     OSStatus err = GetProcessPID(&wowPSN, &wowPID);
-    
-    if((err == noErr) && (wowPID > 0)) {
-        
-        // now we need a Task for this PID
+	
+    if ( (err == noErr) && (wowPID > 0) ){
+		
         mach_port_t MySlaveTask;
         kern_return_t KernelResult = task_for_pid(current_task(), wowPID, &MySlaveTask);
-        if(KernelResult == KERN_SUCCESS) {
-            // Cool! we have a task...
-            // Now we need to start grabbing blocks of memory from our slave task and copying it into our memory space for analysis
+		
+		// try to get a task for this process
+		
+        if ( KernelResult == KERN_SUCCESS ){
+            
+			// sweet lets start grabbing memory and copying it into our process! yay!
             vm_address_t SourceAddress = 0;
             vm_size_t SourceSize = 0;
             vm_region_basic_info_data_t SourceInfo;
@@ -273,13 +287,29 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
             
             vm_size_t ReturnedBufferContentSize;
             Byte *ReturnedBuffer = nil;
-            
-            while(KERN_SUCCESS == (KernelResult = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName))) {
-
+			
+            while ( KERN_SUCCESS == ( KernelResult = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName) ) ){
 				
-				//PGLog(@"[Offset] Success for reading from 0x%X to 0x%X  SourceInfo: 0x%X 0x%X", SourceAddress, SourceSize, SourceInfo, SourceInfoSize);
-                // ensure we have access to this block
-                if ((SourceInfo.protection & VM_PROT_READ)) {
+				
+				// don't read too much!
+				if ( SourceAddress + SourceSize > TEXT_SEGMENT_MAX_ADDRESS ){
+					
+					// we're just too far
+					if ( SourceAddress >= TEXT_SEGMENT_MAX_ADDRESS ){
+						NSLog(@"0x%X > 0x%X Breaking!", SourceAddress, TEXT_SEGMENT_MAX_ADDRESS);
+						break;
+					}
+				}
+				
+				NSRange dataRange = NSMakeRange(SourceAddress, SourceSize);
+				
+				NSLog(@"[Offset] Success for reading from 0x%X to 0x%X  Protection: 0x%X", dataRange.location, dataRange.length + dataRange.location, SourceInfo.protection);
+				
+				// increase length
+				[data increaseLengthBy:dataRange.length];
+				
+				// ensure we have access to this block
+                if ( ( SourceInfo.protection & VM_PROT_READ ) ) {
                     NS_DURING {
                         ReturnedBuffer = malloc(SourceSize);
                         ReturnedBufferContentSize = SourceSize;
@@ -287,14 +317,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
                             (ReturnedBufferContentSize > 0) )
                         {
 							
-							if ( ReturnedBufferContentSize > TEXT_SEGMENT_MAX_ADDRESS ){
-								ReturnedBufferContentSize = TEXT_SEGMENT_MAX_ADDRESS;
-							}
-							
-							//PGLog(@"Reading from %d to %d", SourceAddress, SourceAddress + SourceSize);
-							
-							// Lets grab all our offsets!
-							[self findOffsets: ReturnedBuffer Len:SourceSize StartAddress: SourceAddress];
+							[data replaceBytesInRange:dataRange withBytes:ReturnedBuffer];
 						}
                     } NS_HANDLER {
                     } NS_ENDHANDLER
@@ -304,17 +327,22 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
                         ReturnedBuffer = nil;
                     }
                 }
-               
-                // reset some values to search some more
-                SourceAddress += SourceSize;
-				
-				// If it's past the .text segment
-				if ( SourceAddress > TEXT_SEGMENT_MAX_ADDRESS ){
-					break;
+				// unable to read data, so lets just insert and zero it out!
+				else{
+					[data resetBytesInRange:dataRange];
+					
+					NSLog(@"[Offset] Unable to read block, flags: 0x%X", SourceInfo.protection);
 				}
-            }
-        }
-    }
+				
+				// reset some values to search some more
+                SourceAddress += SourceSize;
+			}
+		}
+	}
+	
+	NSLog(@"[Offset] Total data: 0x%X", [data length]);
+	
+	return [[data retain] autorelease];	
 }
 
 BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const char* szMask){
@@ -326,94 +354,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 	return true;
 }
 
-// not very different from the intel scanner, except we will COMBINE the ?? we find in the signatures
-//  this is due to how PPC handles assembly instructions (at most 4 instructions per line)
-//	so these offsets can be moved over multiple lines + we need to combine it!
-//	we don't have to invert the bytes either as PPC is in big endian - woohoo!
-- (unsigned long) dwFindPatternPPC: (unsigned char*)bMask 
-				 withStringMask:(char*)szMask 
-					   withData:(Byte*)dw_Address 
-						withLen:(unsigned long)dw_Len 
-			   withStartAddress:(unsigned long)startAddressOffset 
-				  withMinOffset:(long)minOffset 
-					  withCount:(int)count
-{
-	unsigned long i;
-	int foundCount = 0;
-	for(i=0; i < dw_Len; i++){
-	
-		if( bDataCompare( (unsigned char*)( dw_Address+i ),bMask,szMask) ){
-			
-			foundCount++;
-
-			const unsigned char* pData = (unsigned char*)( dw_Address+i );
-			char *mask = szMask;
-			unsigned long offset = 0x0;
-			for ( ;*mask;++mask,++pData){
-				if ( *mask == '?' ){
-					offset <<= 8;  
-					offset ^= (long)*pData & 0xFF;   
-				}
-			}
-			
-			if ( offset >= minOffset && count == foundCount ){
-				return offset;
-			}
-			else if ( offset > 0x0 ){
-				//PGLog(@"[Offset] Found 0x%X < 0x%X at 0x%X, ignoring... (%d)", offset, minOffset, i, foundCount);
-			}
-		}
-	}
-	
-	return 0;
-}
-
-- (unsigned long) dwFindPattern: (unsigned char*)bMask 
-				 withStringMask:(char*)szMask 
-					   withData:(Byte*)dw_Address 
-						withLen:(unsigned long)dw_Len 
-			   withStartAddress:(unsigned long)startAddressOffset 
-				  withMinOffset:(long)minOffset 
-					  withCount:(int)count
-{
-	unsigned long i;
-	int foundCount = 0;
-	for(i=0; i < dw_Len; i++){
-		
-		if( bDataCompare( (unsigned char*)( dw_Address+i ),bMask,szMask) ){
-			
-			foundCount++;
-			
-			const unsigned char* pData = (unsigned char*)( dw_Address+i );
-			char *mask = szMask;
-			unsigned long j = 0;
-			for ( ;*mask;++mask,++pData){
-				if ( j && *mask == 'x' ){
-					break;
-				}
-				if ( *mask == '?' ){
-					j++;
-				}
-			}
-			
-			unsigned long offset = 0, k;
-			for (k=0;j>0;j--,k++){
-				--pData;
-				offset <<= 8;  
-				offset ^= (long)*pData & 0xFF;   
-			}
-			
-			if ( offset >= minOffset && count == foundCount ){
-				return offset;
-			}
-			else if ( offset > 0x0 ){
-				//PGLog(@"[Offset] Found 0x%X < 0x%X at 0x%X, ignoring... (%d)", offset, minOffset, i, foundCount);
-			}
-		}
-	}
-	
-	return 0;
-}
+#pragma mark Public
 
 - (unsigned long) offset: (NSString*)key{
 	NSNumber *offset = [offsets objectForKey: key];
@@ -423,77 +364,16 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 	return 0;
 }
 
-#pragma mark New Offset Scanning Functions
-
-
-- (NSData*)getChunk:(vm_address_t)SourceAddress withSourceSize:(vm_size_t)SourceSize{
+- (NSDictionary*)offsetWithByteSignature: (NSString*)signature 
+								withMask:(NSString*)mask{
 	
-	NSMutableData *data = [[NSMutableData alloc] init];
+	if ( IS_PPC) {
+		NSLog(@"[Offset] No support for PowerPC!");
+		return nil;		
+	}
 	
-    // get the WoW PID
-    pid_t wowPID = 0;
-    ProcessSerialNumber wowPSN = [controller getWoWProcessSerialNumber];
-    OSStatus err = GetProcessPID(&wowPSN, &wowPID);
-	
-    if ( (err == noErr) && (wowPID > 0) ) {
-        
-        // now we need a Task for this PID
-        mach_port_t MySlaveTask;
-        kern_return_t KernelResult = task_for_pid(current_task(), wowPID, &MySlaveTask);
-		
-		// task found
-        if ( KernelResult == KERN_SUCCESS ) {
-            //vm_address_t SourceAddress = 0;
-            //vm_size_t SourceSize = 0;
-            vm_region_basic_info_data_t SourceInfo;
-            mach_msg_type_number_t SourceInfoSize = VM_REGION_BASIC_INFO_COUNT;
-            mach_port_t ObjectName = MACH_PORT_NULL;
-            vm_size_t ReturnedBufferContentSize;
-			Byte *ReturnedBuffer = nil;
-            
-            if ( KERN_SUCCESS == ( KernelResult = vm_region(MySlaveTask,&SourceAddress,&SourceSize,VM_REGION_BASIC_INFO,(vm_region_info_t) &SourceInfo,&SourceInfoSize,&ObjectName) ) ){
-				
-				// we only want to read this block
-                if ( ( SourceInfo.protection & VM_PROT_READ ) ) {
-                    NS_DURING {
-						ReturnedBuffer = malloc(SourceSize);
-                        ReturnedBufferContentSize = SourceSize;
-                        if ( (KERN_SUCCESS == vm_read_overwrite(MySlaveTask,SourceAddress,SourceSize,(vm_address_t)ReturnedBuffer,&ReturnedBufferContentSize)) &&
-                            (ReturnedBufferContentSize > 0) )
-                        {
-							
-							// copy the raw data to our object
-							[data appendBytes:ReturnedBuffer length:ReturnedBufferContentSize];
-						}
-						else{
-							PGLog(@"[Offset] Memory read failed");
-						}
-                    } NS_HANDLER {
-                    } NS_ENDHANDLER
-					
-					if ( ReturnedBuffer != nil ) {
-                        free( ReturnedBuffer );
-                        ReturnedBuffer = nil;
-                    }
-                }
-            }
-        }
-    }
-	
-	return [[data retain] autorelease];
-}
-
-// Success for reading from 0x0 to 0x1000  SourceInfo: 0x0 0x0
-// Success for reading from 0x1000 to 0xC6E000  SourceInfo: 0x5 0x7
-
-#define TEXT_SEGMENT_START		0x1000
-- (NSArray*)offsetWithByteSignature: (NSString*)signature 
-								withMask:(NSString*)mask 
-						   withEmulation:(BOOL)emulatePPC{
-	
-	// grab our chunk of memory (we only want data in the text address)
-	int len = TEXT_SEGMENT_MAX_ADDRESS - TEXT_SEGMENT_START;
-	NSData *data = [self getChunk:(vm_address_t)TEXT_SEGMENT_START withSourceSize:len];
+	// grab all memory into our own memory space!
+	NSData *data = [self getAllMemory];
 	
 	// convert to Byte*
 	NSUInteger newLength = [data length];
@@ -501,7 +381,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 	memcpy(byteData, [data bytes], newLength);
 	
 	// the list we'll return!
-	NSArray *offsetList = nil;
+	NSDictionary *offsetDict = nil;
 	
 	// we're good to go!
 	if ( data != nil ){
@@ -510,7 +390,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 		Byte *bytes = calloc( [signature length]/2, sizeof( Byte ) );
 		unsigned int i = 0, k = 0;
 		NSRange range;
-
+		
 		// incrementing by 4 (to skip the beginning \x)
 		for ( ;i < [signature length]; i+=4 ){
 			range.length = 2;
@@ -520,88 +400,40 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 			long one = strtol(sigMask, NULL, 16);
 			bytes[k++] = (Byte)one;
 		}
-
+		
 		// get our mask
 		const char *szMaskUTF8 = [mask UTF8String];
 		char *szMask = strdup(szMaskUTF8);
 		
-		if ( IS_X86 && !emulatePPC ){
-
-			offsetList = [self findPattern:bytes
-							withStringMask:szMask 
-								  withData:byteData
-								   withLen:len
-							 withMinOffset:0x0];
-
-		}
-		// PPC
-		else {
-			offsetList = [self findPatternPPC:bytes
-							   withStringMask:szMask 
-									 withData:byteData
-									  withLen:len
-								withMinOffset:0x0];
-		}
+		offsetDict = [self findPattern:bytes
+						withStringMask:szMask 
+								withData:byteData
+								withLen:[data length]];
 	}
 	else {
-		PGLog(@"[Offset] Unable to read memory!");
+		NSLog(@"[Offset] Unable to read memory!");
 	}
 	
 	// free our buffer
 	if ( byteData )
 		free( byteData );
 	
-	return [[offsetList retain] autorelease];
+	return [[offsetDict retain] autorelease];
 }
 
-- (NSArray*) findPatternPPC: (unsigned char*)bMask 
-					withStringMask:(char*)szMask 
-						  withData:(Byte*)dw_Address 
-						   withLen:(unsigned long)dw_Len 
-					 withMinOffset:(long)minOffset 
+- (NSDictionary*) findPattern: (unsigned char*)bMask 
+			   withStringMask:(char*)szMask 
+					 withData:(const void*)dw_Address 
+					  withLen:(unsigned long)dw_Len
 {
-	unsigned long i;
-	NSMutableArray *list = [[NSMutableArray array] retain];
-	for(i=0; i < dw_Len; i++){
-		
-		if( bDataCompare( (unsigned char*)( dw_Address+i ),bMask,szMask) ){
-			
-			const unsigned char* pData = (unsigned char*)( dw_Address+i );
-			char *mask = szMask;
-			unsigned long offset = 0x0;
-			for ( ;*mask;++mask,++pData){
-				if ( *mask == '?' ){
-					offset <<= 8;  
-					offset ^= (long)*pData & 0xFF;   
-				}
-			}
-			
-			if ( offset >= minOffset ){
-				//PGLog(@"[Offset] Found 0x%X, adding to array", offset);
-				[list addObject:[NSNumber numberWithInt:offset]];
-			}
-			else if ( offset > 0x0 ){
-				//PGLog(@"[Offset] Found 0x%X < 0x%X, ignoring... (%d)", offset, minOffset, i);
-			}
-		}
-	}
+	unsigned long i = 0;
+	NSMutableDictionary *list = [NSMutableDictionary dictionary];
 	
-	return [[list retain] autorelease];
-}
-
-- (NSArray*) findPattern: (unsigned char*)bMask 
-				 withStringMask:(char*)szMask 
-					   withData:(Byte*)dw_Address 
-						withLen:(unsigned long)dw_Len 
-				  withMinOffset:(long)minOffset 
-{
-	unsigned long i;
-	NSMutableArray *list = [[NSMutableArray array] retain];
-	for(i=0; i < dw_Len; i++){
-
-		if( bDataCompare( (unsigned char*)( dw_Address+i ),bMask,szMask) ){
-
-			const unsigned char* pData = (unsigned char*)( dw_Address+i );
+	for ( ; i < dw_Len; i++ ){
+		
+		if ( bDataCompare( (unsigned char*)( dw_Address+i ),bMask,szMask) ){
+			
+			const unsigned char *pData = (unsigned char*)( dw_Address+i );
 			char *mask = szMask;
 			unsigned long j = 0;
 			for ( ;*mask;++mask,++pData){
@@ -620,12 +452,9 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 				offset ^= (long)*pData & 0xFF;   
 			}
 			
-			if ( offset >= minOffset && offset > 0x0 ){
-				//PGLog(@"[Offset] Found 0x%X, adding to array", offset);
-				[list addObject:[NSNumber numberWithInt:offset]];
-			}
-			else if ( offset > 0x0 ){
-				//PGLog(@"[Offset] Found 0x%X < 0x%X, ignoring... (%d)", offset, minOffset, i);
+			if ( offset > 0x0 || i > 0 ){
+				//NSLog(@" [Offset] Found 0x%X, adding to dictionary at 0x%X", offset, i);
+				[list setObject:[NSNumber numberWithUnsignedInt:offset] forKey:[NSNumber numberWithUnsignedInt:i]];
 			}
 		}
 	}
@@ -640,19 +469,23 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
  Official place for notes on offsets!!
  
  GetNumCompanions
-	0x0		- Number of Pets
-	0x4		- Pointers to list of pets
-	0x10	- Number of mounts
-	0x14	- Pointer to list of mounts
+ 0x0		- Number of Pets
+ 0x4		- Pointers to list of pets
+ 0x10	- Number of mounts
+ 0x14	- Pointer to list of mounts
  
  PLAYER_NAME_LIST	- Basically you have a bunch of linked lists here, wish I understand some calling functions better
-	0x10	- Friends list
-	0x14	- Guildies
-	0x24	- People within range
+ 0x10	- Friends list
+ 0x14	- Guildies
+ 0x24	- People within range
  
  PLAYER_GUID_NAME	- This has the player's 64-bit GUID + name!
-	0x0		- 64-bit GUID
-	0x8		- Player name
+ 0x0		- 64-bit GUID
+ 0x8		- Player name
  
+ lua_GetInboxNumItems
+ First offset
+ 0x0 = # of total items
+ 0x4 = # of items in the window
  
  */
