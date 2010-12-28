@@ -11,6 +11,7 @@
  * combat behaviors tend to require /cleartarget /targetlasttarget
  * % based mana / power etc checks are buggy?
  * mail actions don't (always?) manage to interact with the mailbox
+ * mail actions don't (always?) mail all items they should
  * waypoint actions are sometimes (always?) executed on the previous waypoint
  * relative coordinate spaces such as the travelers' tundra mammoth vendors and people on boats / zeps
  * dk characters don't attack targets that are engaged with their temporary pet
