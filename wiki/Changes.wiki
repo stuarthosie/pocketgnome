@@ -3,3 +3,4 @@
 = To Do =
 
  * stop looting on full inventory
+ * flying off into death when gathering
