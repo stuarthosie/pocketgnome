@@ -4,3 +4,4 @@
 
  * stop looting on full inventory
  * flying off into death when gathering
+ * stutter step before casting - wtf is this?
