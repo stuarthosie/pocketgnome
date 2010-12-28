@@ -5,3 +5,15 @@
  * stop looting on full inventory
  * flying off into death when gathering
  * stutter step before casting - wtf is this?
+ * disappearing phased gathering nodes
+ * run past corpse and not rez
+ * corpse run needs to connect to first wp of route
+ * combat behaviors tend to require /cleartarget /targetlasttarget
+ * % based mana / power etc checks are buggy?
+ * mail actions don't (always?) manage to interact with the mailbox
+ * waypoint actions are sometimes (always?) executed on the previous waypoint
+ * relative coordinate spaces such as the travelers' tundra mammoth vendors and people on boats / zeps
+ * dk characters don't attack targets that are engaged with their temporary pet
+ * the bot doesn't engage npcs that are engaged with another npc, such as the ones on the th shore (related to the previous one?)
+ * the ability to enter a macros text into the profile / route
+ * automatic tracking of skill levels would be awesome
