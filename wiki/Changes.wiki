@@ -20,3 +20,4 @@
  * when you create or import a new profile it doesn't appear in the list on the bot tab without restarting pg
  * automatic bg queueing
  * new pvp zones
+ * when anti-stuck doesn't work try strafing and/or moving back a little and then strafing.
