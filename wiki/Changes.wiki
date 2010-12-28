@@ -1,0 +1,5 @@
+#summary List of 1.5 changes we're going to make
+
+= To Do =
+
+ * stop looting on full inventory
