@@ -17,3 +17,4 @@
  * the bot doesn't engage npcs that are engaged with another npc, such as the ones on the th shore (related to the previous one?)
  * the ability to enter a macros text into the profile / route
  * automatic tracking of skill levels would be awesome
+ * when you create or import a new profile it doesn't appear in the list on the bot tab
