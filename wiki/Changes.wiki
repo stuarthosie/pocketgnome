@@ -12,6 +12,7 @@
  * % based mana / power etc checks are buggy?
  * mail actions don't (always?) manage to interact with the mailbox
  * mail actions don't (always?) mail all items they should
+ * pg cannot be stopped while executing mail actions (usleep blocks the ui thread)
  * waypoint actions are sometimes (always?) executed on the previous waypoint
  * relative coordinate spaces such as the travelers' tundra mammoth vendors and people on boats / zeps
  * dk characters don't attack targets that are engaged with their temporary pet
@@ -24,4 +25,4 @@
  * when anti-stuck doesn't work try strafing and/or moving back a little and then strafing
  * the /startattack checkbox under behaviors is not saved
  * godmode
- * ignore nearby elites when gathering
+ * ~~ignore nearby elites when gathering~~
