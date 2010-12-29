@@ -17,11 +17,11 @@
  * relative coordinate spaces such as the travelers' tundra mammoth vendors and people on boats / zeps
  * dk characters don't attack targets that are engaged with their temporary pet
  * the bot doesn't engage npcs that are engaged with another npc, such as the ones on the th shore (related to the previous one?)
- * the ability to enter a macros text into the profile / route
+ * ~~the ability to enter a macros text into the route /~~ profile
  * automatic tracking of skill levels would be awesome
  * ~~when you create or import a new profile it doesn't appear in the list on the bot tab without restarting pg~~
- * automatic bg queueing
- *  new pvp zones
+ * ~~automatic bg queueing~~
+ * ~~new pvp zones~~
  * when anti-stuck doesn't work try strafing and/or moving back a little and then strafing
  * the /startattack checkbox under behaviors is not saved
  * godmode
