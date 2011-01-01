@@ -41,11 +41,18 @@
 	float distance; // how close to approach
 	BOOL useMount;  // mount to get there?
 	MPMover *mover; // our mover object
-
+	
+	NSArray *listLocations; // list of points to walk on way to unit
+	int currentIndex;		// index of list we are currently on
+	MPLocation *destinationLocation; // the destination of given unit at time of route creation
+	float howCloseToLocation;  // how close to each location to run to
+	
 }
 @property (readwrite, retain) Unit *unit;
 @property (readwrite) BOOL useMount;
 @property (retain) MPMover *mover;
+@property (retain) NSArray *listLocations;
+@property (retain) MPLocation *destinationLocation;
 
 
 

@@ -236,6 +236,17 @@
 
 
 
+- (id) objectForLowestValue {
+	
+	MPTreeNode *nodeWithValue = [root smallestNode];
+	if (nodeWithValue != nil) {
+		return [nodeWithValue content];
+	}
+	return nil;
+}
+
+
+
 #pragma mark -
 #pragma mark TreeBalancing 
 

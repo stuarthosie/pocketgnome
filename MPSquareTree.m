@@ -46,6 +46,7 @@
 {
     [xSlices autorelease];
 	[listSquares autorelease];
+	[lock autorelease];
 	
     [super dealloc];
 }
@@ -87,6 +88,30 @@
 }
 
 
+- (MPSquare *) lowestSquareAtX: (float) xPos Y: (float) yPos {
+	
+	MPAVLRangedTree *xSlice = [xSlices objectForValue:xPos];
+	if (xSlice != nil) {
+		
+		NSMutableArray *squareList = [xSlice objectForValue:yPos];
+		
+		if (squareList != nil) {
+			
+
+			MPSquare *selectedSquare = nil;
+			
+			if ([squareList count] > 0) selectedSquare = [squareList objectAtIndex:0];
+			
+			return selectedSquare;
+		}
+		
+	}
+	return nil;
+	
+}
+
+
+
 - (MPSquare *) squareAtX: (float) xPos Y: (float) yPos Z:(float)zPos {
 	
 	MPAVLRangedTree *xSlice = [xSlices objectForValue:xPos];
@@ -103,7 +128,7 @@
 			MPSquare *selectedSquare = nil;
 			
 			for(MPSquare* square in squareList) {
-			
+				
 				float zDist = zPos - [square zPos];
 				if (zDist < 0) zDist *= -1;
 				if (zDist < zTolerance) {
@@ -127,6 +152,13 @@
 // return a square using a MPLocation as a reference
 - (MPSquare *) squareAtLocation: (MPLocation *) aLocation {
 	return [self squareAtX: [aLocation xPosition] Y:[aLocation yPosition] Z:[aLocation zPosition]];
+}
+
+
+
+// return a square using a MPLocation as a reference
+- (MPSquare *) lowestSquareAtLocation: (MPLocation *) aLocation {
+	return [self lowestSquareAtX: [aLocation xPosition] Y:[aLocation yPosition]];
 }
 
 
@@ -160,7 +192,9 @@
 	
 	count--;
 	
+	[lock lock];
 	[listSquares removeObject:aSquare];
+	[lock unlock];
 }
 
 

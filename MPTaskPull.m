@@ -303,7 +303,7 @@ PGLog( @"   state[Attacking]");
 //				return [self wantToDoSomething];  // try again.
 //			} // end if
 
-			PGLog( @"      mob [%@] at health [%d] ", currentMob, [currentMob currentHealth]);
+			PGLog( @"      mob [%@] at health [%d] ", currentMob, (int)[currentMob currentHealth]);
 
 			// attempting to prevent the beginning to run off before looting becomes active
 //			if (([currentMob isDead])&&([currentMob currentHealth] <1)) {

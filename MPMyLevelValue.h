@@ -22,7 +22,7 @@
  *	}
  *  </pre>
  *
- *  In the definition of $MaxDistance, an MPMyLevelValue would be used to represent $MyLevel.
+ *  In the definition of $MaxLevel, an MPMyLevelValue would be used to represent $MyLevel.
  */
 @interface MPMyLevelValue : MPValue {
 }

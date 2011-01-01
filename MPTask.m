@@ -22,7 +22,9 @@
 #import "MPTaskPull.h"
 #import "MPTaskLoot.h"
 #import "MPTaskGhostRoute.h"
+#import "MPTaskGhostwalk.h"
 #import "MPTaskWait.h"
+#import "MPTaskHotspots.h"
 #import "MPParser.h"
 #import "MPValue.h"
 #import "MPValueInt.h"
@@ -399,7 +401,7 @@
 			
 		} else {
 			// not valid array format: assume single entry string and return that in an array
-			PGLog(@"MPTask->arrayStringsFromVariable( %@ ) : data format not proper array.  Assuming single entry string." );
+			PGLog(@"MPTask->arrayStringsFromVariable( %@ ) : data format not proper array.  Assuming single entry string.", varData);
 			
 			tempStrings = [NSMutableArray array];
 			[tempStrings addObject:varData];
@@ -462,7 +464,7 @@
 			
 		} else {
 			// not valid array format: assume single entry string and return that in an array
-			PGLog(@"MPTask->arrayNumbersFromVariable( %@ ) : data format not proper array.  Assuming single entry string." );
+			PGLog(@"MPTask->arrayNumbersFromVariable( %@ ) : data format not proper array.  Assuming single entry string.", varData );
 			
 			if ([type isEqualToString:@"int"]) {
 				[compileNumbers addObject:[NSNumber numberWithInt:[varData intValue]]];
@@ -596,6 +598,14 @@
 }
 
 
+
+- (float) myDistanceToPosition2D:(Position *)position {
+	
+	Position *playerPosition = [[patherController playerData] position];
+	return [playerPosition distanceToPosition2D: position];
+}
+
+
 - (Position *) myPosition {
 	return [[patherController playerData] position];
 }
@@ -662,6 +672,12 @@
 	}
 	if ([lcTaskName isEqualToString:@"ghostroute"]) {
 		return [MPTaskGhostRoute initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"ghostwalk"]) {
+		return [MPTaskGhostwalk initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"hotspots"]) {
+		return [MPTaskHotspots initWithPather:controller];
 	}
 	if ([lcTaskName isEqualToString:@"loot"]) {
 		return [MPTaskLoot initWithPather:controller];

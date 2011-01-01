@@ -16,7 +16,7 @@
 	
 	float manualAdjustmentX, manualAdjustmentY;
 	float viewWidth, viewHeight;
-	float scaleSetting;
+	float scaleSetting, adjXSetting, adjYSetting;
 	
 	float playerDotRadius;
 	
@@ -27,6 +27,7 @@
 }
 @property (retain) NSArray *displayedSquares;
 @property (readwrite) float scaleSetting;
+@property (readwrite) float adjXSetting, adjYSetting;
 @property (readonly) float viewWidth, viewHeight;
 
 @end

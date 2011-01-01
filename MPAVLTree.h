@@ -18,6 +18,7 @@
 - (void) addObject: (id) object withValue: (float) value;
 - (void) removeObjectWithValue: (float) value;
 - (id) objectForValue: (float) value;
+- (id) objectForLowestValue;
 
 
 - (void) balanceTreeStartingAtNode: (MPTreeNode*) currentNode;

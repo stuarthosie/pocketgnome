@@ -48,6 +48,7 @@
 	
 	//// Interface Objects
 	IBOutlet NSTextField* pathView;
+	IBOutlet NSTextField* pathDataFolderView;
 	IBOutlet NSOutlineView* taskOutlineView;
 	IBOutlet NSButton* startBotButton;
 	IBOutlet NSButton* pauseBotButton;
@@ -69,19 +70,27 @@
 	//// NavMesh Interface Objects
 	IBOutlet MPNavMeshView *navMeshView;
 	IBOutlet NSButton *navMeshLiveUpdating;
-	IBOutlet NSSlider *scaleSlider;
+
+	
+
 	IBOutlet MPNavigationController *navigationController;
 	IBOutlet NSButton *enableGraphAdjustments;
+	IBOutlet NSButton *enableGraphOptimizations;
 	IBOutlet NSTextField *zToleranceText;
 	IBOutlet NSMatrix *updateModeOptions;
 	IBOutlet NSTextField *scaleValue;
-	IBOutlet NSSlider *areaSlider;
+//	IBOutlet NSSlider *areaSlider;
 	IBOutlet NSTextField *areaValue;
 	IBOutlet NSTextField *labelNumSquares;
 	IBOutlet NSTextField *labelNumPoints;
 	IBOutlet NSTextField *labelCurrentPosition;
 	
 	IBOutlet NSTextField *textboxDestLocation;
+	
+	// Manual View Movement
+	IBOutlet NSButton *enableManualGraphMovement;
+	IBOutlet NSTextField *textboxManualLocation;
+	IBOutlet NSTextField *adjXValue; // the textual value for the location adjustments
 	
 	
 	// the patherPanel
@@ -97,6 +106,9 @@
 	NSTimer *timerPerformanceCycle;
 	NSTimer *timerMPMover;
 	
+	NSTimer *timerGraphBuilder;
+	NSTimer *timerGraphOptimizations;
+	
 	MPTimer *timerWorkTime;
 	
 	NSMutableArray *unitsLootBlacklisted;  // when looting mob failed, don't try again.
@@ -110,6 +122,7 @@
 	BOOL isThreadStartedNavMeshView, isThreadStartedNavMeshAdjustments;
 	
 	MPLocation *deleteMeRouteDest;
+	
 	
 }
 @property (readonly) MPTaskController *taskController;
@@ -125,7 +138,7 @@
 @property (readonly) Controller *controller;
 @property (readonly) MPNavigationController *navigationController;
 
-@property (retain) NSTimer *timerCheckPatherStopConditions, *timerEvaluateTasks, *timerProcessCurrentActivity, *timerUpdateUI, *timerPerformanceCycle, *timerMPMover;
+@property (retain) NSTimer *timerCheckPatherStopConditions, *timerEvaluateTasks, *timerProcessCurrentActivity, *timerUpdateUI, *timerPerformanceCycle, *timerMPMover, *timerGraphBuilder, *timerGraphOptimizations;
 @property (retain) MPTimer *timerWorkTime;
 
 @property (retain) NSMutableArray *unitsLootBlacklisted;
@@ -134,6 +147,9 @@
 @property (readonly) NSString *sectionTitle;
 @property NSSize minSectionSize;
 @property NSSize maxSectionSize;
+
+@property (readonly) NSTextField *textboxManualLocation;
+@property (readonly) NSButton *enableManualGraphMovement, *enableGraphOptimizations;
 
 @property (retain) NSMutableArray *listCustomClasses;
 @property (retain) MPCustomClass *customClass;
@@ -153,6 +169,22 @@
  */
 - (IBAction) findFile: sender;
 
+
+
+/*!
+ * @function findDataPath
+ * @abstract Responds to the Find Data Path button.
+ * @discussion
+ *	This routine is responsible for letting the user select the directory for Pather to store/look for it's data. 
+ */
+- (IBAction) findDataPath: sender ;
+
+
+// for testing purposes:
+- (IBAction) optimizePass: sender;
+- (IBAction) loadDB: sender ;
+- (IBAction) testDB: sender ;
+- (IBAction) testStartOptimizationThread: sender;
 
 
 /*!
@@ -213,6 +245,18 @@
  */
 - (IBAction) changeNavMeshScale: sender;
 
+
+
+//// methods for manually traversing the NavMesh:
+//// For testing purposes
+- (MPLocation *) locationManualLocation;
+- (IBAction) modifyManualLocationUP : sender;
+- (IBAction) modifyManualLocationDOWN : sender;
+- (IBAction) modifyManualLocationLEFT : sender;
+- (IBAction) modifyManualLocationRIGHT : sender;
+- (IBAction) optimizeCurrentSquare: sender;
+
+
 /*!
  * @function changeNavMeshScaleFromText
  * @abstract Responds to a change in the Scale textbox value
@@ -232,22 +276,9 @@
 
 
 
+- (IBAction) manualGraphAdjustment: sender ;
 
-/*!
- * @function changeAreaScale
- * @abstract Responds to the slider to change the Area to update
- * @discussion
- *	
- */
-- (IBAction) changeAreaScale: sender;
 
-/*!
- * @function changeAreaFromText
- * @abstract Responds to a change in the Area textbox value
- * @discussion
- *	
- */
-- (IBAction) changeAreaFromText: sender;
 
 /*!
  * @function updateUI
@@ -256,6 +287,7 @@
  *	Makes sure the stats in the UI are updated. 
  */
 - (void) updateUI;
+
 
 
 #pragma mark -

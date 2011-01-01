@@ -15,7 +15,7 @@
 
 - (NSInteger) value {
 	
-	return [patherController getMyLevel]; // until we get this reading from PG
+	return [[patherController playerData] level]; 
 }
 
 

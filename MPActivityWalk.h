@@ -9,9 +9,17 @@
 #import <Cocoa/Cocoa.h>
 #import "MPActivity.h"
 @class MPCustomClass;
+@class MPLocation;
 @class MPMover;
 @class MovementController;
 @class Route;
+@class MPTimer;
+
+typedef enum WalkState { 
+    WalkStateGeneratingRoute   = 1,
+	WalkStateWalkWhileGenerating = 2,
+    WalkStateMoving = 3
+} MPWalkState; 
 
 
 /*!
@@ -40,15 +48,22 @@
 	BOOL useMount;
 	MovementController *movementController;
 	MPCustomClass *customClass;
+	
+	MPLocation *destinationLocation;
+	MPWalkState state;
+	MPTimer *timerTooLong;
+	float howClose;
 }
 @property (retain) NSArray *listLocations;
 @property (retain) MPCustomClass *customClass;
 @property (retain) MPMover *mover;
 @property (retain) MovementController *movementController;
+@property (retain) MPLocation *destinationLocation;
+@property (retain) MPTimer *timerTooLong;
 
 
 - (id) initWithRoute: (Route*)aRoute andTask:(MPTask*)aTask usingMount:(BOOL)mount;
-
+- (id) initWithLocation: (MPLocation*)destination andTask:(MPTask*)aTask usingMount:(BOOL)mount;
 
  
 #pragma mark -

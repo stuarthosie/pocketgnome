@@ -8,6 +8,8 @@
 
 #import "MPMyClassValue.h"
 #import "PatherController.h"
+#import "PlayerDataController.h"
+#import "Unit.h"
 
 @implementation MPMyClassValue
 
@@ -22,7 +24,8 @@
 
 - (NSString *) value {
 	
-	return [patherController getMyClass]; // until we get this reading from PG
+	Player *player = [[patherController playerData] player];
+	return [Unit stringForClass:[player unitClass]];
 }
 
 

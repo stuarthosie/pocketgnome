@@ -70,6 +70,17 @@
 }
 
 
+
+- (NSString *) describe {
+	
+	NSMutableString *description = [NSMutableString stringWithString:@"PathNode ["];
+	
+	[description appendString:[square describe]];
+	[description appendFormat:@" cost:%0.2f ]", [self cost]];
+	return description;
+}
+
+
 #pragma mark -
 
 +(id)node

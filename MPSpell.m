@@ -157,7 +157,7 @@
 		}
 	}
 	
-	PGLog(@"     == spellID[%@] id[%d] rank[%d]",name,  spellID, currentRank);
+	PGLog(@"     == spellID[%@] id[%d] rank[%d]",name,  (int)spellID, currentRank);
 	// end if
 }
 

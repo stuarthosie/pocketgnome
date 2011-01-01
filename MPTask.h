@@ -408,6 +408,15 @@ typedef enum TaskStatus {
 
 
 /*! 
+ * @function myDistanceToPosition2D
+ * @abstract Returns the distance from your character to the given position using only X,Y coord.
+ * @discussion
+ */
+- (float) myDistanceToPosition2D:(Position *)position;
+
+
+
+/*! 
  * @function myPosition
  * @abstract Returns the player's current position.
  * @discussion

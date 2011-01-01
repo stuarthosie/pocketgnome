@@ -33,6 +33,12 @@
 - (void) removeContainingSquare: (MPSquare *) aSquare;
 - (MPSquare *) squareWherePointIsInPosition: (int) position;
 
+- (BOOL) canQuadReduce;
+- (MPSquare *) upperLeftSquare;
+- (MPSquare *) upperRightSquare;
+- (MPSquare *) lowerLeftSquare;
+- (MPSquare *) lowerRightSquare;
+
 - (NSString *) describe;
 
 + (MPPoint *) pointAtX: (float)locX Y:(float) locY Z:(float) locZ;

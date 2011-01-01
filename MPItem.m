@@ -118,7 +118,7 @@
 			if ( [currID isEqualToNumber:[NSNumber numberWithInt:[item entryID]]] ) {
 				
 				// we found this item
-				PGLog( @"       --> item[%@]:: Found item [%@] id[%d] ",[self name], [item name], [item entryID]);
+				PGLog( @"       --> item[%@]:: Found item [%@] id[%d] ",[self name], [item name], (int)[item entryID]);
 				
 				count = [inventoryController collectiveCountForItemInBags: item];
 				if (count > 0) {
@@ -172,7 +172,7 @@
 
 	}
 	
-	PGLog(@"     == item[%@] actionID[%d] ",name,  actionID);
+	PGLog(@"     == item[%@] actionID[%d] ",name,  (int)actionID);
 	// end if
 }
 
