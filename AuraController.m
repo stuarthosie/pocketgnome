@@ -136,7 +136,7 @@ typedef struct WoWAura {
         if([wowMemory loadDataForObject: self atAddress: ([unit baseAddress] + BaseField_Auras_OverflowPtr1) Buffer: (Byte*)&newAddr BufLength: sizeof(newAddr)] && newAddr) {
             aurasAddress = newAddr;
         } else {
-            log(LOG_GENERAL, @"[Auras] Error finding aura overflow pointer.");
+            log(LOG_DEV, @"[Auras] Error finding aura overflow pointer.");
             return nil;
         }
     }

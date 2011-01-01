@@ -25,9 +25,10 @@
 #import "Spell.h"
 #import "Player.h"
 #import "Position.h"
-#import "PlayersController.h"
 
 #import "ImageAndTextCell.h"
+
+#import "PvPBehavior.h"
 
 #import <Growl/GrowlApplicationBridge.h>
 
@@ -45,6 +46,7 @@
 
 - (void)setHorizontalDirectionFacing: (float)direction; // [0, 2pi]
 - (void)setVerticalDirectionFacing: (float)direction;   // [-pi/2, pi/2]
+- (NSDictionary*)CGPlayer_C__GetSkillIndexById:(int)zeID;
 @end
 
 @implementation PlayerDataController
@@ -802,7 +804,7 @@ static PlayerDataController* sharedController = nil;
 
 - (UInt32)stateFlags {
     UInt32 value = 0;
-    [[controller wowMemoryAccess] loadDataForObject: self atAddress: [[self player] unitFieldAddress] + UNIT_FIELD_FLAGS_2 Buffer: (Byte *)&value BufLength: sizeof(value)];
+    [[controller wowMemoryAccess] loadDataForObject: self atAddress: [[self player] unitFieldAddress] + UNIT_FIELD_FLAGS Buffer: (Byte *)&value BufLength: sizeof(value)];
     return value;
     
     // polymorph sets bits 22 and 29
@@ -1340,12 +1342,14 @@ static PlayerDataController* sharedController = nil;
 
 - (BOOL)isInBG:(int)zone{
 	switch(zone){
-		case 4384:	// Strand of the Ancients
-		case 3358:	// Arathi Basin
-		case 3277:	// Warsong Gulch
-		case 2597:	// Alterac Valley
-		case 3820:	// Eye of the Storm
-		case 4710:	// Isle of Conquest
+		case ZoneStrandOfTheAncients:
+		case ZoneArathiBasin:
+		case ZoneWarsongGulch:
+		case ZoneAlteracValley:
+		case ZoneEyeOfTheStorm:
+		case ZoneIsleOfConquest:
+		case ZoneTwinPeaks:
+		case ZoneBattleForGilneas:
 			return YES;
 		default:
 			return NO;
@@ -1421,6 +1425,100 @@ static PlayerDataController* sharedController = nil;
 	}
 	
 	return NO;
+}
+
+#pragma mark Skills
+
+#import "SkillLineInfo.h"
+
+- (int)getMiningLevel{
+	NSDictionary *dict = [self CGPlayer_C__GetSkillIndexById:Mining];
+	if ( dict ){
+		return [[dict objectForKey:@"Value"] intValue];
+	}
+	return -1;
+}
+
+- (int)getSkinningLevel{
+	NSDictionary *dict = [self CGPlayer_C__GetSkillIndexById:Skinning];
+	if ( dict ){
+		return [[dict objectForKey:@"Value"] intValue];
+	}
+	return -1;
+}
+
+- (int)getHerbalismLevel{
+	NSDictionary *dict = [self CGPlayer_C__GetSkillIndexById:Herbalism];
+	if ( dict ){
+		return [[dict objectForKey:@"Value"] intValue];
+	}
+	return -1;
+}
+
+- (int)getMiningMaxLevel{
+	NSDictionary *dict = [self CGPlayer_C__GetSkillIndexById:Mining];
+	if ( dict ){
+		return [[dict objectForKey:@"MaxValue"] intValue];
+	}
+	return -1;
+}
+
+- (int)getSkinningMaxLevel{
+	NSDictionary *dict = [self CGPlayer_C__GetSkillIndexById:Skinning];
+	if ( dict ){
+		return [[dict objectForKey:@"MaxValue"] intValue];
+	}
+	return -1;
+}
+
+- (int)getHerbalismMaxLevel{
+	NSDictionary *dict = [self CGPlayer_C__GetSkillIndexById:Herbalism];
+	if ( dict ){
+		return [[dict objectForKey:@"MaxValue"] intValue];
+	}
+	return -1;
+}
+
+typedef struct PlayerSkillInfo
+{
+    int16_t Id;
+    int16_t SkillStep;
+    int16_t Value;
+    int16_t MaxValue;
+    int16_t Modifier;
+    int16_t Bonus;
+} PlayerSkillInfo;
+
+- (NSDictionary*)CGPlayer_C__GetSkillIndexById:(int)zeID{
+	
+	UInt32 playerBase = [[self player] baseAddress];
+	
+	UInt32 skillPtrBase = 0x0;
+	[[controller wowMemoryAccess] loadDataForObject: self atAddress:playerBase + [offsetController offset:@"PlayerField_Pointer"] Buffer: (Byte *)&skillPtrBase BufLength: sizeof(skillPtrBase)];
+	
+	int offset = 0, skillInfoOffset = [offsetController offset:@"SkillLineOffset"];
+	PlayerSkillInfo skillInfo;
+	//NSLog(@"%d", (unsigned int)sizeof(skillInfo));
+	
+	do{
+		// read the struct!
+		[[controller wowMemoryAccess] loadDataForObject: self atAddress:skillPtrBase + offset + skillInfoOffset Buffer: (Byte *)&skillInfo BufLength: sizeof(skillInfo)];
+		
+		// match? return it!
+		if ( zeID == skillInfo.Id ){
+			NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
+								  [NSNumber numberWithInt:skillInfo.Value], 
+								  @"Value", 
+								  [NSNumber numberWithInt:skillInfo.MaxValue], 
+								  @"MaxValue", 
+								  nil];
+			return [[dict retain] autorelease];		
+		}
+		
+		offset += 12;
+	} while ( offset < 0x600 );
+	
+	return nil;	
 }
 
 @end

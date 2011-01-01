@@ -345,7 +345,7 @@ enum NPCFlags
 	}
 	// percentage
 	else{
-		return [self maxPowerOfType:powerType];
+		return [self percentPowerOfType:powerType];
 	}
 	
 	return 0;
@@ -515,6 +515,9 @@ enum NPCFlags
             break;
         case UnitRace_Skeleton:
             string = @"Skeleton";
+            break;
+		case UnitRace_Worgen:
+			string = @"Worgen";
             break;
         default:
             string = @"Unknown";
@@ -978,7 +981,7 @@ enum SheathState
                 desc = @"Eclipse Power, Current";
                 break;
 			case UNIT_FIELD_POWER10:
-                desc = @"Power 10";
+                desc = @"Holy Power";
                 break;
 			case UNIT_FIELD_POWER11:
                 desc = @"Power 11";
@@ -1015,7 +1018,7 @@ enum SheathState
                 desc = @"Eclipse Power, Max";
                 break;
 			case UNIT_FIELD_MAXPOWER10:
-                desc = @"Power 10, Max";
+                desc = @"Holy Power, Max";
                 break;
 			case UNIT_FIELD_MAXPOWER11:
                 desc = @"Power 11, Max";

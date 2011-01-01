@@ -188,9 +188,10 @@ static InventoryController *sharedInventory = nil;
     int count = 0;
 	int itemEntryID = [refItem entryID];    // cache this, saves on memory reads
     for ( Item* item in [self itemsInBags] ) {
-        if ( [item entryID] == itemEntryID ) {
+		if ( [item entryID] == itemEntryID ) {
             count += [item count];
-        }
+		}
+
     }
     //log(LOG_ITEM, @"Found count %d for item %@", count, refItem);
     return count;
@@ -449,7 +450,6 @@ static InventoryController *sharedInventory = nil;
 	// loop through all of our items to find
 	for ( Item *item in _objectList ){
 		NSNumber *itemContainerGUID = [NSNumber numberWithLongLong:[item containerUID]];
-		
 		if ( [GUIDsBagsOnPlayer containsObject:itemContainerGUID] ){
 			[items addObject:item];
 		}
@@ -560,16 +560,6 @@ static InventoryController *sharedInventory = nil;
 			if ( allItems[k][j] != nil ){
 				Item *item = allItems[k][j];
 				
-				// remove exclusions
-				if ( exclusions != nil ){
-					for ( NSString *itemName in exclusions ){
-						if ( [[item name] isCaseInsensitiveLike:itemName] ){
-							log(LOG_ITEM, @"[Mail] Removing item %@ to be mailed", item);
-							allItems[k][j] = nil;
-						}
-					}
-				}
-				
 				// check for inclusions
 				if ( inclusions != nil ){
 					BOOL found = NO;
@@ -578,9 +568,6 @@ static InventoryController *sharedInventory = nil;
 							found = YES;
 							log(LOG_ITEM, @"[Mail] Saving %@ to be mailed", item);
 							itemsMailed++;
-							
-							// in case our exclusion removed it
-							allItems[k][j] = item;
 						}
 					}
 					
@@ -588,6 +575,16 @@ static InventoryController *sharedInventory = nil;
 					if ( !found ){
 						log(LOG_ITEM, @"[Mail] Removing %@ to be mailed", item);
 						allItems[k][j] = nil;
+					}
+				}
+				// remove exclusions
+				if ( exclusions != nil ){
+					for ( NSString *itemName in exclusions ){
+						if ( [[item name] isCaseInsensitiveLike:itemName] ){
+							log(LOG_ITEM, @"[Mail] Removing item %@ to be mailed", item);
+							itemsMailed--;
+							allItems[k][j] = nil;
+						}
 					}
 				}
 			}
@@ -625,7 +622,7 @@ static InventoryController *sharedInventory = nil;
 				itemsMailed -= totalAdded;
 				
 				// send the mail
-				NSString *macroCommand = [NSString stringWithFormat:@"/script SendMail( \"%@\", \" \", \" \");", profile.sendTo];
+				NSString *macroCommand = [NSString stringWithFormat:@"/script SendMail( \"%@\", \"\", \"\");", profile.sendTo];
 				[macroController useMacroOrSendCmd:macroCommand];
 				usleep(100000);
 				totalAdded = 0;

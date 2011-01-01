@@ -336,6 +336,17 @@ enum ItemFlags
 	return _itemFieldsAddress; 
 }
 
+- (UInt32)containerFieldsAddress{
+	if ( _containerFieldsAddress ){
+		return _containerFieldsAddress;
+	}
+	
+	// read it
+	[_memory loadDataForObject: self atAddress: ([self baseAddress] + CONTAINER_FIELDS_PTR) Buffer: (Byte *)&_containerFieldsAddress BufLength: sizeof(_containerFieldsAddress)];
+	
+	return _containerFieldsAddress; 
+}
+
 #pragma mark -
 
 - (NSString*)name {
@@ -921,7 +932,7 @@ enum ItemFlags
 - (UInt32)bagSize {
     if([self isBag]) {
         UInt32 value = 0;
-        if([_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + CONTAINER_FIELD_NUM_SLOTS) Buffer: (Byte *)&value BufLength: sizeof(value)])
+        if([_memory loadDataForObject: self atAddress: ([self containerFieldsAddress] + CONTAINER_FIELD_NUM_SLOTS) Buffer: (Byte *)&value BufLength: sizeof(value)])
             return value;
     }
     return 0;
@@ -934,7 +945,7 @@ enum ItemFlags
 
     if ( [self isBag] ) {
         UInt64 value = 0;
-        if([_memory loadDataForObject: self atAddress: ([self itemFieldsAddress] + CONTAINER_FIELD_SLOT_1 + (CONTAINER_FIELD_SLOT_SIZE*(slotNum-1)) ) Buffer: (Byte *)&value BufLength: sizeof(value)])
+        if([_memory loadDataForObject: self atAddress: ([self containerFieldsAddress] + CONTAINER_FIELD_SLOT_1 + (CONTAINER_FIELD_SLOT_SIZE*(slotNum-1)) ) Buffer: (Byte *)&value BufLength: sizeof(value)])
             return value;
     }
 	

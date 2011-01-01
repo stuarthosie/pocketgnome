@@ -27,4 +27,6 @@
 - (void)removeWaypointAtIndex: (unsigned)index;
 - (void)removeAllWaypoints;
 
+- (Route*)routeFromWP:(Waypoint*)fromWP toWP:(Waypoint*)toWP;
+
 @end

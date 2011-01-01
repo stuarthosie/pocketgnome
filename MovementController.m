@@ -159,7 +159,7 @@ typedef enum MovementState{
 		_performingActions = NO;
 		_isActive = NO;
 		self.isFollowing = NO;
-		
+
 		// PPather
 		closeEnough = 5.0f;
 
@@ -1056,7 +1056,7 @@ typedef enum MovementState{
 		log(LOG_MOVEMENT, @"[%d] Check current position.", _positionCheck);
 	}
 
-	Player *player=[playerData player];
+	Player *player = [playerData player];
 
 	// If we're in the air, but not air mounted we don't try to correct movement unless we are CTM
 	if ( [self movementType] != MovementType_CTM && ![player isOnGround] && ![playerData isAirMounted] && ![player isSwimming] ) {
@@ -1066,9 +1066,9 @@ typedef enum MovementState{
 
 	Position *playerPosition = [player position];
 	float playerSpeed = [playerData speed];
-    Position *destPosition;
-	float distanceToDestination;
-	float stopingDistance;
+    Position *destPosition = nil;
+	float distanceToDestination = 0.0f;
+	float stopingDistance = 0.0f;
 
 	/*
 	 * Being called from the UI
@@ -1114,13 +1114,13 @@ typedef enum MovementState{
 		// Since we're moving to a UI waypoint we don't do any stuck checking
 		return;
 		
-	} else
+	}
 
 	/*
 	 * We are in Follow mode
 	 */
 
-	if ( self.isFollowing ) {
+	else if ( self.isFollowing ) {
 
 		// Check to see if we're close to the follow unit enough to stop.
 		if ( botController.followUnit && [botController.followUnit isValid] ) {
@@ -1181,13 +1181,13 @@ typedef enum MovementState{
 			}
 		}
 
-	} else
+	}
 
 	/*
 	 * Moving to a Node
 	 */
 
-	if (_moveToObject && [_moveToObject isKindOfClass: [Node class]] ) {
+	else if (_moveToObject && [_moveToObject isKindOfClass: [Node class]] ) {
 		destPosition = [_moveToObject position];
 		distanceToDestination = [playerPosition distanceToPosition: destPosition];
 
@@ -1210,7 +1210,7 @@ typedef enum MovementState{
 
 		if ( distanceToDestination > 20.0f ) {
 			// If we're not supposed to loot this node due to proximity rules
-			BOOL nearbyScaryUnits = [botController scaryUnitsNearNode:_moveToObject doMob:botController.theCombatProfile.GatherNodesMobNear doFriendy:botController.theCombatProfile.GatherNodesFriendlyPlayerNear doHostile:botController.theCombatProfile.GatherNodesHostilePlayerNear];
+			BOOL nearbyScaryUnits = [botController scaryUnitsNearNode:_moveToObject doMob:botController.theCombatProfile.GatherNodesMobNear doFriendy:botController.theCombatProfile.GatherNodesFriendlyPlayerNear doHostile:botController.theCombatProfile.GatherNodesHostilePlayerNear doElite:botController.theCombatProfile.GatherNodesEliteNear];
 
 			if ( nearbyScaryUnits ) {
 				log(LOG_NODE, @"Skipping node due to proximity count");
@@ -1239,13 +1239,13 @@ typedef enum MovementState{
 			return;
 		}
 
-	} else
+	}
 
 	/*
 	 * Moving to loot a mob
 	 */
 
-	if ( _moveToObject && [_moveToObject isKindOfClass: [Mob class]] && botController.mobsToLoot && [botController.mobsToLoot containsObject: (Mob*)_moveToObject]  ) {
+	else if ( _moveToObject && [_moveToObject isKindOfClass: [Mob class]] && botController.mobsToLoot && [botController.mobsToLoot containsObject: (Mob*)_moveToObject]  ) {
 		destPosition = [_moveToObject position];
 		distanceToDestination = [playerPosition distanceToPosition: destPosition];
 
@@ -1284,13 +1284,13 @@ typedef enum MovementState{
 			return;
 		}
 
-	} else
+	}
 
 	/*
 	 * Moving to an object
 	 */
 
-	if ( _moveToObject ) {
+	else if ( _moveToObject ) {
 		destPosition = [_moveToObject position];
 		distanceToDestination = [playerPosition distanceToPosition: destPosition];
 
@@ -1314,13 +1314,13 @@ typedef enum MovementState{
 			return;
 		}
 
-	} else
+	}
 
 	/*
 	 * Moving to a waypoint on a route
 	 */
 
-	if ( self.destinationWaypoint ) {
+	else if ( self.destinationWaypoint ) {
 
 		destPosition = [_destinationWaypoint position];
 		distanceToDestination = [playerPosition distanceToPosition: destPosition];
@@ -1360,13 +1360,13 @@ typedef enum MovementState{
 			return;
 		}
 
-	} else
+	}
 
 	/*
 	 * If it's not moveToObject and no destination waypoint then we must have called moveToPosition by it's self (perhaps to a far off waypoint)
 	 */
 
-	if ( self.lastAttemptedPosition ) {
+	else if ( self.lastAttemptedPosition ) {
 
 		destPosition = self.lastAttemptedPosition;
 		distanceToDestination = [playerPosition distanceToPosition: destPosition];
@@ -1390,7 +1390,8 @@ typedef enum MovementState{
 			return;
 		}
 
-	} else {
+	}
+	else {
 
 		log(LOG_ERROR, @"Somehow we' cant tell what we're moving to!?");
 		[botController performSelector: @selector(evaluateSituation) withObject: nil afterDelay: 0.25f];
@@ -1424,6 +1425,7 @@ typedef enum MovementState{
 
 		if ( ([[NSDate date] timeIntervalSinceDate: self.lastJumpTime] > self.jumpCooldown ) ) {
 			[self jump];
+			log(LOG_MOVEMENT, @"Jumping!")
 			return;
 		}
 	}
@@ -1432,8 +1434,11 @@ typedef enum MovementState{
 	if ( _positionCheck <= 2 ) {
 		
 		// Check evaluation to see if we need to do anything
-		if ( !botController.evaluationIsActive && !botController.procedureInProgress ) 
+		if ( !botController.evaluationIsActive && !botController.procedureInProgress ) {
 			[botController performSelector: @selector(evaluateSituation) withObject: nil afterDelay: 0.1f];
+		}
+		
+		log(LOG_MOVEMENT, @"Hasn't been 0.5 seconds, not checking anything!")
 		
 		return;
 	}
@@ -1474,13 +1479,38 @@ typedef enum MovementState{
 		float maxSpeed = [playerData speedMax];
 		float distanceTraveled = [self.lastPlayerPosition distanceToPosition:playerPosition];
 
-//		log(LOG_DEV, @" Checking speed: %0.2f <= %.02f  (max: %0.2f)", playerSpeed, (maxSpeed/10.0f), maxSpeed );
-//		log(LOG_DEV, @" Checking distance: %0.2f <= %0.2f", distanceTraveled, (maxSpeed/10.0f)/5.0f);
+		log(LOG_DEV, @" Checking speed: %0.2f <= %.02f  (max: %0.2f)", playerSpeed, (maxSpeed/10.0f), maxSpeed );
+		log(LOG_DEV, @" Checking distance: %0.2f <= %0.2f", distanceTraveled, (maxSpeed/10.0f)/5.0f);
 
 		// distance + speed check
 		if ( distanceTraveled <= (maxSpeed/10.0f)/5.0f || playerSpeed <= maxSpeed/10.0f ) {
 			log(LOG_DEV, @"Incrementing the stuck counter! (playerSpeed: %0.2f)", playerSpeed);
 			_stuckCounter++;
+		}
+		
+		// check to see if we're flying off into space...
+		if ( distanceToDestination > 300.0f ){
+			
+			// check to see if we're even facing the right position
+			if ( destPosition ){
+				
+				float angleTo = [destPosition angleTo:playerPosition];
+				float vertAngleTo = [destPosition verticalAngleTo:playerPosition];
+				
+				float facing = [playerData directionFacing];
+				
+				if ( fabsf( angleTo - facing ) > 0.1 ){
+					log(LOG_MOVEMENT, @" flying the wrong way! %02.f", fabsf( angleTo - facing ));
+					[self moveUpStop];
+					[self resumeMovement];
+					return;
+				}
+
+				log(LOG_MOVEMENT, @" %0.2f==%0.2f  %0.2f", angleTo, facing, vertAngleTo);
+			}
+			else{
+				log(LOG_MOVEMENT, @"ERROR: Distance to destination is %0.2f > 300.0f yet we don't have a destination?", distanceToDestination);
+			}
 		}
 
 		self.lastPlayerPosition = playerPosition;
@@ -2041,21 +2071,22 @@ typedef enum MovementState{
 	// We're not set to use a route so do nothing
 	if ( ![[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey: @"UseRoute"] boolValue] ) return;
 
+	// now switching to our corpse run route!
+	self.currentRouteKey = CorpseRunRoute;
+	
 	// switch back to starting route?
 	if ( [botController.theRouteCollection startRouteOnDeath] ) {
-
-		self.currentRouteKey = CorpseRunRoute;
 		self.currentRouteSet = [botController.theRouteCollection startingRoute];
 		if ( !self.currentRouteSet ) self.currentRouteSet = [[botController.theRouteCollection routes] objectAtIndex:0];
-		self.currentRoute = [self.currentRouteSet routeForKey:CorpseRunRoute];
 		log(LOG_MOVEMENT, @"Player Died, switching to main starting route! %@", self.currentRoute);
 	}
 	// be normal!
 	else{
 		log(LOG_MOVEMENT, @"Player Died, switching to corpse route");
-		self.currentRouteKey = CorpseRunRoute;
-		self.currentRoute = [self.currentRouteSet routeForKey:CorpseRunRoute];
 	}
+	
+	// set our current route!
+	self.currentRoute = [self.currentRouteSet routeForKey:CorpseRunRoute];
 
 	if ( self.currentRoute && [[self.currentRoute waypoints] count] == 0  ){
 		log(LOG_MOVEMENT, @"No corpse route! Ending movement");
@@ -2371,6 +2402,7 @@ typedef enum MovementState{
 #pragma mark Helpers
 
 - (void)establishPosition {
+	log(LOG_MOVEMENT, @"establishPosition");
     [self moveForwardStart];
     usleep(100000);
     [self moveForwardStop];
@@ -2378,6 +2410,7 @@ typedef enum MovementState{
 }
 
 - (void)backEstablishPosition {
+	log(LOG_MOVEMENT, @"backEstablishPosition");
     [self moveBackwardStart];
     usleep(100000);
     [self moveBackwardStop];
@@ -2829,19 +2862,32 @@ typedef enum MovementState{
 
 		// macro
 		else if ( [action type] == ActionType_Macro ) {
-
-			UInt32 macroID = [[[action value] objectForKey:@"MacroID"] unsignedIntValue];
 			BOOL instant = [[[action value] objectForKey:@"Instant"] boolValue];
-			UInt32 actionID = (USE_MACRO_MASK + macroID);
-			
-			log(LOG_WAYPOINT, @"Using macro %d", macroID);
-			
-			// only pause movement if we have to!
-			if ( !instant )
-				[self stopMovement];
-			_isActive = YES;
 
-			[botController performAction:actionID];
+			if([[action value] objectForKey:@"EnteredMacro"] == nil || ![[[action value] objectForKey:@"EnteredMacro"] boolValue]) {
+				UInt32 macroID = [[[action value] objectForKey:@"MacroID"] unsignedIntValue];
+				UInt32 actionID = (USE_MACRO_MASK + macroID);
+				
+				log(LOG_WAYPOINT, @"Using macro %d", macroID);
+				
+				// only pause movement if we have to!
+				if ( !instant )
+					[self stopMovement];
+				_isActive = YES;
+				
+				[botController performAction:actionID];
+			}
+			else {
+				
+				NSString *macroCommand = [[action value] objectForKey:@"MacroText"];
+				if(macroCommand != nil && ![macroCommand isEqualToString:@""]) {
+					if ( !instant )
+						[self stopMovement];
+					_isActive = YES;
+					[macroController useMacroOrSendCmd:macroCommand];
+				}
+				
+			}
 		}
 		
 		// delay
@@ -3084,6 +3130,77 @@ typedef enum MovementState{
 }
 - (BOOL)shouldJump{
 	return NO;
+}
+
+#pragma mark Testing
+
+// just pass the routeset over! (note:this could be horribly more advanced if we take the FULL routecollections into account, this is VERY basic)
+- (Route*)buildBestCorpseRoute:(RouteSet*)routeSet{
+	
+	Route *corpseRoute = [routeSet routeForKey:CorpseRunRoute];										// our current corpse route
+	Route *normalRoute = [routeSet routeForKey:PrimaryRoute];		// the normal route we want to be running!
+	
+	// lets search for where we will switch from the corpse route to the normal route
+	NSArray *corpseWaypoints = [corpseRoute waypoints];
+	NSArray *normalWaypoints = [normalRoute waypoints];
+	
+	NSLog(@"finding connectors...");
+	
+	float distance = INFINITY;
+	Waypoint *corpseConnector = nil;
+	Waypoint *normalConnector = nil;
+	
+	int i = 0, j = 0;
+	
+	// brute force (we could just assume the LAST waypoint in the corpse route is what leads us into the normal route, but who knows...)
+	for ( Waypoint *c in corpseWaypoints ){
+		
+		for ( Waypoint *n in normalWaypoints ){
+			
+			float d = [[c position] distanceToPosition:[n position]];
+			
+			// found a closer connector!
+			if ( d < distance ){
+				
+				corpseConnector = c;
+				normalConnector = n;
+				
+				NSLog(@" new %0.2f < %0.2f [%d]%@ [%d]%@", d, distance, i, c, j, n );
+				
+				distance = d;
+			}
+			j++;
+		}
+		i++;
+	}
+
+	NSLog(@"searching for body...");
+	
+	// which waypoint is closest to our corpse!
+	Position *corpsePosition = [playerData corpsePosition];
+	Waypoint *closestWaypointToBody = nil;
+	distance = INFINITY;
+	for ( Waypoint *n in normalWaypoints ){
+		float d = [corpsePosition distanceToPosition:[n position]];
+		
+		if ( d < distance ){
+			
+			distance = d;
+			
+			NSLog(@" new %0.2f < %0.2f %@ by %@", d, distance, n, corpsePosition );
+			
+			closestWaypointToBody = n;
+		}
+	}
+	
+	// TO DO: if distance is > 50.0, it could be risky to just try to walk to your body in a straight line - give up?
+
+	// find quickest route from normalConnector to closestWaypointToBody
+	Route *newNormalRoute = [normalRoute routeFromWP:normalConnector toWP:closestWaypointToBody];
+	
+	NSLog(@"route: %@", newNormalRoute);
+	
+	return newNormalRoute;
 }
 
 @end

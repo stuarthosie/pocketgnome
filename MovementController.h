@@ -208,4 +208,8 @@ typedef enum MovementType {
 // PPather: moved here from .m file:
 @property (readwrite, retain) Waypoint *destinationWaypoint;
 @property (readwrite) float closeEnough;
+
+// for fun!
+- (Route*)buildBestCorpseRoute:(RouteSet*)routeSet;
+
 @end

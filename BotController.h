@@ -257,7 +257,7 @@
     IBOutlet NSButton *startStopButton;
     
     IBOutlet id attackWithinText;
-    IBOutlet id routePopup;
+    IBOutlet NSPopUpButton *routePopup;
     IBOutlet id routePvPPopup;
     IBOutlet id behaviorPopup;
     IBOutlet id behaviorPvPPopup;
@@ -371,6 +371,8 @@
 
 @property (readonly, retain) NSMutableArray *mobsToLoot;
 
+@property (readonly) NSPopUpButton *routePopup;
+
 // Pather
 @property (readwrite, assign) BOOL patherEnabled;
 @property (readwrite, assign) BOOL patherCCEnabled;
@@ -458,6 +460,7 @@
 
 // test stuff
 - (IBAction)confirmOffsets: (id)sender;
+- (IBAction)j005u: (id)sender;
 - (IBAction)test: (id)sender;
 - (IBAction)test2: (id)sender;
 - (IBAction)maltby: (id)sender;

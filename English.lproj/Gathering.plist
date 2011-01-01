@@ -361,6 +361,48 @@
 			<key>Skill</key>
 			<integer>205</integer>
 		</dict>
+		<key>Azshara&apos;s Veil</key>
+		<dict>
+			<key>Type</key>
+			<string>Herbalism</string>
+			<key>Skill</key>
+			<integer>425</integer>
+		</dict>
+		<key>Cinderbloom</key>
+		<dict>
+			<key>Type</key>
+			<string>Herbalism</string>
+			<key>Skill</key>
+			<integer>425</integer>
+		</dict>
+		<key>Stormvine</key>
+		<dict>
+			<key>Type</key>
+			<string>Herbalism</string>
+			<key>Skill</key>
+			<integer>425</integer>
+		</dict>
+		<key>Heartblossom</key>
+		<dict>
+			<key>Type</key>
+			<string>Herbalism</string>
+			<key>Skill</key>
+			<integer>475</integer>
+		</dict>
+		<key>Whiptail</key>
+		<dict>
+			<key>Type</key>
+			<string>Herbalism</string>
+			<key>Skill</key>
+			<integer>500</integer>
+		</dict>
+		<key>Twilight Jasmine</key>
+		<dict>
+			<key>Type</key>
+			<string>Herbalism</string>
+			<key>Skill</key>
+			<integer>525</integer>
+		</dict>
 	</dict>
 	<key>Mining</key>
 	<dict>
@@ -622,6 +664,48 @@
 			<string>Mining</string>
 			<key>Skill</key>
 			<integer>400</integer>
+		</dict>
+		<key>Obsidium Deposit</key>
+		<dict>
+			<key>Type</key>
+			<string>Mining</string>
+			<key>Skill</key>
+			<integer>425</integer>
+		</dict>
+		<key>Rich Obsidium Deposit</key>
+		<dict>
+			<key>Type</key>
+			<string>Mining</string>
+			<key>Skill</key>
+			<integer>450</integer>
+		</dict>
+		<key>Elementium Vein</key>
+		<dict>
+			<key>Type</key>
+			<string>Mining</string>
+			<key>Skill</key>
+			<integer>475</integer>
+		</dict>
+		<key>Rich Elementium Vein</key>
+		<dict>
+			<key>Type</key>
+			<string>Mining</string>
+			<key>Skill</key>
+			<integer>475</integer>
+		</dict>
+		<key>Pyrite Deposit</key>
+		<dict>
+			<key>Type</key>
+			<string>Mining</string>
+			<key>Skill</key>
+			<integer>475</integer>
+		</dict>
+		<key>Rich Pyrite Deposit</key>
+		<dict>
+			<key>Type</key>
+			<string>Mining</string>
+			<key>Skill</key>
+			<integer>475</integer>
 		</dict>
 	</dict>
 </dict>

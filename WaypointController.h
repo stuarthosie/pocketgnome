@@ -96,6 +96,14 @@
 	// for teh n00bs
 	BOOL _firstTimeEverOnTheNewRouteCollections;
 	IBOutlet NSPanel *helpPanel;
+	
+	// now we can auto change the coords! (I rly should stop adding new features!!)
+	IBOutlet NSMatrix *coordMatrix;
+	IBOutlet NSTextField *offsetValueTextField;
+	
+	// blacklist panel
+	IBOutlet NSPanel *blacklistPanel;
+	IBOutlet NSTableView *blacklistTable;
 }
 
 - (void)saveRoutes;
@@ -168,6 +176,14 @@
 - (IBAction)duplicateRoute: (id)sender;
 - (IBAction)showInFinder: (id)sender;
 
+- (IBAction)changeCoords: (id)sender;
+
+- (IBAction)openBlacklistPanel: (id)sender;
+- (IBAction)closeBlacklistPanel: (id)sender;
+- (IBAction)deleteBlacklistedItem: (id)sender;
+- (IBAction)addPlayerPosition: (id)sender;
+
 // TO DO: add import/export/show/duplicate
+- (void)addNewRouteCollection: (RouteCollection*)rc;
 
 @end

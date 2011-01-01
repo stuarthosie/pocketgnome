@@ -28,9 +28,11 @@
 
 #define ZoneAlteracValley			2597
 #define ZoneArathiBasin				3358
+#define ZoneBattleForGilneas		5449
 #define ZoneEyeOfTheStorm			3820
 #define ZoneIsleOfConquest			4710
 #define ZoneStrandOfTheAncients		4384
+#define ZoneTwinPeaks				5031
 #define ZoneWarsongGulch			3277
 
 @class Battleground;
@@ -38,9 +40,7 @@
 @interface PvPBehavior : FileObject {
 	
 	// battlegrounds
-	Battleground *_bgAlteracValley, *_bgArathiBasin, *_bgEyeOfTheStorm, *_bgIsleOfConquest, *_bgStrandOfTheAncients, *_bgWarsongGulch;
-	
-	
+	Battleground *_bgAlteracValley, *_bgArathiBasin, *_bgEyeOfTheStorm, *_bgIsleOfConquest, *_bgStrandOfTheAncients, *_bgWarsongGulch, *_bgTwinPeaks, *_bgBattleForGilneas;
 	
 	// Note that these are all deprecaed (in the comabt profile now), but they've been left here so we dont' screw up the object people already have stored (not sure if it would be bad to remove these?)
 	// options
@@ -55,9 +55,11 @@
 
 @property (readwrite, retain) Battleground *AlteracValley;
 @property (readwrite, retain) Battleground *ArathiBasin;
+@property (readwrite, retain) Battleground *BattleForGilneas;
 @property (readwrite, retain) Battleground *EyeOfTheStorm;
 @property (readwrite, retain) Battleground *IsleOfConquest;
 @property (readwrite, retain) Battleground *StrandOfTheAncients;
+@property (readwrite, retain) Battleground *TwinPeaks;
 @property (readwrite, retain) Battleground *WarsongGulch;
 
 @property (readwrite, assign) BOOL random;

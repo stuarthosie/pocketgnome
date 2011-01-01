@@ -51,6 +51,7 @@
 #import "BindingsController.h"
 #import "PvPController.h"
 #import "ProfileController.h"
+#import "FileController.h"
 
 #import "ChatLogEntry.h"
 #import "BetterSegmentedControl.h"
@@ -71,6 +72,7 @@
 #import "Errors.h"
 #import "PvPBehavior.h"
 #import "Battleground.h"
+#import "BlacklistItem.h"
 
 #import "ScanGridView.h"
 #import "TransparentWindow.h"
@@ -169,7 +171,7 @@
 
 - (BOOL)mountNow;
 
-- (BOOL)scaryUnitsNearNode: (WoWObject*)node doMob:(BOOL)doMobCheck doFriendy:(BOOL)doFriendlyCheck doHostile:(BOOL)doHostileCheck;
+- (BOOL)scaryUnitsNearNode: (WoWObject*)node doMob:(BOOL)doMobCheck doFriendy:(BOOL)doFriendlyCheck doHostile:(BOOL)doHostileCheck doElite:(BOOL)doEliteCheck;
 
 - (BOOL)combatProcedureValidForUnit: (Unit*)unit;
 
@@ -272,7 +274,7 @@
 	_needToTakeQueue = NO;
 	_waitForPvPPreparation = NO;
 	_isPvpMonitoring = NO;
-
+	
 	_jumpAttempt = 0;
 	_includeFriendly = NO;
 	_includeFriendlyPatrol = NO;
@@ -399,6 +401,7 @@
 @synthesize evaluationIsActive = _evaluationIsActive;
 @synthesize lootStartTime;
 @synthesize skinStartTime;
+@synthesize routePopup;
 
 @synthesize logOutAfterStuckCheckbox;
 @synthesize view;
@@ -435,6 +438,7 @@
 @synthesize mobsToLoot = _mobsToLoot;
 
 @synthesize patherEnabled, patherCCEnabled;
+
 
 - (NSString*)sectionTitle {
 	return @"Start/Stop Bot";
@@ -564,7 +568,7 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 				for ( target in units ) {
 					if ( ![target isValid] ) continue;
 					int qualityValue = [target unitPowerWithQuality:[condition quality] andType:[condition type]];
-					
+	
 					// now we have the value of the quality
 					if( [condition comparator] == CompareMore) {
 						conditionEval = ( qualityValue > [[condition value] unsignedIntValue] ) ? YES : NO;
@@ -2135,7 +2139,7 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 
 	// take the action here
 	if ( matchFound && rule ) {
-
+		
 		// Dismount if mounted.
 		if ( [player isMounted] ) [movementController dismount];
 
@@ -3509,7 +3513,8 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 	// Up to skinning 100, you can find out the highest level mob you can skin by: ((Skinning skill)/10)+10.
 	// From skinning level 100 and up the formula is simply: (Skinning skill)/5.
 	int canSkinUpToLevel = 0;
-	if (theCombatProfile.SkinningLevel <= 100) canSkinUpToLevel = (theCombatProfile.SkinningLevel/10)+10; else canSkinUpToLevel = (theCombatProfile.SkinningLevel/5);
+	int skinningLevel = [playerController getSkinningLevel];
+	if (skinningLevel <= 100) canSkinUpToLevel = (skinningLevel/10)+10; else canSkinUpToLevel = (skinningLevel/5);
 	
 	if ( canSkinUpToLevel >= [self.mobToSkin level] ) {
 		_skinAttempt = 0;
@@ -3688,7 +3693,9 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 	[self resetLootScanIdleTimer];
 
 	// Retarget ourselves
-	[playerController targetGuid:[[playerController player] cachedGUID]];
+	if ( ![fishController isFishing] ){	// don't need to do this when fishing!
+		[playerController targetGuid:[[playerController player] cachedGUID]];
+	}
 
 //	if ( self.evaluationInProgress != @"Fishing") [movementController establishPlayerPosition];
 	[self performSelector: @selector(evaluateSituation) withObject: nil afterDelay: delay];
@@ -4520,7 +4527,8 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 	}
 
 	if( ![playerController corpsePosition] ) {
-		log(LOG_DEV, @"Still not near the corpse.");
+		log(LOG_DEV, @"No corpse position, error, we will never res");
+		[controller setCurrentStatus:@"Unable to find corpse position, unable to res"];
 
 		// Make sure the movement controller has the right route
 		if ( self.theRouteSet && movementController.currentRouteSet != self.theRouteSet )
@@ -5034,7 +5042,6 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 	log(LOG_FUNCTION, @"evaluateForCombatContinuation");
 
 	if (self.theCombatProfile.ignoreFlying && [[playerController player] isFlyingMounted]) {
-		PGLog(@"wut?");
 		return NO;
 	}
 
@@ -5281,6 +5288,12 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 - (BOOL)evaluateForLoot {
 
 	if ( !theCombatProfile.ShouldLoot ) return NO;
+	
+	// Stop looting on full inventory.
+	if ( theCombatProfile.StopLoot && [itemController arePlayerBagsFull] ) {
+		log(LOG_LOOT, @"Skipping loot, inventory is full.");
+		return NO;
+	}
 
 	if ( [playerController isDead] ) {
 		log(LOG_EVALUATE, @"Skipping Loot Evaluation since playerController.isDead");		
@@ -5457,8 +5470,8 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 
 	// check for mining and herbalism
 	NSMutableArray *nodes = [NSMutableArray array];
-	if( theCombatProfile.DoMining)			[nodes addObjectsFromArray: [nodeController nodesWithinDistance: theCombatProfile.GatheringDistance ofType: MiningNode maxLevel: theCombatProfile.MiningLevel]];
-	if( theCombatProfile.DoHerbalism)		[nodes addObjectsFromArray: [nodeController nodesWithinDistance: theCombatProfile.GatheringDistance ofType: HerbalismNode maxLevel: theCombatProfile.HerbalismLevel]];
+	if( theCombatProfile.DoMining)			[nodes addObjectsFromArray: [nodeController nodesWithinDistance: theCombatProfile.GatheringDistance ofType: MiningNode maxLevel: [playerController getMiningLevel]]];
+	if( theCombatProfile.DoHerbalism)		[nodes addObjectsFromArray: [nodeController nodesWithinDistance: theCombatProfile.GatheringDistance ofType: HerbalismNode maxLevel: [playerController getHerbalismLevel]]];
 	if( theCombatProfile.DoNetherwingEggs)	[nodes addObjectsFromArray: [nodeController nodesWithinDistance: theCombatProfile.GatheringDistance EntryID: 185915 position:[playerController position]]];
 	if( theCombatProfile.DoGasClouds)		[nodes addObjectsFromArray: [nodeController nodesWithinDistance: theCombatProfile.GatheringDistance ofType: GasCloud maxLevel:5000]];
 
@@ -5485,13 +5498,39 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 
 	int blacklistTriggerNodeMadeMeFall = [[[NSUserDefaults standardUserDefaults] objectForKey: @"BlacklistTriggerNodeMadeMeFall"] intValue];
 
-	for( Node *node in nodes) {
+	for ( Node *node in nodes) {
 		
 		log(LOG_NODE, @"checking %@", node);
 
+		// not valid to loot!
 		if ( ![node validToLoot] ) {
 			log(LOG_NODE, @"%@ is not valid to loot, ignoring...", node);
 			continue;
+		}
+		
+		// make sure it's not blacklisted!
+		if ( self.theRouteCollection && [[self.theRouteCollection blacklist] count] ){
+			
+			BOOL isNodeBlacklisted = NO;
+			NSArray *blacklistedItems = [self.theRouteCollection blacklist];
+			
+			log(LOG_NODE, @"Total items: %d in %@", [blacklistedItems count], self.theRouteCollection);
+			
+			for ( BlacklistItem *item in blacklistedItems ){
+
+				float dist = [item.position distanceToPosition:[node position]];
+				
+				log(LOG_NODE, @"Node is %0.2f from blacklisted position: %@", dist, item.position);
+				if ( dist <= 5.0f ){
+					isNodeBlacklisted = YES;
+					break;
+				}
+			}
+			
+			if ( isNodeBlacklisted ){
+				log(LOG_NODE, @"Blacklisted node %@ being ignored", node);
+				continue;
+			}
 		}
 
 		NSNumber *guid = [NSNumber numberWithUnsignedLongLong:[node cachedGUID]];
@@ -5522,11 +5561,14 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 			float dist = [playerPosition distanceToPosition: [node position]];
 
 			// If we're not supposed to loot this node due to proximity rules
-			BOOL nearbyScaryUnits = [self scaryUnitsNearNode:node doMob: theCombatProfile.GatherNodesMobNear doFriendy: theCombatProfile.GatherNodesFriendlyPlayerNear doHostile: theCombatProfile.GatherNodesHostilePlayerNear];
+			BOOL nearbyScaryUnits = [self scaryUnitsNearNode:node doMob:theCombatProfile.GatherNodesMobNear doFriendy:theCombatProfile.GatherNodesFriendlyPlayerNear doHostile:theCombatProfile.GatherNodesHostilePlayerNear doElite:theCombatProfile.GatherNodesEliteNear];
 
 			if ( nearbyScaryUnits ) {
 				log(LOG_NODE, @"Skipping node due to proximity count");
 				continue;
+			}
+			else{
+				log(LOG_NODE, @"No scary units near the node!");
 			}
 
 			if ( dist != INFINITY && dist < nodeDist ) {
@@ -5662,7 +5704,7 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 				}
 			}
 
-			BOOL nearbyScaryUnits = [self scaryUnitsNearNode:nodeToFish doMob:theCombatProfile.GatherNodesMobNear doFriendy:theCombatProfile.GatherNodesFriendlyPlayerNear doHostile:theCombatProfile.GatherNodesHostilePlayerNear];
+			BOOL nearbyScaryUnits = [self scaryUnitsNearNode:nodeToFish doMob:theCombatProfile.GatherNodesMobNear doFriendy:theCombatProfile.GatherNodesFriendlyPlayerNear doHostile:theCombatProfile.GatherNodesHostilePlayerNear doElite:theCombatProfile.GatherNodesEliteNear];
 
 			// we have a valid node!
 			if ( nodeDist != INFINITY && !nearbyScaryUnits ) {
@@ -6508,11 +6550,11 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
     status = [status stringByAppendingString: bleh];
 
     if ( theCombatProfile.DoMining )
-		status = [status stringByAppendingFormat: @" Mining (%d).", theCombatProfile.MiningLevel];
+		status = [status stringByAppendingFormat: @" Mining (%d).", [playerController getMiningLevel]];
     if( theCombatProfile.DoHerbalism )
-		status = [status stringByAppendingFormat: @" Herbalism (%d).", theCombatProfile.HerbalismLevel];
+		status = [status stringByAppendingFormat: @" Herbalism (%d).", [playerController getHerbalismLevel]];
     if( theCombatProfile.DoSkinning )
-		status = [status stringByAppendingFormat: @" Skinning (%d).", theCombatProfile.SkinningLevel];
+		status = [status stringByAppendingFormat: @" Skinning (%d).", [playerController getSkinningLevel]];
     
     [statusText setStringValue: status];
 	
@@ -6798,12 +6840,13 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 	_logOutTimer = [NSTimer scheduledTimerWithTimeInterval: 5.0f target: self selector: @selector(logOutTimer:) userInfo: nil repeats: YES];
 
 	int canSkinUpToLevel = 0;
-	if ( theCombatProfile.SkinningLevel <= 100) {
-		canSkinUpToLevel = (theCombatProfile.SkinningLevel/10)+10;
+	int skinningLevel = [playerController getSkinningLevel];
+	if ( skinningLevel <= 100) {
+		canSkinUpToLevel = (skinningLevel/10)+10;
 	} else {
-		canSkinUpToLevel = (theCombatProfile.SkinningLevel/5);
+		canSkinUpToLevel = (skinningLevel/5);
 	}
-	if ( theCombatProfile.DoSkinning ) log(LOG_STARTUP, @"Skinning enabled with skill %d, allowing mobs up to level %d.",theCombatProfile.SkinningLevel, canSkinUpToLevel);
+	if ( theCombatProfile.DoSkinning ) log(LOG_STARTUP, @"Skinning enabled with skill %d, allowing mobs up to level %d.",[playerController getSkinningLevel], canSkinUpToLevel);
 	if ( theCombatProfile.DoNinjaSkin ) log(LOG_STARTUP, @"Ninja Skin enabled.");
 
 	log(LOG_DEV, @"StartBot");
@@ -7918,7 +7961,6 @@ NSMutableDictionary *_diffDict = nil;
 
 // called every 30 seconds
 - (void)afkTimer: (NSTimer*)timer {
-	log(LOG_FUNCTION, @"afkTimer");
 
 	if ( ![playerController playerIsValid] ) return;
 
@@ -8145,38 +8187,88 @@ NSMutableDictionary *_diffDict = nil;
 }
 
 // check if units are nearby
-- (BOOL)scaryUnitsNearNode: (WoWObject*)node doMob:(BOOL)doMobCheck doFriendy:(BOOL)doFriendlyCheck doHostile:(BOOL)doHostileCheck{
+- (BOOL)scaryUnitsNearNode: (WoWObject*)node doMob:(BOOL)doMobCheck doFriendy:(BOOL)doFriendlyCheck doHostile:(BOOL)doHostileCheck doElite:(BOOL)doEliteCheck{
+	
 	if ( doMobCheck ){
 		log(LOG_DEV, @"Scanning nearby mobs within %0.2f of %@", theCombatProfile.GatherNodesMobNearRange, [node position]);
-		NSArray *mobs = [mobController mobsWithinDistance: theCombatProfile.GatherNodesMobNearRange MobIDs:nil position:[node position] aliveOnly:YES];
+		NSArray *zeMobs = [mobController mobsWithinDistance: theCombatProfile.GatherNodesMobNearRange MobIDs:nil position:[node position] aliveOnly:YES];
+		NSMutableArray *mobs = [NSMutableArray arrayWithArray:zeMobs];
 		if ( [mobs count] ){
 			
-			// make sure they're over level 1!
-			BOOL scary = NO;
+			// remove mobs that we don't care about!
+			int count = [mobs count];
+			NSMutableArray *mobsToRemove = [NSMutableArray array];
 			for ( Mob *mob in mobs ){
-				if ( [mob level] > 1 ){
-					scary = YES;
+
+				// critter
+				if ( [controller reactMaskForFaction: [mob factionTemplate]] == 0 && [mob level] == 1 ){
+					[mobsToRemove addObject:mob];
 				}
-				if ( [mob isDead] ){
-					scary = NO;
+				// dead
+				else if ( [mob isDead] ){
+					[mobsToRemove addObject:mob];
 				}
-				BOOL isHostile = [playerController isHostileWithFaction: [mob factionTemplate]];
-				if ( !isHostile ){
-					scary = NO;
-				}
+				// friendly
+				/*else if ( ![playerController isHostileWithFaction: [mob factionTemplate]] ){
+					[mobsToRemove addObject:mob];
+				}*/
 			}
+			[mobs removeObjectsInArray:mobsToRemove];
 			
-			if ( scary ){
-				log(LOG_NODE, @"There %@ %d scary mob(s) near the node, ignoring %@", ([mobs count] == 1) ? @"is" : @"are", [mobs count], node);
-				log(LOG_NODE, @"%@", mobs);
-			}
-			else{
-				log(LOG_NODE, @"scary mob is level 1, ignoring");
-			}
+			log(LOG_NODE, @"Went from %d mobs to %d", count, [mobs count]);
 			
-			return scary;
+			if ( [mobs count] ){
+				log(LOG_NODE, @"There %@ %d scary mob(s) near the node, ignoring %@ (Mobs: %@)", ([mobs count] == 1) ? @"is" : @"are", [mobs count], node, mobs);
+				return YES;
+			}
 		}
 	}
+	
+	// check for nearby elite mobs!
+	if ( doEliteCheck ){
+		log(LOG_DEV, @"Scanning nearby elites within %0.2f of %@", theCombatProfile.GatherNodesEliteNearRange, [node position]);
+		NSArray *zeMobs = [mobController mobsWithinDistance: theCombatProfile.GatherNodesEliteNearRange MobIDs:nil position:[node position] aliveOnly:YES];
+		NSMutableArray *mobs = [NSMutableArray arrayWithArray:zeMobs];
+		if ( [mobs count] ){
+			
+			// remove mobs that we don't care about!
+			int count = [mobs count];
+			NSMutableArray *mobsToRemove = [NSMutableArray array];
+			for ( Mob *mob in mobs ){
+				
+				// critter
+				if ( [controller reactMaskForFaction: [mob factionTemplate]] == 0 && [mob level] == 1 ){
+					log(LOG_NODE, @"Mob is critter, ignoring... %@", mob);
+					[mobsToRemove addObject:mob];
+				}
+				// dead
+				else if ( [mob isDead] ){
+					log(LOG_NODE, @"Mob is dead, ignoring... %@", mob);
+					[mobsToRemove addObject:mob];
+				}
+				// friendly
+				/*else if ( ![playerController isHostileWithFaction: [mob factionTemplate]] ){
+					log(LOG_NODE, @"Mob is friendly, ignoring... %@", mob);
+					[mobsToRemove addObject:mob];
+				}*/
+				// non elite
+				else if ( ![mob isElite] ){
+					log(LOG_NODE, @"Mob is not elite, ignoring... %@", mob);
+					[mobsToRemove addObject:mob];
+				}
+			}
+			[mobs removeObjectsInArray:mobsToRemove];
+			
+			log(LOG_NODE, @"Went from %d elites to %d", count, [mobs count]);
+			
+			if ( [mobs count] >= 1 ){
+				log(LOG_NODE, @"There %@ %d scary elites(s) near the node, ignoring %@ (Mobs: %@)", ([mobs count] == 1) ? @"is" : @"are", [mobs count], node, mobs);
+				return YES;
+			}
+		}
+	}
+	
+	
 	if ( doFriendlyCheck ){
 		if ( [playersController playerWithinRangeOfUnit: theCombatProfile.GatherNodesFriendlyPlayerNearRange Unit:(Unit*)node includeFriendly:YES includeHostile:NO] ){
 			log(LOG_NODE, @"Friendly player(s) near node, ignoring %@", node);
@@ -8397,7 +8489,7 @@ NSMutableDictionary *_diffDict = nil;
 	// 0x131C in 4.0.1
 	offset = [offsetController offset:@"PlayerField_Pointer"];
 	if ( offset < 0x1000 || offset > 0x2000 ){
-		PGLog(@"[OffsetTest] PlayerField_Pointer invalid? 0x%X", offset);
+		PGLog(@"[OffsetTest] PlayerField_Pointer invalid? 0x%X", (unsigned int)offset);
 	}
 	
 	// we just want to make sure they are close to each other (all should be w/in 0x28)
@@ -8416,50 +8508,89 @@ NSMutableDictionary *_diffDict = nil;
 	offset6 = [offsetController offset:@"BaseField_Spell_ChannelTimeStart"];
 	
 	// this obviously doesn't indicate a problem
-	PGLog(@"BaseField_Spell_ToCast: 0x%X", offset);
+	PGLog(@"BaseField_Spell_ToCast: 0x%X", (unsigned int)offset);
 	
 	// BaseField_Spell_ChannelTimeStart
 	UInt32 result = offset6 - offset;
 	if ( result > 0x40 || result < 0x0 ){
-		PGLog(@"BaseField_Spell_ChannelTimeStart: 0x%X", offset6);
+		PGLog(@"BaseField_Spell_ChannelTimeStart: 0x%X", (unsigned int)offset6);
 	}
 	
 	// BaseField_Spell_ChannelTimeEnd
 	result = offset5 - offset;
 	if ( result > 0x40 || result < 0x0 ){
-		PGLog(@"BaseField_Spell_ChannelTimeEnd: 0x%X", offset5);
+		PGLog(@"BaseField_Spell_ChannelTimeEnd: 0x%X", (unsigned int)offset5);
 	}
 	
 	// BaseField_Spell_Channeling
 	result = offset4 - offset;
 	if ( result > 0x40 || result < 0x0 ){
-		PGLog(@"BaseField_Spell_Channeling: 0x%X", offset4);
+		PGLog(@"BaseField_Spell_Channeling: 0x%X", (unsigned int)offset4);
 	}
 	
 	// BaseField_Spell_TimeEnd
 	result = offset3 - offset;
 	if ( result > 0x40 || result < 0x0 ){
-		PGLog(@"BaseField_Spell_TimeEnd: 0x%X", offset3);
+		PGLog(@"BaseField_Spell_TimeEnd: 0x%X", (unsigned int)offset3);
 	}
 	
 	// BaseField_Spell_Casting
 	result = offset2 - offset;
 	if ( result > 0x40 || result < 0x0 ){
-		PGLog(@"BaseField_Spell_Casting: 0x%X", offset2);
+		PGLog(@"BaseField_Spell_Casting: 0x%X", (unsigned int)offset2);
 	}
 	
 	
 }
 
+// for j005u only!!!
+- (IBAction)j005u: (id)sender{
+	NSArray *coords = [NSArray arrayWithContentsOfFile:@"/testroute.xml"];
+	
+	Route *route = [[Route alloc] init];
+	for ( NSArray *coord in coords ){
+		float x = [[coord valueForKey:@"x"] floatValue];
+		float y = [[coord valueForKey:@"y"] floatValue];
+		float z = [[coord valueForKey:@"z"] floatValue];
+		
+		Position *pos = [Position positionWithX:x Y:y Z:z];
+		Waypoint *wp = [Waypoint waypointWithPosition:pos];
+		[route addWaypoint:wp];
+	}
+	
+	
+	RouteCollection *rc = [[RouteCollection alloc] init];
+	RouteSet *rs = [[RouteSet alloc] init];
+	rc.name = @"j005u";
+	rs.name = @"j005u";
+	[rs setRoute:route forKey:PrimaryRoute];
+	[rc addRouteSet:rs];
+	
+	[waypointController addNewRouteCollection:rc];
+}
+
 - (IBAction)test: (id)sender{
+	
+	NSLog(@"Mining %d/%d", [playerController getMiningLevel], [playerController getMiningMaxLevel]);
+	NSLog(@"Skinning %d/%d", [playerController getSkinningLevel], [playerController getSkinningMaxLevel]);
+	NSLog(@"Herbalism %d/%d", [playerController getHerbalismLevel], [playerController getHerbalismMaxLevel]);
+	
+	return;
+
+	self.theRouteCollection = [[routePopup selectedItem] representedObject];
+	self.theRouteSet = [_theRouteCollection startingRoute];
+	
+	[movementController buildBestCorpseRoute:[_theRouteCollection startingRoute]];
+	
+	return;
 	
 	NSLog(@"Runes? %d %d %d", [playerController runesAvailable:0], [playerController runesAvailable:1], [playerController runesAvailable:2]);
 							   
-	NSLog(@"offset: 0x%X", [offsetController offset:@"Lua_GetRuneCount"]);
+	NSLog(@"offset: 0x%X", (unsigned int)[offsetController offset:@"Lua_GetRuneCount"]);
 	
-	NSLog(@"Time: %d", [playerController currentTime]);
+	NSLog(@"Time: %d", (unsigned int)[playerController currentTime]);
 	
-	NSLog(@"Eclipse power: %d", [[playerController player] currentPowerOfType: UnitPower_Eclipse]);
+	NSLog(@"Eclipse power: %d", (unsigned int)[[playerController player] currentPowerOfType: UnitPower_Eclipse]);
 	
 	return;
 	
@@ -8501,8 +8632,7 @@ NSMutableDictionary *_diffDict = nil;
 	
 	
 	
-	
-	
+
 	SpellDbc spell;
 	NSLog(@"O rly? %@", databaseManager);
 	[databaseManager getObjectForRow:34898 withTable:Spell_ withStruct:&spell withStructSize:(size_t)sizeof(spell)];

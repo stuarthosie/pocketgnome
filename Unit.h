@@ -211,7 +211,7 @@ typedef enum {
 	UnitPower_SoulShard		= 7,
 	UnitPower_Eclipse		= 8,
 	UnitPower_HolyPower		= 9,
-    UnitPower_Max			= 10,
+    UnitPower_Max			= 11,
 } UnitPower;
 
 typedef enum {
@@ -251,6 +251,7 @@ typedef enum {
     UnitRace_Naga,
     UnitRace_Broken,
     UnitRace_Skeleton       = 15,
+	UnitRace_Worgen			= 22,
 } UnitRace;
 
 // CreatureType must be replicated in TargetClassCondition

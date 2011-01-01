@@ -79,7 +79,7 @@ static OffsetController* sharedController = nil;
 		
 		_offsetDictionary = [[NSDictionary dictionaryWithContentsOfFile: [[NSBundle mainBundle] pathForResource: @"OffsetSignatures" ofType: @"plist"]] retain];
 		if ( !_offsetDictionary ){
-			NSLog(@"[Offsets] Error, offset dictionary not found!");
+			PGLog(@"[Offsets] Error, offset dictionary not found!");
 		}
 		[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(memoryIsValid:) name: MemoryAccessValidNotification object: nil];
     }
@@ -139,7 +139,7 @@ static OffsetController* sharedController = nil;
 - (void)findOffsets: (const void*)data Len:(unsigned long)len{
 	
 	if ( IS_PPC ){
-		NSLog(@"[Offset] Power PC is not currently supported by Pocket Gnome!");
+		PGLog(@"[Offset] Power PC is not currently supported by Pocket Gnome!");
 		return;
 	}
 	
@@ -255,7 +255,7 @@ static OffsetController* sharedController = nil;
 	}
 	// technically should never be here
 	else{
-		NSLog(@"[Offsets] No offset dictionary found, PG will be unable to function!");
+		PGLog(@"[Offsets] No offset dictionary found, PG will be unable to function!");
 	}
 }
 
@@ -411,7 +411,7 @@ BOOL bDataCompare(const unsigned char* pData, const unsigned char* bMask, const 
 								withLen:[data length]];
 	}
 	else {
-		NSLog(@"[Offset] Unable to read memory!");
+		PGLog(@"[Offset] Unable to read memory!");
 	}
 	
 	// free our buffer
