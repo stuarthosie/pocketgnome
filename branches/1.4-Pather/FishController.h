@@ -40,6 +40,7 @@
 	BOOL _optUseContainers;
 	BOOL _optRecast;
 	int _optLureItemID;
+	int _searchForSpellAttempt;
 	
 	BOOL _isFishing;
 	BOOL _ignoreIsFishing;
@@ -57,6 +58,8 @@
 	NSDate *_castStartTime;
 	
 	NSMutableArray *_facedSchool;
+	
+	NSArray *_fishingSpellIDs;
 }
 
 @property (readonly) BOOL isFishing;

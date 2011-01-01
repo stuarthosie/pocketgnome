@@ -57,7 +57,9 @@ enum eObjectBase {
    OBJECT_UNIT_FIELDS_PTR	= 0xEC,
    ITEM_FIELDS_PTR			= 0xF0,
    MOVEMENT_FIELDS_PTR		= 0xF4,
+   CONTAINER_FIELDS_PTR		= 0x448,
    //PLAYER_FIELDS_PTR		= 0x131C,		// this correct?  hmmmm
+	//PlayerField_Pointer  0x1334 as of Build 13329   Also called player descriptors
    
 };
 

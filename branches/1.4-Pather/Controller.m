@@ -196,15 +196,16 @@ static Controller* sharedController = nil;
 }
 
 - (void)checkWoWVersion {
-    
+	
     NSString *appVers = [[[NSBundle mainBundle] infoDictionary] objectForKey: @"CFBundleShortVersionString"];
     
-    if([self isWoWVersionValid]) {
+    if ( [self isWoWVersionValid] ){
         [aboutValidImage setImage: [NSImage imageNamed: @"good"]];
-	[versionInfoText setStringValue: [NSString stringWithFormat: @"%@ v%@ is up to date with WoW %@.", [self appName], appVers, [self wowVersionShort]]];
-    } else {
+		[versionInfoText setStringValue: [NSString stringWithFormat: @"%@ v%@ is up to date with version %@.", [self appName], appVers, [self wowVersionShort]]];
+    }
+	else{
         [aboutValidImage setImage: [NSImage imageNamed: @"bad"]];
-	[versionInfoText setStringValue: [NSString stringWithFormat: @"%@ v%@ may require WoW %@. Check the site below for more details.", [self appName], appVers, VALID_WOW_VERSION]];
+		[versionInfoText setStringValue: [NSString stringWithFormat: @"%@ v%@ may require game version %@. Check the site below for more details.", [self appName], appVers, VALID_WOW_VERSION]];
     }
 }
 
@@ -714,7 +715,7 @@ typedef struct NameObjectStruct{
 }
 
 - (IBAction)launchWebsite:(id)sender {
-    [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"http://www.savorydeviate.com/pocketgnome/forum/viewforum.php?f=39"]];
+    [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"http://www.savorydeviate.com/pocketgnome/forum/viewforum.php?f=14"]];
 }
 
 - (void)loadView: (NSView*)newView withTitle: (NSString*)title {
@@ -748,6 +749,13 @@ typedef struct NameObjectStruct{
     NSView *newView = nil;
     NSString *addToTitle = nil;
     NSSize minSize = NSZeroSize, maxSize = NSZeroSize;
+    if( [sender tag] == 42) {  
+        newView = [patherController view];
+        addToTitle = [patherController sectionTitle];
+        minSize = [patherController minSectionSize];
+        maxSize = [patherController maxSectionSize];
+    }
+
     if( [sender tag] == 1) {
         newView = [botController view];
         addToTitle = [botController sectionTitle];
@@ -818,12 +826,6 @@ typedef struct NameObjectStruct{
         minSize = [profileController minSectionSize];
         maxSize = [profileController maxSectionSize];
 	}
-    if( [sender tag] == 42) {  
-        newView = [patherController view];
-        addToTitle = [patherController sectionTitle];
-        minSize = [patherController minSectionSize];
-        maxSize = [patherController maxSectionSize];
-    }
 	
     if(newView) {
         [self loadView: newView withTitle: addToTitle];
@@ -918,7 +920,7 @@ typedef struct NameObjectStruct{
 
 - (NSString*)stateString {
     if(self.currentState == wowNotOpenState)
-        return @"WoW is not open";
+        return @"Game is not open";
     if(self.currentState == memoryInvalidState)
         return @"Memory access denied";
     if(self.currentState == memoryValidState)
@@ -1121,8 +1123,19 @@ typedef struct NameObjectStruct{
         }
     } else {
         wowBundle = [NSBundle bundleWithPath: [[NSWorkspace sharedWorkspace] fullPathForApplication: @"World of Warcraft"]];
+		NSLog(@"bundle: %@", wowBundle);
     }
-    return [[wowBundle infoDictionary] objectForKey: @"CFBundleVersion"];
+	
+	// as of 4.x in the format of "4.0.3 (13329)"
+	NSString *versionShort = [[wowBundle infoDictionary] objectForKey: @"CFBundleShortVersionString"];
+	NSArray *splitVersion = [versionShort componentsSeparatedByString:@" "];
+	
+	// then we have just the version
+	if ( [splitVersion count] > 0 ){
+		return [splitVersion objectAtIndex:0];
+	}
+	
+    return nil;
 }
 
 - (NSString*)wowVersionLong {
@@ -1201,7 +1214,7 @@ typedef struct NameObjectStruct{
     
 	// WoW isn't open then :(
 	if ( [PIDs count] == 0 ){
-		wowInstanceItem = [[NSMenuItem alloc] initWithTitle: @"WoW is not open" action: nil keyEquivalent: @""];
+		wowInstanceItem = [[NSMenuItem alloc] initWithTitle: @"Game is not open" action: nil keyEquivalent: @""];
 		[wowInstanceItem setTag: 0];
 		[wowInstanceItem setRepresentedObject: 0];
 		[wowInstanceItem setIndentationLevel: 0];
@@ -1512,7 +1525,7 @@ typedef struct NameObjectStruct{
 
 - (BOOL)updater: (SUUpdater *)updater shouldPostponeRelaunchForUpdate: (SUAppcastItem *)update untilInvoking: (NSInvocation *)invocation {
 	
-    if( ![[self appName] isEqualToString: @"Pocket Gnome"] ) {
+    /*if( ![[self appName] isEqualToString: @"Pocket Gnome"] ) {
 		// log(LOG_CONTROLLER, @"[Update] We've been renamed.");
         
         NSAlert *alert = [NSAlert alertWithMessageText: @"SECURITY ALERT: PLEASE BE AWARE" 
@@ -1526,7 +1539,7 @@ typedef struct NameObjectStruct{
                          didEndSelector: @selector(updateAlertConfirmed:returnCode:contextInfo:)
                             contextInfo: (void*)[invocation retain]];
         return YES;
-    }
+    }*/
     //log(LOG_CONTROLLER, @"[Update] Relaunching as expected.");
     return NO;
 }

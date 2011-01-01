@@ -26,6 +26,8 @@
 #import "Mob.h"
 #import "ActionMenusController.h"
 #import "FileController.h"
+#import "BlacklistItem.h"
+#import "Player.h"
 
 #import "RouteVisualizationView.h"
 
@@ -50,6 +52,7 @@ enum AutomatorIntervalType {
 - (void)selectItemInOutlineViewToEdit:(id)item;
 - (void)setViewTitle;
 - (void)deleteRoute:(id)selectedItem;
+- (void)deleteBlacklistedItemAtIndex:(int)index;
 @end
 
 @interface WaypointController ()
@@ -699,14 +702,31 @@ enum AutomatorIntervalType {
 #pragma mark NSTableView Delesource
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView {
-	
+
 	if ( aTableView == waypointTable )
 		return [[self currentRoute] waypointCount];
+	else if ( aTableView == blacklistTable ){
+		
+		RouteCollection *rc = nil;
+		if ( self.currentRouteCollection ){
+			rc = self.currentRouteCollection;
+		}
+		else if ( self.currentRouteSet ){
+			rc = [self.currentRouteSet parent];
+		}
+		
+		if ( !rc )
+			return 0;
+
+		return [[rc blacklist] count];			
+	}
 	
 	return 0;
 }
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex {
+	//NSLog(@"called with 0x%X WAY:0x%X BLACK:0x%X", aTableView, waypointTable, blacklistTable);
+
     if ( rowIndex == -1 ) return nil;
 	
 	if ( aTableView == waypointTable ){
@@ -748,6 +768,38 @@ enum AutomatorIntervalType {
 			return wp.title;
 		}
 	}
+	
+	else if ( aTableView == blacklistTable ){
+
+		RouteCollection *rc = nil;
+		if ( self.currentRouteCollection ){
+			rc = self.currentRouteCollection;
+		}
+		else if ( self.currentRouteSet ){
+			rc = [self.currentRouteSet parent];
+		}
+		
+		BlacklistItem *item = [[rc blacklist] objectAtIndex:rowIndex];
+		
+		if ( [[aTableColumn identifier] isEqualToString: @"Node"] ){
+			return item.name;
+		}
+		else if ( [[aTableColumn identifier] isEqualToString: @"Description"] ){
+			return item.description;
+		}
+		else if ( [[aTableColumn identifier] isEqualToString: @"Type"] ){
+			return item.type;
+		}
+		else if ( [[aTableColumn identifier] isEqualToString: @"X"] ){
+			return [NSNumber numberWithFloat:item.position.xPosition];
+		}
+		else if ( [[aTableColumn identifier] isEqualToString: @"Y"] ){
+			return [NSNumber numberWithFloat:item.position.yPosition];
+		}
+		else if ( [[aTableColumn identifier] isEqualToString: @"Z"] ){
+			return [NSNumber numberWithFloat:item.position.zPosition];
+		}
+	}
     
     return nil;
 }
@@ -763,6 +815,21 @@ enum AutomatorIntervalType {
 			}
 		}
 	}
+	else if ( aTableView == blacklistTable ){
+		if ( [[aTableColumn identifier] isEqualToString:@"Description"] ){
+			RouteCollection *rc = nil;
+			if ( self.currentRouteCollection ){
+				rc = self.currentRouteCollection;
+			}
+			else if ( self.currentRouteSet ){
+				rc = [self.currentRouteSet parent];
+			}
+			
+			BlacklistItem *item = [[rc blacklist] objectAtIndex:rowIndex];
+			item.description = anObject;
+			rc.changed = YES;
+		}	
+	}
 }
 
 - (BOOL)tableView:(NSTableView *)aTableView shouldEditTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
@@ -771,6 +838,10 @@ enum AutomatorIntervalType {
 		if([[aTableColumn identifier] isEqualToString: @"Type"] )
 			return YES;
 		else if([[aTableColumn identifier] isEqualToString: @"Description"] )
+			return YES;
+	}
+	else if ( aTableView == blacklistTable ){
+		if([[aTableColumn identifier] isEqualToString: @"Description"] )
 			return YES;
 	}
 
@@ -785,6 +856,18 @@ enum AutomatorIntervalType {
 	
 	if ( aTableView == waypointTable ){
 		[self removeWaypoint: nil];
+	}
+	else if ( aTableView == blacklistTable ){
+		
+		// delete selected rows
+		unsigned current_index = [rowIndexes firstIndex];
+		while ( current_index != NSNotFound ) {
+			
+			[self deleteBlacklistedItemAtIndex:current_index];
+			
+			//DO SOMETHING WITH INDEX current_index
+			current_index = [rowIndexes indexGreaterThanIndex: current_index];
+		}
 	}
 }
 
@@ -1285,16 +1368,19 @@ enum AutomatorIntervalType {
 }
 
 - (IBAction)addRouteCollection: (id)sender{
+	[self addNewRouteCollection:[RouteCollection routeCollectionWithName:@"New Set"]];
+}
+
+- (void)addNewRouteCollection: (RouteCollection*)rc{
 	
 	[self willChangeValueForKey: @"routeCollections"];
 	
 	// add item and reload the table!
-	RouteCollection *rc = [RouteCollection routeCollectionWithName:@"New Set"];
 	[_routeCollectionList addObject:rc];
 	[routesTable reloadData];
-	
+
 	[self selectItemInOutlineViewToEdit:rc];
-	
+
 	[self didChangeValueForKey: @"routeCollections"];
 }
 
@@ -1635,6 +1721,113 @@ enum AutomatorIntervalType {
 		else
 			[waypointSectionTitle setStringValue:@"No route set selected"];
 	}
+}
+
+- (IBAction)changeCoords: (id)sender{
+	
+	// lets find our route!
+	Route *route = nil;
+	if ( [[self currentRouteKey] isEqualToString: PrimaryRoute] ){
+		route = [self.currentRouteSet routeForKey:PrimaryRoute];
+	}
+	else if ( [[self currentRouteKey] isEqualToString: CorpseRunRoute] ){
+		route = [self.currentRouteSet routeForKey:CorpseRunRoute];
+	}
+	
+	if ( !route || [[route waypoints] count] == 0 ){
+		log(LOG_WAYPOINT, @"No valid route found to modify!");
+		return;
+	}
+	
+	// time to loop through and make a change!
+	float offset = [offsetValueTextField floatValue];
+	int tag = [[coordMatrix selectedCell] tag];
+	NSArray *wps = [route waypoints];
+	for ( Waypoint *wp in wps ){
+		Position *pos = [wp position];
+		
+		// X
+		if ( tag == 0 ){
+			pos.xPosition = pos.xPosition + offset;
+		}
+		// Y
+		else if ( tag == 1 ){
+			pos.yPosition = pos.yPosition + offset;
+		}
+		// Z
+		else if ( tag == 2 ){
+			pos.zPosition = pos.zPosition + offset;
+		}
+	}
+	
+	// save our changes
+	[[FileController sharedFileController] saveObject:[self.currentRouteSet parent]];
+
+	// update our UI!
+	[waypointTable reloadData];
+}
+
+#pragma mark Blacklist Panel
+
+- (IBAction)openBlacklistPanel: (id)sender {
+	
+	// reload data when we open a new panel!
+	[blacklistTable reloadData];
+	
+	[NSApp beginSheet: blacklistPanel
+	   modalForWindow: [self.view window]
+		modalDelegate: self
+	   didEndSelector: @selector(blacklistSheetDidEnd: returnCode: contextInfo:)
+		  contextInfo: nil];
+}
+
+- (IBAction)closeBlacklistPanel: (id)sender{
+	[NSApp endSheet: blacklistPanel returnCode: 0];
+}
+
+- (void)blacklistSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
+    [blacklistPanel orderOut: nil];
+}
+
+- (IBAction)deleteBlacklistedItem: (id)sender{
+	[self deleteBlacklistedItemAtIndex:[blacklistTable clickedRow]];
+}
+
+- (void)deleteBlacklistedItemAtIndex:(int)index{
+	
+	RouteCollection *rc = nil;
+	if ( self.currentRouteCollection ){
+		rc = self.currentRouteCollection;
+	}
+	else if ( self.currentRouteSet ){
+		rc = [self.currentRouteSet parent];
+	}
+	
+	// then we can delete!
+	if ( rc ){
+		[rc removedBlacklistedItemAtIndex:index];
+	}
+	
+	// now reload our table!
+	[blacklistTable reloadData];
+}
+
+- (IBAction)addPlayerPosition: (id)sender{
+	
+	RouteCollection *rc = nil;
+	if ( self.currentRouteCollection ){
+		rc = self.currentRouteCollection;
+	}
+	else if ( self.currentRouteSet ){
+		rc = [self.currentRouteSet parent];
+	}
+	
+	if ( rc ){
+		[rc blacklistObject:[playerData player]];
+	}
+
+	// now reload our table!
+	[blacklistTable reloadData];
 }
 
 @end

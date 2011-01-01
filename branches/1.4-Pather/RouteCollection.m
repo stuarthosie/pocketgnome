@@ -10,9 +10,13 @@
 #import "FileObject.h"
 
 #import "RouteSet.h"
+#import "Position.h"
+#import "BlacklistItem.h"
+#import "WoWObject.h"
 
 @interface RouteCollection ()
 @property (readwrite, retain) NSMutableArray *routes;
+@property (readwrite, retain) NSMutableArray *blacklist;
 @property (readwrite, copy) NSString *startUUID;
 @end
 
@@ -23,10 +27,12 @@
     self = [super init];
     if (self != nil) {
         self.routes = [NSMutableArray array];
+		self.blacklist = [NSMutableArray array];
 		self.startUUID = nil;
 		self.startRouteOnDeath = NO;
 
 		_observers = [[NSArray arrayWithObjects: 
+					   @"blacklist",
 					   @"startRouteOnDeath",
 					   @"routes", nil] retain];
     }
@@ -51,15 +57,18 @@
 	self = [self init];
 	if ( self ) {
         self.routes = [decoder decodeObjectForKey: @"Routes"] ? [decoder decodeObjectForKey: @"Routes"] : [NSArray array];
+		self.blacklist = [decoder decodeObjectForKey: @"Blacklist"] ? [decoder decodeObjectForKey: @"Blacklist"] : [NSMutableArray array];
 		self.startUUID = [decoder decodeObjectForKey: @"StartUUID"];
 		self.startRouteOnDeath = [[decoder decodeObjectForKey: @"StartRouteOnDeath"] boolValue];
 		[super initWithCoder:decoder];
 	}
+	
 	return self;
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder{
     [coder encodeObject: self.routes forKey: @"Routes"];
+	[coder encodeObject: self.blacklist forKey: @"Blacklist"];
 	[coder encodeObject: self.startUUID forKey: @"StartUUID"];
 	[coder encodeObject: [NSNumber numberWithBool:self.startRouteOnDeath] forKey: @"StartRouteOnDeath"];
 	
@@ -72,6 +81,7 @@
 	copy.changed = YES;
 	copy.startUUID = self.startUUID;
 	copy.startRouteOnDeath = self.startRouteOnDeath;
+	copy.blacklist = self.blacklist;
 
 	// add copies! Not originals! (we want a new UUID)
 	for ( RouteSet *route in self.routes ){
@@ -85,10 +95,12 @@
     self.name = nil;
     self.routes = nil;
 	self.startUUID = nil;
+	self.blacklist = nil;
     [super dealloc];
 }
 
 @synthesize routes = _routes;
+@synthesize blacklist = _blacklist;
 @synthesize startUUID = _startUUID;
 @synthesize startRouteOnDeath = _startRouteOnDeath;
 
@@ -207,6 +219,38 @@
 	}
 	
 	_changed = val;
+}
+
+#pragma mark Blacklist
+
+- (void)blacklistObject:(WoWObject*)obj{
+	BlacklistItem *item = [[BlacklistItem alloc] init];
+	item.name = obj.name;
+	item.position = obj.position;
+	
+	if ( [obj isNode] ){
+		item.type = @"Node";
+	}
+	else if ( [obj isNPC] ){
+		item.type = @"Mob";
+	}
+	else if ( [obj isPlayer] ){
+		item.type = @"Player";
+	}
+	
+	[_blacklist addObject:item];
+	self.changed = YES;
+}
+
+- (BOOL)removedBlacklistedItemAtIndex:(int)index{
+	if ( index >= [_blacklist count] || index < 0 ){
+		return NO;
+	}
+	
+	[_blacklist removeObjectAtIndex:index];
+	self.changed = YES;
+	
+	return YES;
 }
 
 @end

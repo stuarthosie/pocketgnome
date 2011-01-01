@@ -10,11 +10,14 @@
 #import "PlayersController.h"
 #import "MovementController.h"
 #import "PlayerDataController.h"
+#import "BotController.h"
 
 #import "Controller.h"
 #import "MobController.h"
 #import "NodeController.h"
 #import "ImageAndTextCell.h"
+
+#import "RouteCollection.h"
 
 @interface ObjectsController (Internal)
 - (id)currentController;
@@ -553,6 +556,42 @@
 	if ( [sender clickedRow] == -1 ) return;
 	
 	[(ObjectController*)[self currentController] tableDoubleClick:sender];
+}
+
+#pragma BlacklistController
+
+- (IBAction)blacklistNode: (id)sender{
+	
+	WoWObject *obj = nil;
+	if ( _currentTab == Tab_Nodes ){
+		NSDictionary *dict = [[nodeController objectDataList] objectAtIndex:[nodeTable clickedRow]];
+		
+		if ( dict ){
+			obj = [dict objectForKey:@"Node"];
+		}
+	}
+	else if ( _currentTab == Tab_Mobs ){
+		NSDictionary *dict = [[mobController objectDataList] objectAtIndex:[mobTable clickedRow]];
+		if ( dict ){
+			obj = [dict objectForKey:@"Mob"];
+			
+			// verify the mob is a gas cloud!
+			if ( ![(Mob*)obj isGasCloud] ){
+				NSBeep();
+				NSRunAlertPanel(@"Invalid!", @"Currently you can only blacklist Gas Clouds using this feature! Use the ignore feature of combat profiles to ignore mobs during grinding.", @"Okay", NULL, NULL);
+				return;
+			}
+		}
+	}
+	
+
+	if ( obj != nil ){
+		// just blacklisting the position!
+		RouteCollection *rc = [[botController.routePopup selectedItem] representedObject];
+		[rc blacklistObject:obj];
+		
+		[controller setCurrentStatus:[NSString stringWithFormat:@"Blacklisted node for route: %@", rc.name]];
+	}
 }
 
 @end
