@@ -107,6 +107,21 @@
 
 
 
+- (MPPoint *) lowestPointAtX:(float)xPos Y:(float)yPos {
+	
+	MPAVLTree *xSlice = [xSlices objectForValue:xPos];
+	if (xSlice != nil) {
+		MPAVLTree *zSlice = [xSlice objectForValue:yPos];
+		if (zSlice != nil) {
+			return [zSlice objectForLowestValue];
+		}
+	}
+	return nil;
+}
+
+
+
+
 - (void) removePointAtX:(float)xPos Y:(float)yPos Z:(float)zPos {
 	
 	MPAVLTree *xSlice = [xSlices objectForValue:xPos];

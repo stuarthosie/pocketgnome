@@ -96,11 +96,32 @@
 	if ((followUnit != nil)&& ([followUnit isValid])) {
 		lastHeading = [followUnit directionFacing];
 		self.lastPosition = [followUnit position];
-		[targetRoute addObject:[followUnit position]];
+		[targetRoute addObject:[followUnit position]];  // NavMesh: remove this
 	}
 	
 	
+	/*
+	 * We are switching to pathing along our NavMesh.  We scrap our
+	 * old targetRoute and create a new Navcontroller generated Route
+	 
+	 [targetRoute removeAllObjects];
+	 
+	 MPLocation *myLocation = (MPLocation *)[[PlayerDataController sharedController] position];
+	 MPLocation *destLocation = (MPLocation *)[followUnit position];
+	 
+	 
+	 MPNavigationController *navConAI = [[task patherController] navigationController];
+	 Route *currentRoute = [navConAI routeFromLocation:myLocation  toLocation:destLocation ];
+	 
+	 NSArray *listWaypoints = [currentRoute waypoints];
+	 for (Waypoint *waypoint in listWaypoints) {
+		[targetRoute addObject:[waypoint position]];
+	 }
+	 
+	 */
 	
+	 // Now we should have a current TargetRoute to our Follow Unit's current location
+	 
 	////
 	//// it is possible that we could have been interrupted
 	//// and are restarting.  Perhaps we ran to attack a mob.
@@ -127,6 +148,7 @@
 	while( [targetRoute objectAtIndex:0] != bestPosition) {
 		[targetRoute removeObjectAtIndex:0];
 	}
+	 
 	
 }
 

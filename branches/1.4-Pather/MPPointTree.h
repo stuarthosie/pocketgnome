@@ -21,6 +21,7 @@
 
 - (void) addPoint: (MPPoint *)aPoint;
 - (MPPoint *) pointAtX: (float) xPos Y: (float) yPos Z:(float)zPos;
+- (MPPoint *) lowestPointAtX:(float)xPos Y:(float)yPos;
 - (void) removePointAtX:(float)xPos Y:(float)yPos Z:(float)zPos;
 
 

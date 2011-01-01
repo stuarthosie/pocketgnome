@@ -86,13 +86,13 @@
 	
 	
 	if ((int)[player percentHealth] <= (int) minHealth) {  
-		PGLog(@"   Rest:  pH[%d] <= mH[%d] (currentH[%d])", [player percentHealth], minHealth,[player health]);
+		PGLog(@"   Rest:  pH[%d] <= mH[%d] (currentH[%d])", (int)[player percentHealth], (int)minHealth,(int)[player health]);
 		return YES;
 	}
 	
 	
 	if (((int)[player percentMana] <= (int) minMana) && (!ignoreMana)) {
-		PGLog(@"   Rest:  pM[%d] <= mM[%d] (currentM[%d])", [player percentMana], minMana, [player mana]);
+		PGLog(@"   Rest:  pM[%d] <= mM[%d] (currentM[%d])", (int)[player percentMana],(int) minMana, (int)[player mana]);
 		return YES;
 	}
 	

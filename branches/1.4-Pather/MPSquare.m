@@ -12,8 +12,14 @@
 #import "Position.h"
 #import "MPLine.h"
 
+
+//#import "QuickLite/QuickLiteGlobals.h"
+//#import "PlausibleDatabase/PlausibleDatabase.h"
+
+
 @implementation MPSquare
-@synthesize points, 
+@synthesize name, 
+			points, 
 			topBorderConnections, 
 			leftBorderConnections, 
 			bottomBorderConnections, 
@@ -21,8 +27,10 @@
 			myDrawRect,
 			isTraversible, 
 			onPath,
+			isConsideredForPath,
 			costAdjustment,
 			zPos, 
+			dbID,
 			width, height;
 
 
@@ -31,6 +39,7 @@
 -(id) init {
 	
 	if ((self = [super init])) {
+		self.name = [NSString stringWithFormat:@" NA "];
 		self.points = nil;
 		self.topBorderConnections = [NSMutableArray array];
 		self.leftBorderConnections = [NSMutableArray array];
@@ -39,10 +48,12 @@
 		self.myDrawRect = nil;
 		
 		costAdjustment = 1.0f;
-		isTraversible = NO;
+		isTraversible = YES; // most new squares are for marking traversible nodes.
 		onPath = NO;
+		isConsideredForPath = NO;
 		
 		zPos = 0;
+		dbID = 0;
 		width = 0;
 		height = 0;
 		
@@ -54,6 +65,7 @@
 
 - (void) dealloc
 {
+	[name autorelease];
     [points autorelease];
     [topBorderConnections autorelease];
 	[leftBorderConnections autorelease];
@@ -66,10 +78,11 @@
 
 #pragma mark -
 
-
+/*
 - (NSArray *) points {
 	return points;
 }
+*/
 
 - (BOOL) containsLocation: (MPLocation *)aLocation {
 	
@@ -320,7 +333,12 @@
 }
 
 
-- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine {
+- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine  {
+	return [self hasClearPathFrom:startLocation to:endLocation usingLine:aLine ignoringSquare:nil];
+}
+
+
+- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine ignoringSquare:(MPSquare *)ignoreSquare {
 	
 	if ([self containsLocation:endLocation]) {
 		return YES;
@@ -382,11 +400,13 @@
 		}
 		
 		for( MPSquare *square in exitBorderSquares) {
-			
-			if ([square isTraversible]) {
-				if ([square containsLocation:selectedLocation]) {
-				
-					return [square hasClearPathFrom:startLocation to:endLocation usingLine:aLine];
+			if (square != ignoreSquare) {
+				if ([square isTraversible]) {
+					if ([square containsLocation:selectedLocation]) {
+					
+//	PGLog(@"---- %@  checking %@", self.name, square.name);
+						return [square hasClearPathFrom:startLocation to:endLocation usingLine:aLine ignoringSquare:self];
+					}
 				}
 			}
 		}
@@ -398,6 +418,89 @@
 	return NO;
 	
 }
+
+
+
+- (BOOL) isReduceable {
+	
+	// ok, a square is reduceable if it :
+	//	- isn't near the edge (has any empty edges)
+	//	- is next to an intraversable square
+	
+	// Abort on empty edges
+	if ([topBorderConnections count] == 0) return NO;
+	if ([leftBorderConnections count] == 0) return NO;
+	if ([bottomBorderConnections count] == 0) return NO;
+	if ([rightBorderConnections count] == 0) return NO;
+	
+	
+	// Abort with inTraversible neighbors
+	MPSquare *square;
+	for(square in topBorderConnections) {
+		if (![square isTraversible]) return NO;
+	}
+	for(square in leftBorderConnections) {
+		if (![square isTraversible]) return NO;
+	}
+	for(square in bottomBorderConnections) {
+		if (![square isTraversible]) return NO;
+	}
+	for(square in rightBorderConnections) {
+		if (![square isTraversible]) return NO;
+	}
+	
+	// hmmm, everything looks good
+	return YES;
+}
+
+
+- (void) disconnectFromGraph {
+	
+	MPSquare *square;
+	for(square in topBorderConnections) {
+		[(NSMutableArray *)[square bottomBorderConnections] removeObject:self];
+	}
+	for(square in leftBorderConnections) {
+		[(NSMutableArray *)[square rightBorderConnections] removeObject:self];
+	}
+	for(square in bottomBorderConnections) {
+		[(NSMutableArray *)[square topBorderConnections] removeObject:self];
+	}
+	for(square in rightBorderConnections) {
+		[(NSMutableArray *)[square leftBorderConnections] removeObject:self];
+	}
+	
+	MPPoint * point;
+	for (point in points) {
+		[[point squaresContainedIn] removeObject:self];
+	}
+}
+
+#pragma mark -
+#pragma mark DB helper methods
+
+
+- (NSString *) stringDBValues {
+	
+	// decode our points into minX, maxX, minY, maxY, zPos
+	float minX, maxX, minY, maxY, posZ, cost;
+	int traversible;
+	
+	MPLocation *loc1 = [(MPPoint *)[points objectAtIndex:1] location];
+	MPLocation *loc3 = [(MPPoint *)[points objectAtIndex:3] location];
+	
+	minX = [loc1 xPosition];
+	maxX = [loc3 xPosition];
+	minY = [loc1 yPosition];
+	maxY = [loc3 yPosition];
+	posZ = self.zPos;
+	
+	traversible = (self.isTraversible ? 1:0);
+	cost = self.costAdjustment;
+	
+	return [NSString stringWithFormat:@"'%@', %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %d, %0.2f", self.name, minX, maxX, minY, maxY, posZ, traversible, cost];
+}
+
 
 #pragma mark -
 #pragma mark NavMeshView Display Routines
@@ -419,7 +522,7 @@
 	
 	
 	if (myDrawRect == nil) {
-		PGLog(@"Calculating Draw Rect ... ");
+//		PGLog(@"Calculating Draw Rect ... ");
 		
 		NSRect newRect = [self nsrect];
 		self.myDrawRect = [NSBezierPath bezierPathWithRect: newRect];
@@ -433,10 +536,13 @@
 		[[NSColor redColor] set];
 	} else if ( !isTraversible) {
 		[[NSColor blackColor] set];
-	} else if (costAdjustment > 0.0) {
+	} else if (costAdjustment > 1.0) {
 		[[NSColor yellowColor] set];
-	} else if (costAdjustment < 0.0) {
+	} else if (costAdjustment < 1.0) {
 		[[NSColor grayColor] set];
+	} else if (isConsideredForPath) {
+		[[NSColor colorWithCalibratedRed:1.0 green:0.81 blue:0.85 alpha:1.0 ] set]; // Pink
+		
 	} else {
 		[[NSColor whiteColor] set];
 	}
@@ -582,15 +688,46 @@
 
 - (NSString *) describe {
 	
-	NSMutableString *description = [NSMutableString stringWithString:@"square ["];
-	
+	NSMutableString *description = [NSMutableString stringWithFormat:@"square [%@][", self.name];
+
+	/*
 	int indx=0;
 	MPPoint *currentPoint;
 	for( indx=0; indx < [points count]; indx++ ) {
 		currentPoint = [points objectAtIndex:indx];
 		[description appendString:[currentPoint describe]];
 	}
-	[description appendFormat:@" zPos:%0.2f ]", self.zPos];
+	
+	[description appendFormat:@" zPos:%0.2f  t%d:l%d:b%d:r%d]", self.zPos, [topBorderConnections count], [leftBorderConnections count], [bottomBorderConnections count], [rightBorderConnections count]];
+	*/
+	
+	[description appendFormat:@" t%d:l%d:b%d:r%d]", [topBorderConnections count], [leftBorderConnections count], [bottomBorderConnections count], [rightBorderConnections count]];
+	[description appendFormat:@" t["];
+	for( MPSquare *square in topBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  "];
+	
+	
+	[description appendFormat:@" l["];
+	for( MPSquare *square in leftBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  "];
+	
+	[description appendFormat:@" b["];
+	for( MPSquare *square in bottomBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  "];
+	
+	[description appendFormat:@" r["];
+	for( MPSquare *square in rightBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  "];
+	
+	
 	return description;
 }
 
@@ -599,7 +736,19 @@
 
 + (id) squareWithPoints:(NSArray *) points {
 	
+	return [MPSquare squareWithPoints:points connectByPoints:YES];
+}
+
+
+
++ (id) squareWithPoints:(NSArray *) points connectByPoints:(BOOL)pointReview {
+	
+	MPLocation *refLocation = [(MPPoint *)[points objectAtIndex:0] location];
+	
 	MPSquare *newObject = [[MPSquare alloc] init];
+	newObject.name = nil;
+	
+	newObject.name = [NSString stringWithFormat: @"sq-%d-%d", (int)[refLocation xPosition], (int)[refLocation yPosition]];
 	newObject.points = points;
 	
 	//// update points contained in
@@ -613,8 +762,9 @@
 
 	
 	//// find adjoining squares based on given points
-	[newObject connectToAdjacentSquaresByPointReferences];
-		
+	if (pointReview) {
+		[newObject connectToAdjacentSquaresByPointReferences];
+	}
 	
 	//// store the square's width 
 	float x0, x3;
@@ -628,8 +778,19 @@
 	y1 = [[(MPPoint *)[points objectAtIndex:1] location] yPosition];
 	newObject.height = y0 - y1;
 		
-	PGLog( @"new Square at location %@", [newObject describe]);
+	//PGLog( @"new Square at location %@", [newObject describe]);
 	return newObject;
 }
+
+
+/*
++ (NSArray *) arrayDBTableColumns {
+	return [NSArray arrayWithObjects:QLRecordUID, @"name", @"minX", @"maxX", @"minY", @"maxY", nil];
+}
+
++ (NSArray *) arrayDBTableDataTypes {
+	return [NSArray arrayWithObjects:QLRecordUIDDatatype, QLString, QLNumber, QLNumber, QLNumber, QLNumber, nil];
+}
+*/
 
 @end

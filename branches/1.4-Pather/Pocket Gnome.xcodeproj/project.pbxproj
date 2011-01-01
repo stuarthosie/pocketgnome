@@ -122,6 +122,12 @@
 		3415C9E012B5E9F00062DDD4 /* OffsetController.h in Headers */ = {isa = PBXBuildFile; fileRef = 030604F11088162100C57D77 /* OffsetController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3415C9E312B5EA170062DDD4 /* Growl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DBF31C50E94679500A592BD /* Growl.framework */; };
 		3415C9E912B5EA2B0062DDD4 /* OffsetController.m in Sources */ = {isa = PBXBuildFile; fileRef = 030604F21088162100C57D77 /* OffsetController.m */; };
+		3416DA3412C1E84A007CE6EF /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */; };
+		3416DA3512C1E84A007CE6EF /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */; };
+		3416DA4712C1E850007CE6EF /* PlausibleDatabase.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */; };
+		3429567D12C9C52600F6EABB /* MPTaskRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = 3429567C12C9C52600F6EABB /* MPTaskRunner.m */; };
+		3429567E12C9C52600F6EABB /* MPTaskRunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 3429567B12C9C52600F6EABB /* MPTaskRunner.h */; };
+		3429567F12C9C52600F6EABB /* MPTaskRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = 3429567C12C9C52600F6EABB /* MPTaskRunner.m */; };
 		3434EC3612B606810081BBA8 /* Mob.h in Headers */ = {isa = PBXBuildFile; fileRef = 7D7245400D1511F40094665C /* Mob.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3434EC3712B606980081BBA8 /* Mob.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D7245410D1511F40094665C /* Mob.m */; };
 		3434EC4B12B607110081BBA8 /* MPCustomClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 343865D012B4A56900FD5387 /* MPCustomClass.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -267,6 +273,12 @@
 		343866B112B4A5E300FD5387 /* Icon_Pather.png in Resources */ = {isa = PBXBuildFile; fileRef = 343866B012B4A5E300FD5387 /* Icon_Pather.png */; };
 		343866ED12B4A65C00FD5387 /* ParseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 343866EC12B4A65C00FD5387 /* ParseKit.framework */; };
 		3438672812B4A7AE00FD5387 /* ParseKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 343866EC12B4A65C00FD5387 /* ParseKit.framework */; };
+		3459B7B612CAD74100CC306D /* MPTaskHotspots.h in Headers */ = {isa = PBXBuildFile; fileRef = 3459B7B412CAD74100CC306D /* MPTaskHotspots.h */; };
+		3459B7B712CAD74100CC306D /* MPTaskHotspots.m in Sources */ = {isa = PBXBuildFile; fileRef = 3459B7B512CAD74100CC306D /* MPTaskHotspots.m */; };
+		3459B7B812CAD74100CC306D /* MPTaskHotspots.m in Sources */ = {isa = PBXBuildFile; fileRef = 3459B7B512CAD74100CC306D /* MPTaskHotspots.m */; };
+		3459B81912CB04CD00CC306D /* MPTaskGhostwalk.h in Headers */ = {isa = PBXBuildFile; fileRef = 3459B81712CB04CD00CC306D /* MPTaskGhostwalk.h */; };
+		3459B81A12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */; };
+		3459B81B12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
 		7D0C43D10DF2089E005F3940 /* ScanGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C43D00DF2089E005F3940 /* ScanGridView.m */; };
@@ -549,6 +561,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				3416DA4712C1E850007CE6EF /* PlausibleDatabase.framework in CopyFiles */,
 				3438672812B4A7AE00FD5387 /* ParseKit.framework in CopyFiles */,
 				03981DA6112AECA80081835F /* Sparkle.framework in CopyFiles */,
 				03C280CD1089178600A76249 /* ShortcutRecorder.framework in CopyFiles */,
@@ -729,6 +742,9 @@
 		3415C96A12B5CD050062DDD4 /* PPatherCC-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PPatherCC-Info.plist"; sourceTree = "<group>"; };
 		3415C9B112B5E5EF0062DDD4 /* PatherCC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PatherCC.h; sourceTree = "<group>"; };
 		3415C9B212B5E5EF0062DDD4 /* PatherCC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PatherCC.m; sourceTree = "<group>"; };
+		3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PlausibleDatabase.framework; sourceTree = "<group>"; };
+		3429567B12C9C52600F6EABB /* MPTaskRunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskRunner.h; sourceTree = "<group>"; };
+		3429567C12C9C52600F6EABB /* MPTaskRunner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskRunner.m; sourceTree = "<group>"; };
 		3438658712B4A55E00FD5387 /* NSData+ByteAtIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ByteAtIndex.h"; sourceTree = "<group>"; };
 		3438658812B4A55E00FD5387 /* NSData+ByteAtIndex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+ByteAtIndex.m"; sourceTree = "<group>"; };
 		3438658912B4A55E00FD5387 /* NSString+StringWithPadding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+StringWithPadding.h"; sourceTree = "<group>"; };
@@ -921,6 +937,10 @@
 		3438665E12B4A56900FD5387 /* pather.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = pather.xib; sourceTree = "<group>"; };
 		343866B012B4A5E300FD5387 /* Icon_Pather.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon_Pather.png; sourceTree = "<group>"; };
 		343866EC12B4A65C00FD5387 /* ParseKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ParseKit.framework; sourceTree = "<group>"; };
+		3459B7B412CAD74100CC306D /* MPTaskHotspots.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskHotspots.h; sourceTree = "<group>"; };
+		3459B7B512CAD74100CC306D /* MPTaskHotspots.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskHotspots.m; sourceTree = "<group>"; };
+		3459B81712CB04CD00CC306D /* MPTaskGhostwalk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskGhostwalk.h; sourceTree = "<group>"; };
+		3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskGhostwalk.m; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1253,7 +1273,7 @@
 		7DF445520E241ABA0075B96B /* TotemConditionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TotemConditionController.m; sourceTree = "<group>"; };
 		7DF445540E241AE30075B96B /* TotemCondition.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TotemCondition.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* ggteabag.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ggteabag.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* Pocket Gnome.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pocket Gnome.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D02F3C541182C37E000F4037 /* DatabaseManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseManager.h; sourceTree = "<group>"; };
 		D02F3C551182C37E000F4037 /* DatabaseManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DatabaseManager.m; sourceTree = "<group>"; };
 		D02F3C5B1182C497000F4037 /* MailActionProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MailActionProfile.h; sourceTree = "<group>"; };
@@ -1271,6 +1291,7 @@
 			files = (
 				3434ED7C12B9CFCA0081BBA8 /* Carbon.framework in Frameworks */,
 				3415C9E312B5EA170062DDD4 /* Growl.framework in Frameworks */,
+				3416DA3512C1E84A007CE6EF /* PlausibleDatabase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1291,6 +1312,7 @@
 				03981D8E112AEC870081835F /* Sparkle.framework in Frameworks */,
 				343865AA12B4A55E00FD5387 /* libbz2.a in Frameworks */,
 				343866ED12B4A65C00FD5387 /* ParseKit.framework in Frameworks */,
+				3416DA3412C1E84A007CE6EF /* PlausibleDatabase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1511,6 +1533,7 @@
 		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */,
 				343866EC12B4A65C00FD5387 /* ParseKit.framework */,
 				030604B61088140000C57D77 /* ShortcutRecorder.framework */,
 				7DBF31C50E94679500A592BD /* Growl.framework */,
@@ -1522,7 +1545,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* ggteabag.app */,
+				8D1107320486CEB800E47090 /* Pocket Gnome.app */,
 				3415C96912B5CD040062DDD4 /* PPatherCC.framework */,
 			);
 			name = Products;
@@ -1818,6 +1841,10 @@
 				343865F912B4A56900FD5387 /* MPTaskFollow.m */,
 				343865FA12B4A56900FD5387 /* MPTaskGhostRoute.h */,
 				343865FB12B4A56900FD5387 /* MPTaskGhostRoute.m */,
+				3459B81712CB04CD00CC306D /* MPTaskGhostwalk.h */,
+				3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */,
+				3459B7B412CAD74100CC306D /* MPTaskHotspots.h */,
+				3459B7B512CAD74100CC306D /* MPTaskHotspots.m */,
 				343865FC12B4A56900FD5387 /* MPTaskIf.h */,
 				343865FD12B4A56900FD5387 /* MPTaskIf.m */,
 				343865FE12B4A56900FD5387 /* MPTaskLoot.h */,
@@ -1846,6 +1873,8 @@
 				3438661512B4A56900FD5387 /* MPTaskTreeDataSource.m */,
 				3438661612B4A56900FD5387 /* MPTaskWait.h */,
 				3438661712B4A56900FD5387 /* MPTaskWait.m */,
+				3429567B12C9C52600F6EABB /* MPTaskRunner.h */,
+				3429567C12C9C52600F6EABB /* MPTaskRunner.m */,
 			);
 			name = Tasks;
 			sourceTree = "<group>";
@@ -2492,6 +2521,9 @@
 				3434ED3D12B8B61B0081BBA8 /* FileObject.h in Headers */,
 				3434ED4612B8B63C0081BBA8 /* NSNumberToHexString.h in Headers */,
 				3415C98C12B5E3180062DDD4 /* MemoryAccess.h in Headers */,
+				3429567E12C9C52600F6EABB /* MPTaskRunner.h in Headers */,
+				3459B7B612CAD74100CC306D /* MPTaskHotspots.h in Headers */,
+				3459B81912CB04CD00CC306D /* MPTaskGhostwalk.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2535,7 +2567,7 @@
 			name = "Pocket Gnome";
 			productInstallPath = "$(HOME)/Applications";
 			productName = WoWWaypoint;
-			productReference = 8D1107320486CEB800E47090 /* ggteabag.app */;
+			productReference = 8D1107320486CEB800E47090 /* Pocket Gnome.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -2837,6 +2869,9 @@
 				3415C9C012B5E76D0062DDD4 /* WoWObject.m in Sources */,
 				3434EC3712B606980081BBA8 /* Mob.m in Sources */,
 				3415C99C12B5E4620062DDD4 /* Unit.m in Sources */,
+				3429567F12C9C52600F6EABB /* MPTaskRunner.m in Sources */,
+				3459B7B712CAD74100CC306D /* MPTaskHotspots.m in Sources */,
+				3459B81A12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3075,6 +3110,9 @@
 				343866AB12B4A56900FD5387 /* PatherController.m in Sources */,
 				343866AC12B4A56900FD5387 /* MPParser.m in Sources */,
 				3415C9B312B5E5EF0062DDD4 /* PatherCC.m in Sources */,
+				3429567D12C9C52600F6EABB /* MPTaskRunner.m in Sources */,
+				3459B7B812CAD74100CC306D /* MPTaskHotspots.m in Sources */,
+				3459B81B12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3111,6 +3149,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../QuickLite v1.5.6/Examples/QuickLite Framework/build/Development\"",
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -3144,6 +3183,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../QuickLite v1.5.6/Examples/QuickLite Framework/build/Development\"",
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -3173,6 +3213,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../QuickLite v1.5.6/Examples/QuickLite Framework/build/Development\"",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -3192,7 +3233,7 @@
 					"\"$(SRCROOT)\"",
 				);
 				PRODUCT_NAME = ggteabag;
-				VALID_ARCHS = "ppc i386";
+				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
 			};
@@ -3207,6 +3248,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../QuickLite v1.5.6/Examples/QuickLite Framework/build/Development\"",
 				);
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = s;
@@ -3238,6 +3280,7 @@
 				ALTERNATE_GROUP = "$(INSTALL_GROUP)";
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "/Users/codingMonkey/Desktop/newPather/1.4-Pather/PocketGnome_Prefix.pch";
@@ -3253,6 +3296,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				VALID_ARCHS = "i386 ";
 			};
 			name = Debug;
 		};

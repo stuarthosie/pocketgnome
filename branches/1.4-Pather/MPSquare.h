@@ -13,7 +13,7 @@
 
 @interface MPSquare : NSObject {
 
-	
+	NSString *name;
 	NSArray *points;
 	NSMutableArray *topBorderConnections, *leftBorderConnections, 
 			*bottomBorderConnections, *rightBorderConnections;
@@ -22,19 +22,22 @@
 	
 	//	double  costG, costH, cost;
 	float costAdjustment;
-	BOOL isTraversible,onPath;
+	BOOL isTraversible,onPath, isConsideredForPath;
 	
 	float zPos;
+	int dbID;
 	
 	float width, height;
 	
 }
+@property (retain) NSString *name;
 @property (retain) NSArray *points;
 @property (retain) NSArray *topBorderConnections, *leftBorderConnections, 
 *bottomBorderConnections, *rightBorderConnections;
 @property (retain) NSBezierPath *myDrawRect;
-@property (readwrite) BOOL isTraversible, onPath;
+@property (readwrite) BOOL isTraversible, onPath, isConsideredForPath;
 @property (readwrite) float zPos;
+@property (readwrite) int dbID;
 @property (readwrite) float costAdjustment;
 @property (readwrite) float width, height;
 
@@ -59,6 +62,7 @@
 - (MPLocation *) locationOfIntersectionWithSquare: (MPSquare *) aSquare;
 - (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation;
 - (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine;
+- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine ignoringSquare:(MPSquare *)ignoreSquare;
 
 
 /*!
@@ -74,9 +78,20 @@
 
 - (void) compileAdjacentSquaresThatIntersectRect: (NSRect) viewRect  intoList: (NSMutableArray *)listSquares;
 
+- (BOOL) isReduceable;
+- (void) disconnectFromGraph;
+
+/*!
+ * @function stringDBValues
+ * @abstract Returns the string data of this square for inserting into the DB store.
+ * @discussion
+ */
+- (NSString *) stringDBValues;
+
 #pragma mark -
 #pragma mark Convienience Constructors
 
 + (id) squareWithPoints:(NSArray *) points;
++ (id) squareWithPoints:(NSArray *) points connectByPoints:(BOOL)pointReview;
 
 @end

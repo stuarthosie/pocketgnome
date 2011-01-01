@@ -215,7 +215,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 
 	BOOL shouldMove = NO;
 	PlayerDataController *me = [PlayerDataController sharedController];
-	float distanceTo = [[me position] distanceToPosition:locDestination ];
+	float distanceTo = [[me position] distanceToPosition2D:locDestination ];
 	
 	if (distanceTo > howClose) {
 		shouldMove = YES;
@@ -306,7 +306,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 	if (locationTo == nil) return;
 	
 	PlayerDataController *me = [PlayerDataController sharedController];
-	float distanceToLocation = [[me position] distanceToPosition:locationTo];
+	float distanceToLocation = [[me position] distanceToPosition2D:locationTo];
 	float cutoff = closeEnough;
 	if (cutoff < 1.0f) cutoff = 1.0f;
 	
@@ -488,7 +488,9 @@ PGLog(@" distanceTo[%0.4f] / cutoff[%0.4f] ", distanceToLocation, cutoff);
 		[self setVerticalDirectionFacing:[ourPosition verticalAngleTo:facingLocation]];
 	}
 */
-	
+
+// Let's see if removing this cleans up our movement a little bit...
+if (NO) {
 	if (facingLocation != nil) {
 		if (lastFacingLocation != facingLocation) {
 			PlayerDataController *me = [PlayerDataController sharedController];
@@ -502,6 +504,7 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 			self.lastFacingLocation = facingLocation;
 		}
 	}
+}
  
 
 }
@@ -658,7 +661,7 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 				
 				// if I'm not debuffed 
 					// if distanceTo CurrentPosition > 2
-					float distance = [referencePosition distanceToPosition:currentPosition];
+					float distance = [referencePosition distanceToPosition2D:currentPosition];
 					
 					// TO DO: should choose different values here based on 
 					//   if mounted , value = a

@@ -123,7 +123,7 @@
 		
 		// if value == nil  => error Message
 		if (value == nil) {
-			PGLog(@"Error: MPValue:nextValueWithParser: functionValueByKey returned nil for key[(@%)]", name);
+			PGLog(@"Error: MPValue:nextValueWithParser: functionValueByKey returned nil for key[%@]", name);
 		}
 		
 		// return value

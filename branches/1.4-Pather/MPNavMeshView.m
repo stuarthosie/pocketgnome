@@ -19,6 +19,7 @@
 @implementation MPNavMeshView
 @synthesize displayedSquares;
 @synthesize scaleSetting;
+@synthesize adjXSetting, adjYSetting;
 @synthesize viewWidth, viewHeight;
 
 
@@ -35,6 +36,8 @@
 		viewHeight = 1;
 		
 		scaleSetting = 50.0f;
+		adjXSetting = 0;
+		adjYSetting = 0;
 		
 		playerDotRadius = 0.1;
 		
@@ -73,11 +76,21 @@
 	[[NSGraphicsContext currentContext] saveGraphicsState];
 	
 	
+	Position *playerPosition;
 	
 	// for testing only:
 //	Position *playerPosition = [MPLocation locationAtX: 1.25 Y:1.34 Z: 1.0];
-	Position *playerPosition = [[patherController playerData] position];
+	if ([[patherController enableManualGraphMovement] state]) {
+//		Position *playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
+		playerPosition = (Position *)[patherController locationManualLocation];
+		if (playerPosition == nil) {
+			playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
+		}
+		
+	} else {
 	
+		playerPosition = [[patherController playerData] position];
+	}
 	
 	float playerX = [playerPosition xPosition];
 	float playerY = [playerPosition yPosition];
@@ -89,7 +102,8 @@
 	float adjX = -playerX+((squareWidth/2) * scaleSetting);  // manualAdjX&Y can come from interface.
 	float adjY = -playerY+((squareWidth/2) * scaleSetting);
 
-	
+	adjX = adjX + adjXSetting;
+	adjY = adjY + adjYSetting;
 	
 	NSAffineTransform *locationTransform = [NSAffineTransform transform];
 	[locationTransform translateXBy:adjX yBy:adjY];

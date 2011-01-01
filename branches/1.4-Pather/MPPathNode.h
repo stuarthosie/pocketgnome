@@ -31,6 +31,8 @@
 
 - (int) cost;
 
+- (NSString *) describe;
+
 
 
 +(id)node;

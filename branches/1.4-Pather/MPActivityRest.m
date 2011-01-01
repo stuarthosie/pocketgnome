@@ -78,7 +78,7 @@
 	}
 	
 	if (!(restHealth || restMana)) {
-		PGLog(@"Rest Activity ---> both Health and Mana are >= 98%.  Good To Go!");
+		PGLog(@"Rest Activity ---> both Health and Mana are >= 98.  Good To Go!");
 		return YES;
 	}
 	

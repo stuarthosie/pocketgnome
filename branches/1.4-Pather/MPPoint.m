@@ -108,6 +108,81 @@
 	return nil;
 }
 
+
+#pragma mark -
+#pragma mark Graph Optimizations
+
+
+- (BOOL) canQuadReduce {
+	
+	// point can Quad Reduce if:
+	//		- has 4 squares around it
+	//		- each square is Reduceable
+	//		- each square is same size (width & height)
+	//		- each square has same cost
+	
+	// if # of squares < 4 return NO;
+	if ([squaresContainedIn count] < 4) return NO;
+	
+	
+	int width = 0;
+	int height = 0;
+	float cost = 0;
+	
+	width = (int)[(MPSquare *)[squaresContainedIn objectAtIndex:0] width];
+	height = (int)[(MPSquare *)[squaresContainedIn objectAtIndex:0] height];
+	cost = [(MPSquare *)[squaresContainedIn objectAtIndex:0] costAdjustment];
+	
+	MPSquare *square = nil;
+	
+	// for each square
+	for( square in squaresContainedIn) {
+		
+		// if ![square isReducable]  canReduce = NO;
+		if (![square isReduceable]) return NO;
+		
+		// if width != square.width  canReduce = NO;
+		if (width != (int)[square width]) return NO;
+		
+		// if height != square.height canReduce = NO;
+		if (height != (int)[square height]) return NO;
+		
+		// if cost != square.costAdjustment canReduce = NO;
+		if(cost != [square costAdjustment]) return NO;
+		
+	} // next Square
+
+	return YES;
+}
+
+
+- (MPSquare *) upperLeftSquare {
+	
+	return [self squareWherePointIsInPosition:2];
+	
+}
+
+
+- (MPSquare *) upperRightSquare {
+	
+	return [self squareWherePointIsInPosition:1];
+	
+}
+
+
+- (MPSquare *) lowerLeftSquare {
+	
+	return [self squareWherePointIsInPosition:3];
+	
+}
+
+
+- (MPSquare *) lowerRightSquare {
+	
+	return [self squareWherePointIsInPosition:0];
+	
+}
+
 #pragma mark -
 #pragma mark Debug Labels
 

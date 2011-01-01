@@ -27,6 +27,8 @@
 - (void) addSquare: (MPSquare *)aSquare;
 - (MPSquare *) squareAtX: (float) xPos Y: (float) yPos Z:(float)zPos;
 - (MPSquare *) squareAtLocation: (MPLocation *) aLocation;
+- (MPSquare *) lowestSquareAtX: (float) xPos Y: (float) yPos;
+- (MPSquare *) lowestSquareAtLocation: (MPLocation *) aLocation;
 - (void) removeSquare: (MPSquare *)aSquare;
 - (void) removeSquareAtX:(float)xPos Y:(float)yPos Z:(float)zPos;
 

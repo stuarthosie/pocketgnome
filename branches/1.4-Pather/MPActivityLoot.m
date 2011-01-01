@@ -416,7 +416,10 @@
 				if ((![self isLootWindowOpen]) || (attemptCount >=1)) {
 					PGLog(@"[ActivityLoot] Finishing and reporting Done!");
 					[[[task patherController] botController] removeLootMob:lootMob]; // make sure this mob was removed from the list.
+					
+					[mover stopAllMovement];
 					return YES;
+					
 				}
 				[timeOut reset];
 				attemptCount ++;
