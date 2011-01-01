@@ -27,3 +27,4 @@
  * godmode
  * ~~ignore nearby elites when gathering~~
  * ignore everything while mounted
+ * the size of fishing pools pg uses to detect if the bobber landed in a pool could possibly be increased
