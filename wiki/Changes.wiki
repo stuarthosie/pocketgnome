@@ -26,3 +26,4 @@
  * ~~the /startattack checkbox under behaviors is not saved~~
  * godmode
  * ~~ignore nearby elites when gathering~~
+* ignore everything while mounted
