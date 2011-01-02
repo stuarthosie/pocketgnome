@@ -15,7 +15,7 @@
  * pg cannot be stopped while executing mail actions (usleep blocks the ui thread)
  * waypoint actions are sometimes (always?) executed on the previous waypoint
  * relative coordinate spaces such as the travelers' tundra mammoth vendors and people on boats / zeps
- * ~~dk characters don't attack targets that are engaged with their temporary pet~~
+ * dk characters don't attack targets that are engaged with their temporary pet
  * the bot doesn't engage npcs that are engaged with another npc, such as the ones on the th shore (related to the previous one?)
  * ~~the ability to enter a macros text into the route /~~ profile
  * ~~automatic tracking of skill levels would be awesome~~
