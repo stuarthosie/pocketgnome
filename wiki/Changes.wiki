@@ -28,3 +28,7 @@
  * ~~ignore nearby elites when gathering~~
  * ignore everything while mounted
  * the size of fishing pools pg uses to detect if the bobber landed in a pool could possibly be increased
+ * ~~new, smarter ghost routes, automatically chooses the fastest path on your route instead of running all the way through the route~~
+ * ~~save button for routes, so pg doesn't have to be closed to save~~
+ * ~~gather ANYTHING~~
+ * ~~better blacklisting of nodes, character position blacklisting~~
