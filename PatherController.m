@@ -48,15 +48,25 @@
 #import "RouteSet.h"
 #import "SynthesizeSingleton.h"
 #import "MPMover.h"
+#import "NodeController.h"
+#import "MPToonData.h"
 
 @interface PatherController (Internal)
 
+- (void) doMoverAction;
+
+- (MPLocation *) myCurrentLocation;
+
+// for generating a Pather Task from PG info
 - (NSString *) defendTaskData;
 - (NSString *) lootTaskData;
 - (NSString *) restTaskData;
 - (NSString *) pullTaskData;
 - (NSString *) routeTaskData;
 - (NSString *) ghostRouteTaskData;
+
+// Kill Count methods
+- (NSString *) keyKillCount: (NSString*) mobName;
 
 // thread for updating the NavMeshView
 - (void) updateNavMeshView;
@@ -67,13 +77,15 @@
 
 @implementation PatherController
 @synthesize taskController;
-@synthesize botController, controller, macroController, movementController, mobController, playerData, combatController, lootController, waypointController, blacklistController, navigationController;
-@synthesize timerCheckPatherStopConditions, timerEvaluateTasks, timerProcessCurrentActivity, timerUpdateUI, timerPerformanceCycle, timerMPMover, timerGraphBuilder, timerGraphOptimizations;
+@synthesize botController, controller, macroController, movementController, mobController, playerData, combatController, lootController, waypointController, blacklistController, navigationController, nodeController;
+@synthesize timerCheckPatherStopConditions, timerEvaluateTasks, timerProcessCurrentActivity, timerUpdateUI, timerPerformanceCycle,  timerGraphBuilder, timerGraphOptimizations;
 @synthesize timerWorkTime;
 @synthesize listCustomClasses, customClass;
 @synthesize combatMover;
-@synthesize unitsLootBlacklisted;
+@synthesize unitsLootBlacklisted, unitsBlacklisted;
+@synthesize listKillCountNames;
 @synthesize deleteMeRouteDest;
+@synthesize toonData;
 
 @synthesize textboxManualLocation, enableManualGraphMovement, enableGraphOptimizations;
 
@@ -94,7 +106,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 		self.timerProcessCurrentActivity = nil;
 		self.timerUpdateUI = nil;
 		self.timerPerformanceCycle = nil;
-		self.timerMPMover = nil;
+//		self.timerMPMover = nil;
 		self.timerGraphBuilder = nil;
 		self.timerGraphOptimizations = nil;
 		
@@ -104,12 +116,19 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 		self.combatMover = [MPMover sharedMPMover];
 		
 		self.unitsLootBlacklisted = [NSMutableArray array];
+		self.unitsBlacklisted = [NSMutableArray array];
+		
+		self.listKillCountNames = [NSMutableArray array];
 		
 		[NSBundle loadNibNamed: @"pather" owner: self];
 		
 		// flags for Thread Execution
 		isThreadStartedNavMeshView = NO;
 		isThreadStartedNavMeshAdjustments = NO;
+		
+		isMoverThreadCreated = NO;
+		
+		doMoverAction = NO;
 		
 		self.deleteMeRouteDest = nil;
 	
@@ -196,6 +215,11 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 	[scaleValue setStringValue:@"4"];
 //	[areaSlider setFloatValue:2.0f];
 	[areaValue setStringValue:@"1"];
+	
+	
+	[textboxManualLocation setStringValue:[NSString stringWithString:@"[9807.0, 913.0, 1301.46]"]];
+	
+
 }
 
 
@@ -203,7 +227,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 - (void) updateUI {
 	[timerWorkTime start];
 	
-	PGLog( @" [[[[updateUI() ... ]]]]" );
+//	PGLog( @" [[[[updateUI() ... ]]]]" );
 	
 	// update the Pather Task display
 	[taskOutlineView reloadData];
@@ -223,7 +247,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 	// update averateLoad
 //	[averageLoadIndicator setIntValue:[performanceController averageLoad]];
 	
-PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
+//PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 	// now record our current work time.
 	[performanceController storeWorkTime:[timerWorkTime elapsedTime]];
 }
@@ -252,6 +276,8 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 //// Delete Me:  testing DB creation and such:
 - (IBAction) loadDB: sender {
 
+	// this is manually done, probably without WOW loaded, so manually set the zone
+	[navigationController setZone:[textBoxZoneID intValue]];
 	[navigationController openMeshData:[pathDataFolderView stringValue]];
 
 //	MPLocation *testLocation = [MPLocation locationAtX:9807.0 Y:913	Z:1301.46];
@@ -261,12 +287,39 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 
 - (IBAction) testDB: sender {
 	
+	
+	//// Test Toon Data
+	/*
+	[toonData openToonData:[pathDataFolderView stringValue]];
+	[toonData setToonName:@"Skippy"];
+	[toonData loadToonData];
+	NSString *key = [NSString stringWithString:@"Quest951"];
+	NSString *value = [toonData valueForKey:key];
+	if (value == nil) {
+		PGLog(@" ++++ value was nil ++++");
+	}
+	int id=951;
+	key = [NSString stringWithFormat:@"Quest%d", id];
+	[toonData setValue:@"Pickedup" forKey:key];
+	*/
+	
+	//// Test task loading
+	/*
+	 *
+	[taskController loadTaskFile:[pathView stringValue] withPather:self];
+	[taskOutlineView reloadData]; // reload the Task View now.
+	 
+	 */
+	
+/*
 	MPSquare *currentSquare = [navigationController squareContainingLocation:(MPLocation *)[playerData position]];
 	if (currentSquare != nil) {
 		
 		MPPoint *currentPoint = [[currentSquare points] objectAtIndex:1];  // for testing choose lowerleft point
 		[navigationController optimizeGraphAtPoint:currentPoint];
 	}
+ 
+ */
 	
 	
 }
@@ -363,6 +416,14 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 		//// Verify Pather Data Folder exists
 		
 		
+		//// Load ToonData
+		//// NOTE:  do this before you load your tasks, since some tasks will attemt to 
+		////        initialize their data from toonData.
+		[toonData openToonData:[pathDataFolderView stringValue]];
+		[toonData setToonName:[playerData playerName]];
+		[toonData loadToonData];
+		
+		
 		//// Verify Task File is loaded
 		[taskController loadTaskFile:[pathView stringValue] withPather:self];
 		[taskOutlineView reloadData]; // reload the Task View now.
@@ -384,6 +445,9 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 			[botController setPatherCCEnabled:YES];
 		}
 		[customClass setup];
+		
+		
+		
 		
 	}
 	
@@ -418,16 +482,10 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 				// if fileLoaded and rootTask != nil 
 				if ([taskController rootTaskLoaded] ) {
 					
-					// if WorldGraph NOT created
-					// open up dialogue box for user to choose mesh
-					// if not chosen then
-					// wantedState == paused
-					// log message "World Graph not created ... "
-					// return 
-					// end if
-					// end if
+					// load up Navigation Mesh
 					[navigationController openMeshData:[pathDataFolderView stringValue]];
 					PGLog(@"  ---- startPather :: loading Initial Graph Location around %@", [playerData position]);
+					[navigationController setZone:[playerData zone]];
 					[navigationController loadInitialGraphChunkAroundLocation:(MPLocation *)[playerData position]];
 					
 					// update Button Display:
@@ -440,6 +498,14 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 					
 					// call checkPatherStopConditions  (which handles the StateChange)
 					[self checkPatherStopConditions];
+					
+					
+					//// Start the Mover's action  driver
+					if (!isMoverThreadCreated) {
+						PGLog(@" +++++++ Starting Mover Thread +++++++");
+						[self performSelectorInBackground:@selector(doMoverAction) withObject:nil];
+						isMoverThreadCreated = YES;
+					}
 					
 				} else {
 					
@@ -597,15 +663,10 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 	
 	MPLocation *currentLocation;
 	
-	if ([enableManualGraphMovement state]) {
-		
-		currentLocation = [self locationManualLocation];
-		
-	} else {
-		currentLocation = (MPLocation *)[playerData position];
-	}
+	currentLocation = [self myCurrentLocation];
 	
 	MPSquare *currentSquare = [navigationController lowestSquareContainingLocation:currentLocation];
+//PGLog(@" --- currentSquare: %@", [currentSquare name]);
 	if (currentSquare != nil) {
 		
 //		MPPoint *currentPoint = [[currentSquare points] objectAtIndex:1];  // for testing choose lowerleft point
@@ -665,6 +726,52 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 
 
 
+
+
+- (IBAction) deleteSquareAtCurrentPosition: sender {
+	
+	Position *playerPosition = (Position *)[self myCurrentLocation];
+	
+	MPSquare *square = [navigationController lowestSquareContainingLocation:(MPLocation *)playerPosition];
+	
+	if (square) {
+		
+		[navigationController removeSquare:square];
+	}
+}
+
+
+
+- (IBAction) testNudge: sender {
+	MPLocation *location = [self myCurrentLocation];
+	
+	[navigationController nudgeConnectionsAtLocation:location];
+	
+}
+
+
+- (MPLocation *) myCurrentLocation {
+	
+	Position *playerPosition;
+	
+	if ([enableManualGraphMovement state]) {
+		
+		playerPosition = (Position *)[self locationManualLocation];
+		if (playerPosition == nil) {
+			playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
+		}
+		
+		[navigationController setZone:[textBoxZoneID intValue]];
+		
+	} else {
+		
+		playerPosition = [playerData position];
+	}
+	
+	return (MPLocation *)playerPosition;
+	
+}
+
 // updates the Area of the NavMesh being updated
 
 #pragma mark -
@@ -676,6 +783,8 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 	isThreadStartedNavMeshView = YES;
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	MPTimer *flushTimer = [MPTimer timer:5000];
+	[flushTimer start];
 	
 	Position *playerPosition;
 	
@@ -683,17 +792,8 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 //		PGLog(@"updateNavMeshThread: while loop iteration");
 		
 		// update player position
-		if ([enableManualGraphMovement state]) {
-			//		Position *playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-			playerPosition = (Position *)[self locationManualLocation];
-			if (playerPosition == nil) {
-				playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-			}
-			
-		} else {
-			
-			playerPosition = [playerData position];
-		}
+		playerPosition = (Position *) [self myCurrentLocation];
+		
 		
 		
 		
@@ -710,7 +810,30 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 		
 		// show number of squares and points
 		[labelNumSquares setStringValue: [NSString stringWithFormat:@"%d", [[navigationController allSquares] count]]];
-		[labelNumPoints setStringValue: [NSString stringWithFormat:@"%d", [[navigationController allPoints] count]]];
+//		[labelNumPoints setStringValue: [NSString stringWithFormat:@"%d", [[navigationController allPoints] count]]];
+		[labelNumPoints setStringValue: [NSString stringWithFormat:@"%d", [playerData zone]]];
+		
+		MPSquare *currentSquare = [navigationController lowestSquareContainingLocation:(MPLocation *)playerPosition];
+		if (currentSquare != nil) {
+			[labelSquareDescription setStringValue:[currentSquare navViewDescription]];
+		} else {
+			[labelSquareDescription setStringValue:[NSString stringWithString:@" [none]"]];
+		}
+		
+		int zDepth = [navigationController squareCountAtLocation:(MPLocation *)playerPosition];
+		[labelSquareDepthAtLocation setStringValue:[NSString stringWithFormat:@"%d", zDepth]];
+		
+		
+		listSquares = nil;
+		
+		// to encourage the autorelease pool to empty (and not consume all our resources)
+		// we flush it every so often.
+/*		if ([flushTimer ready]) {
+			[pool drain];
+			pool = [[NSAutoreleasePool alloc] init];
+			[flushTimer start];
+		}
+*/ 
 		
 		//PGLog(@"updateNavMeshThread: sleeping");
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.18]];
@@ -718,7 +841,7 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 	}
 	
 	//PGLog(@"updateNavMeshThread: closing thread ...");
-	[pool release];
+	[pool drain];
 	isThreadStartedNavMeshView = NO;
 }
 
@@ -733,46 +856,28 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 	
 	while ([enableGraphAdjustments state] ) {
 	
-		PGLog (@"updatingNavMeshAdjustment ... allSquares[%d]  currentPos:%@", [[navigationController allSquares] count], [playerData position]);
+//		PGLog (@"updatingNavMeshAdjustment ... allSquares[%d]  currentPos:%@", [[navigationController allSquares] count], [playerData position]);
 		
 		// get which Radio Button is selected and call the proper method here:
 		NSInteger tag = [updateModeOptions selectedTag];
 		
-		Position *playerPosition; // = [playerData position];
-		// update player position
-		if ([enableManualGraphMovement state]) {
-			//		Position *playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-			playerPosition = (Position *)[self locationManualLocation];
-			if (playerPosition == nil) {
-				playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-			}
-			
-		} else {
-			
-			playerPosition = [playerData position];
-		}
-		
-		
+		Position *playerPosition = (Position *)[self myCurrentLocation]; 
 		
 		float playerX, playerY, playerZ;
+		float indxX, indxY;
+		int valueArea = [areaValue floatValue];
+		
+		float currentX, currentY, currentZ;
+		
+		playerX = [playerPosition xPosition];
+		playerY = [playerPosition yPosition];
+		playerZ = [playerPosition zPosition];
+		
 		
 //		MPLocation *testLocation;
 		switch (tag) {
 			case 0:
-				/// Testing Only:
-//				testLocation = [MPLocation locationAtX: -2973.38 Y:-351.25 Z: 53.51];
-//				[navigationController updateMeshAtLocation: testLocation isTraversible:YES];
-				
-				
-				
-				playerX = [playerPosition xPosition];
-				playerY = [playerPosition yPosition];
-				playerZ = [playerPosition zPosition];
-				
-				float indxX, indxY;
-				int valueArea = [areaValue floatValue];
-				
-				float currentX, currentY, currentZ;
+			
 				
 				for (indxX = -valueArea; indxX <= valueArea; indxX ++) {
 				
@@ -797,6 +902,58 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 			case 2:
 				// do cost adjustment here ...
 				break;
+				
+			case 3:
+				// delete dual squares in Area
+				
+				for (indxX = -valueArea; indxX <= valueArea; indxX ++) {
+					
+					// for indxY = -areaValue, indxY <= areaValue, indxY ++
+					for (indxY = -valueArea; indxY <= valueArea; indxY ++) {
+						
+						// testPosition = playerPosX + indxX, playerPosY + indxY, playerPosZ
+						currentX = (playerX + (indxX*[navigationController squareWidth]) );
+						currentY = (playerY + (indxY*[navigationController squareWidth]) );
+						currentZ = playerZ;
+						MPLocation *updateLocation = [MPLocation locationAtX: currentX Y:currentY Z:currentZ];
+						
+						// if location has > 1 squares there 
+						if ([navigationController squareCountAtLocation:updateLocation] > 1) {
+							
+							MPSquare *square = [navigationController smallestSquareContainingLocation:updateLocation];
+							
+							if (square) {
+								
+								[navigationController removeSquare:square];
+							}
+						}
+					}
+				}
+				break;
+				
+			case 4:
+				
+				// Nudge squares in Area
+				
+				for (indxX = -valueArea; indxX <= valueArea; indxX ++) {
+					
+					// for indxY = -areaValue, indxY <= areaValue, indxY ++
+					for (indxY = -valueArea; indxY <= valueArea; indxY ++) {
+						
+						// testPosition = playerPosX + indxX, playerPosY + indxY, playerPosZ
+						currentX = (playerX + (indxX*[navigationController squareWidth]) );
+						currentY = (playerY + (indxY*[navigationController squareWidth]) );
+						currentZ = playerZ;
+						MPLocation *updateLocation = [MPLocation locationAtX: currentX Y:currentY Z:currentZ];
+						
+						[navigationController nudgeConnectionsAtLocation:updateLocation];
+						
+					}
+				}
+
+				break;
+				
+				
 			default:
 				break;
 		}
@@ -842,6 +999,32 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 //	[pool release];
 //	isThreadStartedNavMeshAdjustments = NO;
 }
+
+
+#pragma mark -
+#pragma mark Mover Action
+
+
+
+- (void) doMoverAction {
+	
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	while (true ) {
+//PGLog(@"  +++ ");
+		if (doMoverAction) {
+//PGLog(@"  ++++ mover.action() called!");
+			[combatMover action];
+		}
+
+		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+		
+	}
+	
+	[pool release];
+}
+
 
 
 #pragma mark -
@@ -1087,6 +1270,18 @@ PGLog( @" End ::: [[[[updateUI() ... ]]]]" );
 	// check level
 	// Save State
 	
+	
+	//// check for zoneChange
+	UInt32 currentZone = [playerData zone];
+	
+	// if zoneChange then
+	if( currentZone != [navigationController zone] ) {
+		
+		// Maps are continuous even though you switch from one zone to another.
+		// Just update the navController with the current zone
+		[navigationController setZone:currentZone];
+
+	} // end if
 }
 
 
@@ -1128,8 +1323,9 @@ PGLog( @"        ---> RunningStateStopped");
 			[timerPerformanceCycle invalidate];
 			self.timerPerformanceCycle = nil;
 			
-			[timerMPMover invalidate];
-			self.timerMPMover = nil;
+//			[timerMPMover invalidate];
+//			self.timerMPMover = nil;
+			doMoverAction = NO;
 			
 			[timerGraphBuilder invalidate];
 			self.timerGraphBuilder = nil;
@@ -1173,8 +1369,9 @@ PGLog( @"        ---> RunningStatePaused");
 			[timerEvaluateTasks invalidate];
 			self.timerEvaluateTasks = nil;
 			
-			[timerMPMover invalidate];
-			self.timerMPMover = nil;
+//			[timerMPMover invalidate];
+//			self.timerMPMover = nil;
+			doMoverAction = NO;
 
 			//// release any UI resources: cursor hooks?  keyboard hooks?
 			
@@ -1215,9 +1412,9 @@ PGLog( @"        ---> RunningStateRunning");
 			if (timerPerformanceCycle == nil)
 				self.timerPerformanceCycle = [NSTimer scheduledTimerWithTimeInterval:0.1 target:performanceController selector:@selector(reset) userInfo:nil repeats:YES];
 		
-			if (timerMPMover == nil)
-				self.timerMPMover = [NSTimer scheduledTimerWithTimeInterval:0.05 target:combatMover selector:@selector(action) userInfo:nil repeats:YES];
-				
+//			if (timerMPMover == nil)
+//				self.timerMPMover = [NSTimer scheduledTimerWithTimeInterval:0.05 target:combatMover selector:@selector(action) userInfo:nil repeats:YES];
+			doMoverAction = YES;
 			
 			// setup the NavMesh Builder (temp until MPQ reading is finished)
 			// PatherController->updateNavMeshAdjustmentByParty()  every 100ms
@@ -1280,17 +1477,104 @@ PGLog( @"        ---> RunningStateRunning");
 	return [unitsLootBlacklisted containsObject:unit];
 }
 
+
+
+// used by AttackActivity to ignore mobs when attacks report an error
+- (void)blacklistUnit: (WoWObject*)unit{
+	
+	if ( [unitsBlacklisted containsObject:unit] ){
+		PGLog(@" +++++ Why is %@ blacklisted already?", unit);
+	}
+	else{
+		[unitsBlacklisted addObject:unit];
+	}
+	
+	float delay = 300.0f;
+	PGLog(@"[PPather] blacklisting unit [%@] for %0.2f seconds", unit, delay);
+	[self performSelector:@selector(removeUnitFromBlacklist:) withObject:unit afterDelay:delay];
+}
+
+
+- (void)removeUnitFromBlacklist: (WoWObject*)unit{
+	if ( [unitsBlacklisted containsObject:unit] ){
+		[unitsBlacklisted removeObject:unit];
+		PGLog(@"[PPather] Unit %@ removed from Blacklist", unit);
+	}
+}
+
+
+- (BOOL) isBlacklisted: (WoWObject *) unit {
+	
+	return [unitsBlacklisted containsObject:unit];
+}
+
+
+#pragma mark -
+#pragma mark KillCounts
+
+
+- (void) addKillCountMob: (NSString *)mobName {
+	
+	if (![listKillCountNames containsObject:mobName]) {
+		
+		[listKillCountNames addObject:mobName];
+		NSString *value = [toonData valueForKey:[self keyKillCount:mobName]];
+		if (value == nil) {
+			[toonData setValue:@"0" forKey:[self keyKillCount:mobName]];
+		}
+	}
+}
+
+
+
+- (void) resetKillCountMob: (NSString *) mobName {
+	// set count = 0;
+	
+	if ([listKillCountNames containsObject:mobName]) {
+		
+		[toonData setValue:@"0" forKey:[self keyKillCount:mobName]];
+	}
+}
+
+
+
+- (int) killCount: (NSString *)mobName{
+	// returns the curren # kills.  0 if not counting mobName
+	if ([listKillCountNames containsObject:mobName]) {
+		
+		NSString *value = [toonData valueForKey:[self keyKillCount:mobName]];
+		if (value == nil) {
+			return 0;
+		}
+		return [value intValue];
+	}
+	return 0;
+}
+
+
+
+- (void) addKill: (NSString *)mobName {
+	// increase the kill count for mobName. (only if already counting)
+	if ([listKillCountNames containsObject:mobName]) {
+		
+		int count = [self killCount:mobName];
+		count ++;
+		NSString *value = [NSString stringWithFormat:@"%d", count];
+		[toonData setValue:value forKey:[self keyKillCount:mobName]];
+	}
+	
+}
+		 
+		 
+- (NSString *) keyKillCount: (NSString*) mobName {
+	return [NSString stringWithFormat:@"killCount:%@", mobName];
+}
+
+
+
 #pragma mark -
 #pragma mark Function Values
 
-
-- (NSInteger) getMyLevel {
-	return [[self playerData] level];
-}
-
-- (NSString *) getMyClass {
-	return @"Mage";
-}
 
 
 - (IBAction) testRoute: sender {
@@ -1338,21 +1622,7 @@ PGLog( @"        ---> RunningStateRunning");
 */	
 	
 	
-	Position *playerPosition;
-	
-	// update player position
-	if ([enableManualGraphMovement state]) {
-		//		Position *playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-		playerPosition = (Position *)[self locationManualLocation];
-		if (playerPosition == nil) {
-			playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-		}
-		
-	} else {
-		
-		playerPosition = [playerData position];
-	}
-	
+	Position *playerPosition = (Position *)[self myCurrentLocation];
 	
 	
 	MPLocation *testLocation = (MPLocation *)playerPosition;
@@ -1377,20 +1647,7 @@ PGLog( @"        ---> RunningStateRunning");
 
 - (IBAction) testDestLocation: sender {
 	
-	Position *playerPosition;
-	
-	// update player position
-	if ([enableManualGraphMovement state]) {
-		//		Position *playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-		playerPosition = (Position *)[self locationManualLocation];
-		if (playerPosition == nil) {
-			playerPosition = [Position positionWithX:9804.0 Y:870.0 Z:1304.0];
-		}
-		
-	} else {
-		
-		playerPosition = [playerData position];
-	}
+	Position *playerPosition= (Position *)[self myCurrentLocation];
 	
 	self.deleteMeRouteDest = (MPLocation *)playerPosition;
 	

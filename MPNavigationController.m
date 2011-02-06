@@ -18,6 +18,7 @@
 #import "MPPathNode.h"
 
 #import "PatherController.h"
+#import "PlayerDataController.h"
 
 #import "PlausibleDatabase/PlausibleDatabase.h"
 
@@ -37,9 +38,15 @@
 - (void) loadGraphChunkWithCondition: (NSString *)condition;
 - (void) storeSquareInDB: (MPSquare *) newSquare;
 - (void) removeSquareFromDB: (MPSquare *) square;
+- (void) updateSquareInDB: (MPSquare *) square;
+- (void) connectSquare: (MPSquare *)square;
+- (NSMutableArray *) listLocationsOfMissingBorderConnectionsForSquare:(MPSquare *)square;
+- (float) minAmountZMovementToConnectSquare: (MPSquare *)curSquare withSquare: (MPSquare *)missingSquare;
 
 - (NSArray *) arraySquaresInQuadAroundSquare: (MPSquare *) currentSquare;
 - (BOOL) canQuadReduceSquares: (NSArray *) listSquares;
+
+
 
 // Non Blocking Methods
 - (BOOL) isPathWorkComplete;
@@ -54,7 +61,8 @@
 @synthesize timerWorkTime, currentStartLocation, currentDestLocation, currentStartSquare, completedRoute;
 @synthesize currentOpenList, currentClosedList, foundPath;
 @synthesize currentListAllPathLocations, currentListOptimizedLocations;
-
+@synthesize gridProblemStart, gridProblemEnd;
+@synthesize zone;
 
 -(id) init {
 	
@@ -102,6 +110,15 @@
 		currentOptimizationLocB=0;
 		currentOptimizationLocA=0;
 		
+		self.gridProblemStart = nil;
+		self.gridProblemEnd = nil;
+		
+		
+		zone = [[PlayerDataController sharedController] zone];
+		
+PGLog(@" +++++ navController loaded with zone:%d", zone);
+		
+		
 		// make sure our DB is closed upon application exit
 		[[NSNotificationCenter defaultCenter] addObserver: self
                                                  selector: @selector(applicationWillTerminate:) 
@@ -135,6 +152,9 @@
 	
 	[currentListAllPathLocations autorelease];
 	[currentListOptimizedLocations autorelease];
+	
+	[gridProblemStart release];
+	[gridProblemEnd release];
 	
     [super dealloc];
 }
@@ -246,9 +266,25 @@
 
 
 
+- (MPSquare *) closestSquareContainingLocation: (MPLocation *) aLocation {
+	
+	return [allSquares closestSquareAtLocation:aLocation];
+	
+}
+
+
+
 - (MPSquare *) lowestSquareContainingLocation: (MPLocation *) aLocation {
 	
 	return [allSquares lowestSquareAtLocation:aLocation];
+	
+}
+
+
+
+- (MPSquare *) smallestSquareContainingLocation: (MPLocation *) aLocation {
+	
+	return [allSquares smallestSquareAtLocation:aLocation];
 	
 }
 
@@ -414,14 +450,49 @@
 	
 	
 	MPSquare *newSquare = [MPSquare squareWithPoints:pointList];
+	[newSquare setZPos:locZ];
+	
+	[self connectSquare:newSquare];
+
+	//// Now we have a new Square fully connected to our Graph (right?)
+	//// so add to our list of squares :
+	[allSquares addSquare: newSquare];
+	
+//PGLog(@" ---- new square : %@", [newSquare describe]);
+	
+	[self storeSquareInDB:newSquare];
+	
+	return newSquare;
 	
 	
-	// the [MPSquare squareWithPoints] did some initial border checks based upon existing
-	// point assignments.
-	// but now we need to do more extensive checks based upon squares containing my points
+}
+
+
+
+- (void) connectSquare: (MPSquare *)newSquare {
+	// This routine will scan the potential locations around this square to see if
+	// there are any adjacent squares within the given zTolerance.  If there are,
+	// we mark them as border connections.
 	
-	//// NOTE: don't have to worry about existing square returning from [squareContaintingLocation] because
-	//// it hasn't been added to our list yet.
+	float lowerX, upperX, lowerY, upperY;
+	float locZ = [newSquare zPos];
+	
+	//// figure out the x,y limits from the square's point list:
+	//// The order here is important:
+	////   0  --  3    0(lowerX,upperY),   3(upperX, upperY)
+	////   |      |
+	////   1  --  2    1(lowerX,lowerY),   2(upperX, lowerY)
+	////
+	
+	MPPoint *point = [[newSquare points] objectAtIndex:1];
+	lowerX = [[point location] xPosition];
+	lowerY = [[point location] yPosition];
+	
+	point = [[newSquare points] objectAtIndex:3];
+	upperX = [[point location] xPosition];
+	upperY = [[point location] yPosition];
+	
+	
 	
 	MPSquare *possibleBorder = nil;
 	MPSquare *lastBorder = nil;
@@ -445,6 +516,7 @@
 		
 		currLocation = [MPLocation locationAtX:(curX + (indx*squareWidth)) Y:curY Z:locZ];
 		
+PGLog(@" --- connecting with location: %@", currLocation);
 		possibleBorder = [self squareContainingLocation:currLocation];
 		if (possibleBorder != nil) {
 			
@@ -540,80 +612,6 @@
 		}
 		
 	}
-	
-	
-	/*
-	
-	
-	// if topBorder is empty
-	if (([newSquare.topBorderConnections count] == 0) || ([newSquare.leftBorderConnections count] == 0)) {
-	
-		// possibleBorder = self squareContainingLocation: [newSquare point0].location
-		possibleBorder = [self squareContainingLocation:[[newSquare pointAtPosition:0] location]];
-		
-		// if (possibleBorder != nil)
-		if (possibleBorder != nil) {
-		
-		
-			// if possibleBorder containsLocation [newSquare point3].location
-			if ([possibleBorder containsLocation:[[newSquare pointAtPosition:3] location]]) {
-			
-				// newSquare addTopBorder possibleBorder
-				[newSquare addTopBorderConnection: possibleBorder];
-				[possibleBorder addBottomBorderConnection:newSquare];
-			}
-			
-			// if possibleBorder containsLocation [newSquare point1].location
-			if ([possibleBorder containsLocation:[[newSquare pointAtPosition:1] location]]) {
-			
-				// newSquare addLeftBorder possibleBorder
-				[newSquare addLeftBorderConnection: possibleBorder];
-				[possibleBorder addRightBorderConnection:newSquare];
-			}
-			
-		}
-	}
-	
-	// if botomBorder is empty
-	if (([newSquare.bottomBorderConnections count] == 0) || ([newSquare.rightBorderConnections count] == 0)) {
-	
-		// possibleBorder = self squareContainingLocation: [newSquare point2].location
-		possibleBorder = [self squareContainingLocation:[[newSquare pointAtPosition:2] location]];
-		
-		// if (possibleBorder != nil)
-		if (possibleBorder != nil) {
-		
-		
-			// if possibleBorder containsLocation [newSquare point1].location
-			if ([possibleBorder containsLocation:[[newSquare pointAtPosition:1] location]]) {
-			
-				// newSquare addBottomBorder possibleBorder
-				[newSquare addBottomBorderConnection: possibleBorder];
-				[possibleBorder addTopBorderConnection:newSquare];
-			}
-			
-			// if possibleBorder containsLocation [newSquare point3].location
-			if ([possibleBorder containsLocation:[[newSquare pointAtPosition:3] location]]) {
-			
-				// newSquare addRightBorder possibleBorder
-				[newSquare addRightBorderConnection: possibleBorder];
-				[possibleBorder addLeftBorderConnection:newSquare];
-			}
-			
-		}
-	}
-
-	*/
-
-	//// Now we have a new Square fully connected to our Graph (right?)
-	//// so add to our list of squares :
-	[allSquares addSquare: newSquare];
-	
-//PGLog(@" ---- new square : %@", [newSquare describe]);
-	
-	[self storeSquareInDB:newSquare];
-	
-	return newSquare;
 	
 	
 }
@@ -845,6 +843,38 @@
 }
 
 
+
+- (void) flushGraph {
+	
+	
+	[[allSquares lock] lock];
+	NSArray *listSquares = [[allSquares listSquares] copy];
+	[[allSquares lock] unlock];
+	
+	// remove all our squares
+	for( MPSquare *square in listSquares) {
+		[allSquares removeSquare:square];
+	}
+	
+	
+	loadedXmin = 0;
+	loadedXmax = 0;
+	loadedYmin = 0;
+	loadedYmax = 0;
+	
+}
+
+
+
+
+
+- (BOOL) doesGraphContainLocation: (MPLocation *)aLocation {
+	
+	MPSquare *aSquare = [self squareContainingLocation:aLocation];
+	return (aSquare != nil);
+}
+
+
 #pragma mark -
 #pragma mark Optimization Routines
 
@@ -854,8 +884,8 @@
 	if ([[[PatherController sharedPatherController] enableGraphOptimizations] state] ) {
 		
 			
-		int indxX=(loadedXmax - loadedXmin) / goalSize;
-		int indxY=(loadedXmax - loadedXmin) / goalSize;
+		int indxX=0;
+		int indxY=0;
 		float curX, curY;
 		
 		BOOL found = NO;
@@ -894,7 +924,7 @@
 			}
 		}
 		
-		PGLog(@"end of optimizations. indxX[%d], indxY[%d] curX[%0.2f] curY[%0.2f]", indxX, indxY, curX, curY);
+		PGLog(@"end of optimizations. indxX[%d]/[%d], indxY[%d]/[%d] curX[%0.2f] curY[%0.2f]", indxX, countX, indxY, countY,  curX, curY);
 		
 		// we didn't find any optimizations at our current goal, so try to increase
 		if (!found) {
@@ -1047,21 +1077,28 @@
 	
 	
 	
-	MPSquare *square = [self squareContainingLocation:[MPLocation locationAtX:(locX - halfStep) Y:(locY + halfStep) Z:locZ]];
+	//// Warning:  for development, I changed all the [self squareContainingLocation:] to
+	////		   [self closestSquareContainingLocation:].  However this runs the risk of connecting
+	////		   a lower graph with an upper graph square (think a path under a bridge connecting
+	////		   with a piece on the bridge).  Might want to change this back after development.
+	////
+	
+	
+	MPSquare *square = [self closestSquareContainingLocation:[MPLocation locationAtX:(locX - halfStep) Y:(locY + halfStep) Z:locZ]];
 	if((square == nil) || ([listSquares containsObject:square])) {
 		return listSquares;
 	}
 	[listSquares addObject:square]; // UL Square
 	
 	
-	square = [self squareContainingLocation:[MPLocation locationAtX:(locX - halfStep) Y:(locY - halfStep) Z:locZ]];
+	square = [self closestSquareContainingLocation:[MPLocation locationAtX:(locX - halfStep) Y:(locY - halfStep) Z:locZ]];
 	if((square == nil) || ([listSquares containsObject:square])) {
 		return listSquares;
 	}
 	[listSquares addObject:square]; // LL Square
 	
 	
-	square = [self squareContainingLocation:[MPLocation locationAtX:(locX + halfStep) Y:(locY - halfStep) Z:locZ]];
+	square = [self closestSquareContainingLocation:[MPLocation locationAtX:(locX + halfStep) Y:(locY - halfStep) Z:locZ]];
 	if((square == nil) || ([listSquares containsObject:square])) {
 		return listSquares;
 	}
@@ -1120,7 +1157,7 @@
 	
 	NSMutableArray *newPoints = nil;
 	
-	
+//PGLog(@"  --- quadSquares c[%d] ", [quadSquares count] );
 	// if [point canQuadReduce]
 	if (![self canQuadReduceSquares:quadSquares]) {
 		return NO;
@@ -1147,29 +1184,41 @@
 	// topConnections = Array[ ULSquare.topConnections + URSquare.topConnections]
 	NSMutableArray *topConnections = [NSMutableArray array];
 	for(curSquare in [ulSquare topBorderConnections]) {
-		[topConnections addObject:curSquare];
+		if (![topConnections containsObject:curSquare]) {
+			[topConnections addObject:curSquare];
+		}
 	}
 	for(curSquare in [urSquare topBorderConnections]) {
-		[topConnections addObject:curSquare];
+		if (![topConnections containsObject:curSquare]) {
+			[topConnections addObject:curSquare];
+		}
 	}
 	
 	// leftConnections = Array[ ULSquare.leftConnections + LLSquare.leftConnections];
 	NSMutableArray *leftConnections = [NSMutableArray array];
 	for(curSquare in [ulSquare leftBorderConnections]) {
-		[leftConnections addObject:curSquare];
+		if (![leftConnections containsObject:curSquare]) {
+			[leftConnections addObject:curSquare];
+		}
 	}
 	for(curSquare in [llSquare leftBorderConnections]) {
-		[leftConnections addObject:curSquare];
+		if (![leftConnections containsObject:curSquare]) {
+			[leftConnections addObject:curSquare];
+		}
 	}
 	//[NSMutableArray arrayWithObjects:[ulSquare leftBorderConnections], [llSquare leftBorderConnections], nil];
 	
 	// bottomConnections = Array[ LLSquare.bottomConnections + LRSquare.bottomConnections ];
 	NSMutableArray *bottomConnections = [NSMutableArray array];
 	for(curSquare in llSquare.bottomBorderConnections) {
-		[bottomConnections addObject:curSquare];
+		if (![bottomConnections containsObject:curSquare]) {
+			[bottomConnections addObject:curSquare];
+		}
 	}
 	for(curSquare in lrSquare.bottomBorderConnections) {
-		[bottomConnections addObject:curSquare];
+		if (![bottomConnections containsObject:curSquare]) {
+			[bottomConnections addObject:curSquare];
+		}
 	}
 	
 	//[NSMutableArray arrayWithObjects:[llSquare bottomBorderConnections], [lrSquare bottomBorderConnections], nil];
@@ -1177,10 +1226,14 @@
 	// rightConnections = Array[ URSquare.rightConnections + LRSquare.rightConnections];
 	NSMutableArray *rightConnections = [NSMutableArray array];
 	for(curSquare in urSquare.rightBorderConnections) {
-		[rightConnections addObject:curSquare];
+		if (![rightConnections containsObject:curSquare]) {
+			[rightConnections addObject:curSquare];
+		}
 	}
 	for(curSquare in lrSquare.rightBorderConnections) {
-		[rightConnections addObject:curSquare];
+		if (![rightConnections containsObject:curSquare]) {
+			[rightConnections addObject:curSquare];
+		}
 	}
 	//[NSMutableArray arrayWithObjects:[urSquare rightBorderConnections], [lrSquare rightBorderConnections], nil];
 	
@@ -1244,6 +1297,294 @@
 }
 
 
+
+- (void) removeSquare: (MPSquare *) aSquare {
+	
+	[aSquare disconnectFromGraph];
+	[self removeSquareFromDB:aSquare];
+	[allSquares removeSquare:aSquare];
+	
+}
+
+
+
+- (NSMutableArray *) listLocationsOfMissingBorderConnectionsForSquare:(MPSquare *)square {
+	//// Scan each border (top, left, bottom, right) and see if we are missing any 
+	//// possible border connections, if so, add that location to the array
+	
+	NSMutableArray *listLocations = [NSMutableArray array];
+	
+	
+	
+	// This routine will scan the potential locations around this square to see if
+	// there are any adjacent squares within the given zTolerance.  If there are,
+	// we mark them as border connections.
+	
+	float lowerX, upperX, lowerY, upperY;
+	
+	
+	//// figure out the x,y limits from the square's point list:
+	//// The order here is important:
+	////   0  --  3    0(lowerX,upperY),   3(upperX, upperY)
+	////   |      |
+	////   1  --  2    1(lowerX,lowerY),   2(upperX, lowerY)
+	////
+	
+	MPPoint *point = [[square points] objectAtIndex:1];
+	lowerX = [[point location] xPosition];
+	lowerY = [[point location] yPosition];
+	
+	point = [[square points] objectAtIndex:3];
+	upperX = [[point location] xPosition];
+	upperY = [[point location] yPosition];
+	
+	
+	
+	MPSquare *possibleBorder = nil;
+	MPSquare *lastBorder = nil;
+	
+	
+	
+	// Scan for Top Border connections
+	float curX, curY, offset;
+	offset = (squareWidth /2);
+	MPLocation *currLocation;
+	
+	curX = lowerX + offset;  // 1/2 sqWidth in
+	curY = upperY + offset;  // 1/2 sqWidth up
+	
+	float locZ = [square zPos];
+	
+	int indx, countSteps;
+	
+	//// Top and bottom scans need to check along the X axis  (Width of the square) 
+	countSteps = (upperX - lowerX) / squareWidth;
+
+	
+	for(indx=0; indx<countSteps; indx++ ) {
+		
+		currLocation = [MPLocation locationAtX:(curX + (indx*squareWidth)) Y:curY Z:locZ];
+//PGLog(@" --- current x:%0.2f, y:%0.2f, z:%0.2f, i:%d, countS:%d", curX, curY, locZ, indx, countSteps);
+		possibleBorder = [self squareContainingLocation:currLocation];
+		if (possibleBorder != nil) {
+			
+			
+			if (![[square topBorderConnections] containsObject:possibleBorder]) {
+				
+				// current square didn't have this square listed, so add to list
+				[listLocations addObject:currLocation];
+			}
+
+		} else {
+			// didn't find a square here, so add location
+			[listLocations addObject:currLocation];
+		}
+		
+	}
+	
+	
+	
+	/// scan bottom border connections
+	curX = lowerX + offset;
+	curY = lowerY - offset;
+	lastBorder = nil;
+	for(indx=0; indx<countSteps; indx++ ) {
+		
+		currLocation = [MPLocation locationAtX:(curX + (indx*squareWidth)) Y:curY Z:locZ];
+		
+		possibleBorder = [self squareContainingLocation:currLocation];
+		if (possibleBorder != nil) {
+			
+			if (![[square bottomBorderConnections] containsObject:possibleBorder]) {
+				
+				// current square didn't have this square listed, so add to list
+				[listLocations addObject:currLocation];
+			}
+			
+		} else {
+			// didn't find a square here, so add location
+			[listLocations addObject:currLocation];
+		}
+		
+	}
+	
+	
+	
+	////left and Right border connections depend on the difference in Y axis (Height)
+	countSteps = (upperY - lowerY) / squareWidth;
+	
+	/// scan left border connections
+	curX = lowerX - offset;
+	curY = lowerY + offset;
+	lastBorder = nil;
+	for(indx=0; indx<countSteps; indx++ ) {
+		
+		currLocation = [MPLocation locationAtX:curX Y:(curY + (indx*squareWidth)) Z:locZ];
+		
+		possibleBorder = [self squareContainingLocation:currLocation];
+		if (possibleBorder != nil) {
+			
+			if (![[square leftBorderConnections] containsObject:possibleBorder]) {
+				
+				// current square didn't have this square listed, so add to list
+				[listLocations addObject:currLocation];
+			}
+			
+		} else {
+			// didn't find a square here, so add location
+			[listLocations addObject:currLocation];
+		}
+		
+	}
+	
+	
+	
+	/// scan Right border connections
+	curX = upperX + offset;
+	curY = lowerY + offset;
+	lastBorder = nil;
+	for(indx=0; indx<countSteps; indx++ ) {
+		
+		currLocation = [MPLocation locationAtX:curX Y:(curY + (indx*squareWidth)) Z:locZ];
+		
+		possibleBorder = [self squareContainingLocation:currLocation];
+		if (possibleBorder != nil) {
+			
+			if (![[square rightBorderConnections] containsObject:possibleBorder]) {
+				
+				// current square didn't have this square listed, so add to list
+				[listLocations addObject:currLocation];
+			}
+			
+		} else {
+			// didn't find a square here, so add location
+			[listLocations addObject:currLocation];
+		}
+		
+	}
+	
+	
+	return listLocations;
+	
+}
+
+
+
+- (float) minAmountZMovementToConnectSquare: (MPSquare *)curSquare withSquare: (MPSquare *)missingSquare {
+	
+	float amountDiff = [curSquare zPos] - [missingSquare zPos];
+	if (amountDiff < 0) amountDiff = amountDiff * -1;
+	
+	if (amountDiff < toleranceZ) return 0;
+	
+	float minAmountChange = amountDiff - toleranceZ;
+	
+	return minAmountChange + 0.2f;
+	
+}
+
+
+- (void) nudgeConnectionsAtLocation:(MPLocation *)curLocation {
+	
+	// get square at location (closest)
+	MPSquare *curSquare = [allSquares closestSquareAtLocation:curLocation];
+	
+	float maxAmount, minAmount;
+	
+	// for each location with a missing connection
+	NSMutableArray *listMissingLocations = [self listLocationsOfMissingBorderConnectionsForSquare:curSquare];
+	while ([listMissingLocations count] > 0) {
+	
+		// get closest square at missing location
+		MPLocation *curLocation = [listMissingLocations objectAtIndex:0];
+		[listMissingLocations removeObjectAtIndex:0];
+		
+		MPSquare *missingSquare = [allSquares closestSquareAtLocation:curLocation];
+		
+		if (missingSquare != nil) {
+			
+			// find min amount current square needs to change to connect
+			minAmount = [self minAmountZMovementToConnectSquare: curSquare withSquare: missingSquare];
+			
+			// find max amount current square can move
+			if( [curSquare zPos] > [missingSquare zPos]) {
+				maxAmount = [curSquare maxAmountZDecreaseForTolerance:toleranceZ];
+			} else{
+				maxAmount = [curSquare maxAmountZIncreaseForTolerance:toleranceZ];
+			}
+			
+			// if minAmount < maxAmount then
+			if (minAmount <= maxAmount) {
+				
+				// change current Square z by minAmount
+				if ([curSquare zPos] > [missingSquare zPos]) {
+					[curSquare setZPos:([curSquare zPos] - minAmount)];
+				} else {
+					[curSquare setZPos:([curSquare zPos] + minAmount)];
+PGLog(@" --- curSquare updated to: %@",curSquare);
+				}
+				
+			} else {
+
+				// change current square by maxAmount
+				if ([curSquare zPos] > [missingSquare zPos]) {
+					[curSquare setZPos:([curSquare zPos] - maxAmount)];
+				} else {
+					[curSquare setZPos:([curSquare zPos] + maxAmount)];
+				}
+				
+				// get min amount sideSquare needs to move
+				minAmount = [self minAmountZMovementToConnectSquare:missingSquare withSquare:curSquare];
+				
+			
+				// get max amount sideSquare can move
+				if( [missingSquare zPos] > [curSquare zPos]) {
+					maxAmount = [missingSquare maxAmountZDecreaseForTolerance:toleranceZ];
+				} else{
+					maxAmount = [missingSquare maxAmountZIncreaseForTolerance:toleranceZ];
+				}
+				
+				// if minAmount < maxAmount then  sideSquare change by minAmount
+				if (minAmount < maxAmount) {
+					
+					// change sideSquare z by minAmount
+					if ([missingSquare zPos] > [curSquare zPos]) {
+						[missingSquare setZPos:([missingSquare zPos] - minAmount)];
+					} else {
+						[missingSquare setZPos:([missingSquare zPos] + minAmount)];
+					}
+					
+				} else {
+					
+					//// in this case we can't seem to nudge either enough to connect
+					//// but we'll just move it the maximum we can and hope for the best
+					
+					
+					// change missing square by maxAmount
+					if ([missingSquare zPos] > [curSquare zPos]) {
+						[missingSquare setZPos:([missingSquare zPos] - maxAmount)];
+					} else {
+						[missingSquare setZPos:([missingSquare zPos] + maxAmount)];
+					}
+					
+				} // end if min < max (second)
+				
+			}// end if min < max  (original)
+			
+			// attempt to reconnect this square now.
+			[self connectSquare:curSquare];
+			[self updateSquareInDB:curSquare];
+		} // end if missingSquare != nil
+		
+	} // end While
+}
+
+
+
+- (int) squareCountAtLocation:(MPLocation *)location {
+	return [allSquares countSquaresAtLocation: location];
+}
+
 #pragma mark -
 #pragma mark Non Blocking Routing
 
@@ -1283,6 +1624,31 @@
 	self.currentStartSquare = [allSquares squareAtX:[startLocation xPosition] Y:[startLocation yPosition] Z:[startLocation zPosition]];
 	
 	
+	//// check for grid problems with starting location:
+	self.gridProblemStart = nil;
+	if (currentStartSquare == nil) {
+		
+		// oops, we are off the grid!  attempt to route to closest grid location.
+		self.gridProblemStart = startLocation;
+		self.currentStartSquare = [self recursiveSquareFinderAroundLocation:startLocation atRadius:1 limitAttempts:15];
+		self.currentStartLocation = [currentStartSquare locationOfMidPoint];
+	}
+	
+	
+	//// check for grid problems with ending location
+	self.gridProblemEnd = nil;
+	MPSquare *endSquare = [self squareContainingLocation:destLocation];
+	if (endSquare == nil) {
+		
+		// oops: end location is off the grid!
+		self.gridProblemEnd = destLocation;
+		endSquare = [self recursiveSquareFinderAroundLocation:destLocation atRadius:1 limitAttempts:15];
+		if (endSquare != nil) {
+			// destLocation = [endSquare midPoint];
+			self.currentDestLocation = [endSquare locationOfMidPoint];
+		}
+	}
+	
 	
 	if (currentStartSquare != nil) {
 		state = NavRoutingStateGeneratingRoute;
@@ -1298,12 +1664,120 @@
 		
 		[currentOpenList addObject:startNode];
 		
-		
-		
 	} else {
 		// state = CantRoute
 		state = NavRoutingStateNoCanDo;
 	}
+	
+}
+
+
+- (MPSquare *) recursiveSquareFinderAroundLocation:(MPLocation *)location atRadius:(int)currentRadius limitAttempts:(int)maxRadius {
+	
+	MPSquare *found = nil;
+	float minDistance = INFINITY;  // for finding the closest square 
+	
+	float locX, locY, locZ;
+	locX = [location xPosition];
+	locY = [location yPosition];
+	locZ = [location zPosition];
+	
+	int indx;
+	float curX, curY;
+	
+	
+	//// scan top and bottom boundries
+	float topY, bottomY;
+	topY = locY + ( currentRadius * squareWidth);
+	bottomY = locY - (currentRadius * squareWidth);
+
+	NSMutableArray *listCoordinates = [NSMutableArray array];
+	
+	for(indx =0; indx<= currentRadius; indx++) {
+		if (indx == 0) {
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:locX], [NSNumber numberWithFloat:topY], nil]];
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:locX], [NSNumber numberWithFloat:bottomY], nil]];
+
+		} else {
+			
+			//// Q1 & Q3:
+			curX = locX - (indx * squareWidth);
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:curX], [NSNumber numberWithFloat:topY], nil]];
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:curX], [NSNumber numberWithFloat:bottomY], nil]];
+			
+			//// Q2 & Q4:
+			curX = locX + (indx * squareWidth);
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:curX], [NSNumber numberWithFloat:topY], nil]];
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:curX], [NSNumber numberWithFloat:bottomY], nil]];
+
+		}
+	}
+	
+	
+	
+	//// scan left and right boundries
+	float leftX, rightX;
+	leftX = locX - ( currentRadius * squareWidth);
+	rightX = locX + (currentRadius * squareWidth);
+	
+	for( indx = 0; indx <= (currentRadius-1); indx++) {
+		
+		if (indx == 0) {
+			
+			curY = locY;
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:leftX], [NSNumber numberWithFloat:curY], nil]];
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:rightX], [NSNumber numberWithFloat:curY], nil]];
+			
+		} else {
+			
+			curY = locY + (indx * squareWidth);
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:leftX], [NSNumber numberWithFloat:curY], nil]];
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:rightX], [NSNumber numberWithFloat:curY], nil]];
+			
+			curY = locY - (indx * squareWidth);
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:leftX], [NSNumber numberWithFloat:curY], nil]];
+			[listCoordinates addObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:rightX], [NSNumber numberWithFloat:curY], nil]];
+		}
+		
+	}
+
+	
+	
+	MPSquare *tempSquare;
+	MPLocation *searchLocation;
+	float currDistance;
+	
+	for( NSArray *coord in listCoordinates) {
+		
+		NSNumber *xPos = [coord objectAtIndex:0];
+		NSNumber *yPos = [coord objectAtIndex:1];
+		
+		searchLocation = [MPLocation locationAtX:[xPos floatValue] Y:[yPos floatValue] Z:locZ];
+		tempSquare = [self squareContainingLocation:searchLocation];
+		
+		if (tempSquare != nil) {
+			currDistance = [[tempSquare locationOfMidPoint] distanceToPosition: location];
+			if ( currDistance < minDistance) {
+				minDistance = currDistance;
+				found = tempSquare;
+			}
+		}
+	}
+	
+	
+	
+	
+	// if nothing found at current Radius then increase and try again:
+	if (found == nil) {
+		
+		// but don't go beyond our limit
+		if (currentRadius < maxRadius) {
+			found = [self recursiveSquareFinderAroundLocation:location atRadius:(currentRadius +1) limitAttempts:maxRadius];
+		}
+	}
+	
+	return found;
+	
 	
 }
 
@@ -1314,7 +1788,7 @@
 	Position *tempPosition;
 	[timerWorkTime start];
 
-PGLog(@" state[%d]  destLoc[ %@ ] ", state,  currentDestLocation);
+//PGLog(@" state[%d]  destLoc[ %@ ] ", state,  currentDestLocation);
 	
 	switch (state) {
 		case NavRoutingStateGeneratingRoute:			
@@ -1372,6 +1846,17 @@ PGLog( @"   ---  optimizing route --- ");
 					tempPosition = [currentListOptimizedLocations objectAtIndex:(countLocations - indx)];
 					[completedRoute addWaypoint:[Waypoint waypointWithPosition:tempPosition]];
 				}
+				
+				
+				// now check to see if we had gridProblems and update route to attempt direct 
+				// running to off-grid locations
+				if (gridProblemStart != nil) {
+					[completedRoute insertWaypoint:[Waypoint waypointWithPosition:gridProblemStart]  atIndex:0];
+				}
+				if (gridProblemEnd != nil) {
+					[completedRoute addWaypoint: [Waypoint waypointWithPosition:gridProblemEnd]];
+				}
+				
 				
 				state = NavRoutingStateDone;
 				isCurrentRouteValid = YES;
@@ -1771,7 +2256,7 @@ PGLog( @"   ---  optimizing route --- ");
 		
 	// for now just do raw distance.  I'm sure there is a better way 
 	float rawDistance = [[[currentNode referencePoint] location] distanceToPosition2D:location];
-	int distance = (int) (rawDistance * 100.0);
+	int distance = (int) (rawDistance * 1000.0);
 	return distance;
 }
 
@@ -2005,7 +2490,7 @@ PGLog( @"   ---  optimizing route --- ");
 	
 	if (newYmax > loadedYmax) {
 		
-		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((minY >= %0.2f) AND (minY <= %0.2f))", loadedXmin, loadedXmax, loadedXmin, loadedXmax, loadedYmax, newYmax ];
+		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((minY >= %0.2f) AND (minY <= %0.2f)) AND zoneID=%d", loadedXmin, loadedXmax, loadedXmin, loadedXmax, loadedYmax, newYmax, zone ];
 		[self loadGraphChunkWithCondition: condition];
 		loadedYmax = newYmax;
 	}
@@ -2017,7 +2502,7 @@ PGLog( @"   ---  optimizing route --- ");
 	if (newYmin < loadedYmin) {
 		
 		//[self loadGraphChunkWithXmin: loadedXmin xMax:loadedXmax yMin:newYmin yMax:loadedYmin];
-		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((maxY >= %0.2f) AND (maxY <= %0.2f))", loadedXmin, loadedXmax, loadedXmin, loadedXmax, newYmin, loadedYmin ];
+		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((maxY >= %0.2f) AND (maxY <= %0.2f)) AND zoneID=%d", loadedXmin, loadedXmax, loadedXmin, loadedXmax, newYmin, loadedYmin, zone ];
 		[self loadGraphChunkWithCondition: condition];
 		loadedYmin = newYmin;
 	}
@@ -2029,7 +2514,7 @@ PGLog( @"   ---  optimizing route --- ");
 	if (newXmax > loadedXmax) {
 		
 		//[self loadGraphChunkWithXmin: loadedXmax xMax:newXmax yMin:loadedYmin yMax:loadedYmax];
-		NSString *condition = [NSString stringWithFormat:@"((minX >= %0.2f) AND (minX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f)))",loadedXmax, newXmax, loadedYmin, loadedYmax, loadedYmin, loadedYmax  ];
+		NSString *condition = [NSString stringWithFormat:@"((minX >= %0.2f) AND (minX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f))) AND zoneID=%d",loadedXmax, newXmax, loadedYmin, loadedYmax, loadedYmin, loadedYmax, zone  ];
 		[self loadGraphChunkWithCondition: condition];
 		
 		
@@ -2043,7 +2528,7 @@ PGLog( @"   ---  optimizing route --- ");
 	if (newXmin < loadedXmin) {
 		
 		//[self loadGraphChunkWithXmin: loadedXmax xMax:newXmax yMin:loadedYmin yMax:loadedYmax];
-		NSString *condition = [NSString stringWithFormat:@"((maxX >= %0.2f) AND (maxX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f)))",newXmin, loadedXmin, loadedYmin, loadedYmax, loadedYmin, loadedYmax  ];
+		NSString *condition = [NSString stringWithFormat:@"((maxX >= %0.2f) AND (maxX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f))) AND zoneID=%d",newXmin, loadedXmin, loadedYmin, loadedYmax, loadedYmin, loadedYmax, zone  ];
 		[self loadGraphChunkWithCondition: condition];
 		
 		loadedXmin = newXmin;
@@ -2063,7 +2548,7 @@ PGLog( @"   ---  optimizing route --- ");
 		minY = [location yPosition] - halfChunk;
 		maxY = [location yPosition] + halfChunk;
 		posZ = [location zPosition];
-		NSString *condition = [NSString stringWithFormat:@"( ((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f)) ) AND ( ((minY >= %0.2f) AND (minY <= %0.2f)) OR ((maxY >= %0.2f) AND (maxY <= %0.2f)) )", minX, maxX,minX,maxX, minY, maxY, minY, maxY];
+		NSString *condition = [NSString stringWithFormat:@"( ((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f)) ) AND ( ((minY >= %0.2f) AND (minY <= %0.2f)) OR ((maxY >= %0.2f) AND (maxY <= %0.2f)) ) AND zoneID=%d", minX, maxX,minX,maxX, minY, maxY, minY, maxY, zone];
 		
 		[self loadGraphChunkWithCondition:condition];
 		
@@ -2080,7 +2565,7 @@ PGLog( @"   ---  optimizing route --- ");
 	float minX, maxX, minY, maxY, avgZ;
 	MPSquare *square = nil;
 	
-	NSString *sql = [NSString stringWithFormat:@"SELECT * FROM squares"];
+	NSString *sql = [NSString stringWithFormat:@"SELECT * FROM squares WHERE zoneID=%d", zone];
 	
 	//	PGLog(@"---- loading squares with sql[%@] ---", sql);
 	NSError *error=nil;
@@ -2108,6 +2593,7 @@ PGLog( @"   ---  optimizing route --- ");
 			square.isTraversible = [results boolForColumn:@"traversible"]; 
 			square.costAdjustment = [results floatForColumn:@"cost"];
 			square.name = [results stringForColumn:@"name"];
+			square.zoneID = [results intForColumn:@"zoneID"];
 			square.dbID = [results intForColumn:@"id"];
 			
 			
@@ -2135,7 +2621,7 @@ PGLog( @"   ---  optimizing route --- ");
 	
 	NSString *sql = [NSString stringWithFormat:@"SELECT * FROM squares WHERE %@", condition];
 	
-//	PGLog(@"---- loading squares with sql[%@] ---", sql);
+	PGLog(@"---- loading squares with sql[%@] ---", sql);
 	NSError *error=nil;
 	
 	id<PLResultSet> results = [db executeQueryAndReturnError:&error statement:sql];
@@ -2173,7 +2659,7 @@ PGLog( @"   ---  optimizing route --- ");
 
 - (void) storeSquareInDB: (MPSquare *) newSquare {
 	
-	NSString *sql = [NSString stringWithFormat:@"INSERT INTO squares (id, name, minX, maxX, minY, maxY, zPos, traversible, cost) VALUES (null, %@)", [newSquare stringDBValues]];
+	NSString *sql = [NSString stringWithFormat:@"INSERT INTO squares (id, %@) VALUES (null, %@)", [newSquare stringDBFields], [newSquare stringDBValues]];
 	NSError *error = nil;
 	BOOL result = YES;
 	
@@ -2195,6 +2681,7 @@ PGLog( @"   ---  optimizing route --- ");
 }
 
 
+
 - (void) removeSquareFromDB: (MPSquare *) square {
 	
 	NSString *sql = [NSString stringWithFormat:@"DELETE FROM squares WHERE id=%d", [square dbID]];
@@ -2213,9 +2700,32 @@ PGLog( @"   ---  optimizing route --- ");
 		}
 		
 	} 
-
-	
 }
+
+
+
+- (void) updateSquareInDB: (MPSquare *) square {
+	
+	NSString *sql = [NSString stringWithFormat:@"UPDATE squares SET %@ WHERE id=%d", [square stringDBUpdateValues], [square dbID]];
+	NSError *error = nil;
+	
+	PGLog(@"   ---- updating square [%@] ", sql);
+	
+	BOOL result = YES;
+	[dbLock lock];
+	result = [db executeUpdateAndReturnError:(&error) statement:sql];
+	[dbLock unlock];
+	if (!result ){
+		PGLog(@"   -----!!! Data UPDATE failed. error[%@]", error );
+		if (error) {
+			[NSApp presentError:error];	
+		}
+		
+	} 
+}
+
+
+
 
 - (void)applicationWillTerminate: (NSNotification*)notification {
 	[dbLock lock];

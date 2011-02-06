@@ -39,6 +39,7 @@ typedef enum WhenTaskState {
  *	 When
  *	 {
  *		 $cond = $MyDurability <= 0.3;
+ *		 $Repeat = true;				// default = false
  *		 Seq
  *		 {
  *			 Walk
@@ -60,6 +61,7 @@ typedef enum WhenTaskState {
  */
 @interface MPTaskWhen : MPTaskConditional {
 	MPWhenTaskState taskState;
+	BOOL doRepeat;
 }
 
 

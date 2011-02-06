@@ -26,6 +26,8 @@
 - (NSArray *)listLocationsFromRoute: (Route *) route;
 - (void) updateCurrentIndex;
 - (void) setupLocationsToUnit;
+- (void) checkRouteDone;
+- (void) doMoveAction;
 
 @end
 
@@ -50,7 +52,7 @@
 		self.destinationLocation = (MPLocation *)[unit position];
 		
 		// currentIndx = 0;
-		currentIndex = 0;
+		currentIndex = -1;  // uninitialized state
 		howCloseToLocation = 2.0f;
 
 	}
@@ -79,10 +81,13 @@
 
 	[self setupLocationsToUnit];
 	
-	[self updateCurrentIndex];
+	[self checkRouteDone]; // will set currentIndex == 0 when done.
 	
-	if (currentIndex < [listLocations count]) 
-		[mover moveTowards:[listLocations objectAtIndex:currentIndex] within:howCloseToLocation facing:(MPLocation *)[unit position]];
+	[self updateCurrentIndex];
+	if (currentIndex != -1) {
+		if (currentIndex < [listLocations count]) 
+			[mover moveTowards:[listLocations objectAtIndex:currentIndex] within:howCloseToLocation facing:(MPLocation *)[unit position]];
+	}
 
 }
 
@@ -95,8 +100,16 @@
 	// if the unit has moved, then calc a new route
 	if ([destinationLocation distanceToPosition:[unit position]] > distance) {
 		
+		// this is only called when destLoc is > distance from unit.position, but calling
+		// setupLocactionsToUnit will reset destLoc == unit.pos, so no spamming should occur
+		
+
+		currentIndex = -1;
 		[self setupLocationsToUnit];
+
 	}
+	
+	[self checkRouteDone];
 	
 	// make sure our current point is updated when we are close enough
 	[self updateCurrentIndex];
@@ -105,16 +118,8 @@
 	if (([listLocations count] >0) && (currentIndex < [listLocations count]))
 		[mover moveTowards:[listLocations objectAtIndex:currentIndex] within:howCloseToLocation facing:(MPLocation *)[unit position]];
 	
-	//
-	/*
-	if (([task myDistanceToPosition2D:[unit position]] <= distance)) {
-		
-		PGLog(@"  ++++ approach distanceTo[%0.2f]/[%0.2f] == YES", [task myDistanceToPosition2D:[unit position]], distance);
-	}
-	if (currentIndex >= [listLocations count]) {
-		PGLog(@"  ++++ curI[%d] >= lL[%d] == YES", currentIndex, [listLocations count]);
-	}
-	 */
+	// make sure Mover faces us towards unit:
+	[mover faceLocation:(MPLocation *)[unit position]];
 	return (([task myDistanceToPosition2D:[unit position]] <= distance) || (currentIndex >= [listLocations count]));
 
 }
@@ -125,6 +130,7 @@
 - (void) stop{
 	
 	[mover stopAllMovement];
+	currentIndex = -1;  // reset our list
 }
 
 
@@ -159,15 +165,27 @@
 - (void) setupLocationsToUnit {
 	
 	self.destinationLocation = (MPLocation *)[unit position];
-	Route *route = [[[task patherController] navigationController] routeFromLocation: (MPLocation *)[task myPosition]  toLocation: destinationLocation];
-	
-	self.listLocations = [self listLocationsFromRoute:route];
-	currentIndex = 0;
-	
-	
-	PGLog(@"   ++++ setupLocationToUnit:  list[%d],  curI[%d]", [listLocations count], currentIndex);
+	[[[task patherController] navigationController] setupRouteFromLocation:(MPLocation *)[task myPosition] toLocation:destinationLocation];
 	
 
+}
+
+
+- (void) checkRouteDone {
+	
+	
+	if ([[[task patherController] navigationController] isRouteWorkComplete]) {
+		
+		// only update the currentIndx & listLocations if they are uninitialized
+		if (currentIndex == -1) {
+			Route *route = [[[task patherController] navigationController] completedRoute];
+			self.listLocations = [self listLocationsFromRoute:route];
+			currentIndex = 0;
+PGLog(@" +++++ routeDone: countLocations[%d] currentIndex[%d]", [listLocations count], currentIndex);
+		}
+	}
+	
+	
 }
 
 
@@ -187,11 +205,36 @@
 
 - (void) updateCurrentIndex {
 	
-	while ((currentIndex < [listLocations count]) && ([task myDistanceToPosition2D:[listLocations objectAtIndex:currentIndex]] <= howCloseToLocation)) {
-		currentIndex++;
+	if (currentIndex != -1) {
+		while ((currentIndex < [listLocations count]) && ([task myDistanceToPosition2D:[listLocations objectAtIndex:currentIndex]] <= howCloseToLocation)) {
+PGLog(@" +++++ updateCurrentIndex: cIndx[%d] < countListLoc[%d] : distToPos2D[%0.2f]  howClose[%0.2f]", currentIndex, [listLocations count], [task myDistanceToPosition2D:[listLocations objectAtIndex:currentIndex]], howCloseToLocation);
+			currentIndex++;
+		}
 	}
 	
 }
+
+
+
+- (void) doMoveAction {
+	MPLocation *myLocation = (MPLocation *)[task myPosition];
+	
+	// move to next location 
+	MPLocation *nextStep = (MPLocation *)[listLocations	objectAtIndex:currentIndex];
+	MPLocation *facingStep = nextStep;
+	
+	if (currentIndex < ([listLocations count]-1)) {
+		float distanceNext = [myLocation distanceToPosition2D:nextStep];
+		if (distanceNext < 5.0f ) {
+			facingStep = [listLocations objectAtIndex:currentIndex +1];
+		}
+	}
+	
+	
+	[mover moveTowards:nextStep within:howCloseToLocation facing:facingStep];
+	
+}
+
 
 #pragma mark -
 

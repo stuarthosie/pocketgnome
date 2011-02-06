@@ -44,12 +44,15 @@
 	int unstickAttempt;
 	float verticleAdj;
 	
+	NSLock *lock;
+	
 	PatherController *patherController;
 }
 @property (retain) PatherController *patherController;
 @property (retain) MPTimer *timerStuckCheck;
 @property (retain) Position *referencePosition;
 @property (retain) MPLocation *destinationLocation, *facingLocation, *lastFacingLocation;
+@property (retain) NSLock *lock;
 
 // Reset all movement states.  (should stop)
 - (void) resetMovementState;

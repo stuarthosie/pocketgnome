@@ -32,7 +32,7 @@ typedef enum {
 
 @interface NodeController (Internal)
 
-- (int)nodeLevel: (Node*)node;
+//- (int)nodeLevel: (Node*)node;  // Pather Wants to use this too ...
 - (BOOL)trackingNode: (Node*)trackingNode;
 - (void)reloadNodeData: (id)sender;
 - (void)fishingCheck;
@@ -368,6 +368,7 @@ typedef enum {
 	// find mobs with the name!
 	for ( Node *node in _objectList ){
 		if ( [nodeName isEqualToString:[node name]] ){
+PGLog(@" +++++  nodeName[%@] == node[%@] +++++", nodeName, [node name]);
 			[nodesWithName addObject:node];
 		}
 	}

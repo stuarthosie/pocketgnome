@@ -111,7 +111,7 @@ static MPTask *rootTask = nil;
 		if (newActivity != currentActivity) {
 		
 			if (newActivity != nil) {
-			PGLog( @"  --> new Activity found (%@) -> (%@)", [[newActivity task] name],[newActivity name]);
+				PGLog( @"  --> new Activity found (%@) -> (%@)", [[newActivity task] name],[newActivity name]);
 			} else {
 				PGLog(@"  --> nil activity returned " );
 			}

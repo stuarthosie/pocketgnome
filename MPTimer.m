@@ -78,6 +78,7 @@
 	MPTimer *newTimer = [[[MPTimer alloc] init] autorelease];
 	[newTimer setDuration:delayInMS];
 	return [newTimer retain];
+//	return newTimer;
 }
 
 + (MPTimer *) randomTimerFrom: (NSInteger) minDelayInMS To:(NSInteger)maxDelayInMS {
@@ -89,6 +90,7 @@
 	[newTimer setUseRandom:YES];
 
 	return [newTimer retain];
+//	return newTimer;
 }
 
 @end

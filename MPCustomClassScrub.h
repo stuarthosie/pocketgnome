@@ -58,4 +58,7 @@
 - (BOOL) meleeUnit:(Unit *)unit;
 - (BOOL) wandUnit:(Unit *)unit;
 
+- (void) clearErrors;   // Reset the casting error info
+- (BOOL) hasError;
+
 @end

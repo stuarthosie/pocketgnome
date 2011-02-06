@@ -27,6 +27,8 @@
 	float zPos;
 	int dbID;
 	
+	int zoneID;
+	
 	float width, height;
 	
 }
@@ -40,6 +42,7 @@
 @property (readwrite) int dbID;
 @property (readwrite) float costAdjustment;
 @property (readwrite) float width, height;
+@property (readwrite) int zoneID;
 
 
 - (BOOL) containsLocation: (MPLocation *)aLocation;
@@ -60,9 +63,10 @@
 - (MPLocation *) leftEdgeMidPointWithSquare: (MPSquare *)aSquare;
 - (MPLocation *) rightEdgeMidPointWithSquare: (MPSquare *)aSquare;
 - (MPLocation *) locationOfIntersectionWithSquare: (MPSquare *) aSquare;
+- (MPLocation *) locationOfMidPoint;
 - (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation;
 - (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine;
-- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine ignoringSquare:(MPSquare *)ignoreSquare;
+- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine ignoringSquares:(NSMutableArray *)listSquares;
 
 
 /*!
@@ -73,6 +77,7 @@
 - (NSRect) nsrect;
 - (void)  display;
 - (NSString *) describe;
+- (NSString *) navViewDescription;
 
 - (void) connectToAdjacentSquaresByPointReferences;  // internal?
 
@@ -81,12 +86,33 @@
 - (BOOL) isReduceable;
 - (void) disconnectFromGraph;
 
+- (float) maxAmountZIncreaseForTolerance:(float)zTolernace;
+- (float) maxAmountZDecreaseForTolerance:(float)zTolerance;
+
+
+/*!
+ * @function stringDBFields
+ * @abstract Returns the db fields for this square for inserting into the DB store.
+ * @discussion
+ */
+- (NSString *) stringDBFields;
+
+
+
 /*!
  * @function stringDBValues
  * @abstract Returns the string data of this square for inserting into the DB store.
  * @discussion
  */
 - (NSString *) stringDBValues;
+
+
+/*!
+ * @function stringDBUpdateValues
+ * @abstract Returns the string data of this square for UPDATEing in the DB store.
+ * @discussion
+ */
+- (NSString *) stringDBUpdateValues;
 
 #pragma mark -
 #pragma mark Convienience Constructors

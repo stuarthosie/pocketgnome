@@ -14,7 +14,7 @@
 
 
 /*!
- * @class      MPParTask
+ * @class      MPTaskPar
  * @abstract   The Parallel (Par) task allows you to manage several sub tasks that run in parallel.
  * @discussion 
  * The Par task manages one or more sub tasks that can each run out of sequence.  When ever a task has work to do

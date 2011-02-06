@@ -61,7 +61,7 @@
 				// currPrio = task.priority
 				currentPriority = [task priority];
 				
-				// To Do:  choose the closest task to do first.
+				// TODO:  choose the closest task to do first.
 				// currLoc = task.location()
 				// if currLoc != nil
 					// currDistance = myLocation.distanceTo(currLoc)

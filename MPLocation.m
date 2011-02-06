@@ -39,7 +39,8 @@
 	float zLoc = [(NSString *)[locationData objectAtIndex:2] floatValue];
 	MPLocation *newLocation = [[[MPLocation alloc] initWithX:xLoc Y:yLoc Z:zLoc] autorelease];
 
-	return [newLocation retain];
+	//return [newLocation retain];
+	return newLocation;
 }
 
 + (id) locationFromPosition: (Position *) position {

@@ -10,14 +10,17 @@
 #import "MPTask.h"
 @class MPValue;
 @class MPActivityApproach;
+@class MPActivityWait;
 @class MPActivityLoot;
 
 @class Mob;
 
 
 typedef enum LootState { 
-    LootStateApproaching   = 1, 
-    LootStateLooting = 2
+	LootStateWaiting		= 1,
+    LootStateApproaching	= 2, 
+	LootStateBackingUp		= 3,
+    LootStateLooting		= 4
 } MPLootState; 
 
 
@@ -47,6 +50,7 @@ typedef enum LootState {
 	Mob *selectedMob;
 	
 	MPActivityApproach *approachActivity;
+	MPActivityWait *backupActivity;
 	MPActivityLoot *lootActivity;
 	
 	MPLootState state;
@@ -54,6 +58,7 @@ typedef enum LootState {
 @property (readwrite) float distance;
 @property (retain) Mob *selectedMob;
 @property (retain) MPActivityApproach *approachActivity;
+@property (retain) MPActivityWait *backupActivity;
 @property (retain) MPActivityLoot *lootActivity;
 
 

@@ -39,7 +39,7 @@
 
 - (void) addID: (int) anID;
 - (BOOL) canCast;
-- (BOOL) cast;
+- (int) cast;
 - (void) scanForSpell;
 - (void) loadPlayerSettings;
 

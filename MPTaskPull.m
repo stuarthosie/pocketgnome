@@ -17,6 +17,7 @@
 #import "BotController.h"
 #import "CombatProfile.h"
 #import "MobController.h"
+#import "MPNavigationController.h"
 #import "PlayerDataController.h"
 #import "MPCustomClass.h"
 #import "Mob.h"
@@ -234,9 +235,9 @@ PGLog( @"[Pull wtds]: ");
 	// if mob not found
 	if (state != PullStateWrapup) {
 		if (currentMob == nil) {
-PGLog (@" no PUll Mob found ... ");
+PGLog (@" +++ no PUll Mob found ... ");
 if (state != PullStateSearching) {
-PGLog(@"switching to PullStateSearching!!!");
+PGLog(@" +++ switching to PullStateSearching!!!");
 }
 			state = PullStateSearching;
 		}
@@ -303,13 +304,13 @@ PGLog( @"   state[Attacking]");
 //				return [self wantToDoSomething];  // try again.
 //			} // end if
 
-			PGLog( @"      mob [%@] at health [%d] ", currentMob, (int)[currentMob currentHealth]);
+//			PGLog( @"      mob [%@] at health [%d] ", currentMob, (int)[currentMob currentHealth]);
 
 			// attempting to prevent the beginning to run off before looting becomes active
 //			if (([currentMob isDead])&&([currentMob currentHealth] <1)) {
 			if ([currentMob isDead]) {
 
-PGLog( @"         mob finished: ===> Wait for Loot ");
+//PGLog( @"         mob finished: ===> Wait for Loot ");
 				[timerWrapup start];
 				
 				state = PullStateWrapup;
@@ -519,28 +520,38 @@ PGLog( @"   state[Waiting]");
 			NSInteger high = (NSInteger) [maxLevel value];
 			NSArray *localMobs = [mobController mobsWithinDistance:mobDistance levelRange:NSMakeRange(low, (high-low) +1) includeElite:YES includeFriendly:NO includeNeutral:YES includeHostile:YES];
 
-			
+PGLog(@"  +++++ countLocalMobs[%d]  lowLv[%d]  highLv[%d]", [localMobs count], low, high);			
 			// of the mobs in our level and distance find those that match the names/factions:
 			for(Mob *mob in localMobs) {
 
-//	PGLog(@"  mobToPull(): evaluating mob: %@  at dist[%0.2f]", mob, [self myDistanceToMob:mob] );
+PGLog(@"  +++++ mobToPull(): evaluating mob: %@  at dist[%0.2f]", mob, [self myDistanceToMob:mob] );
 
 				if ([mob currentHealth] >= 1 ) {  // I've noticed mobs with 1 health reported as isDead!!!
 				
-					if (![[patherController blacklistController] isBlacklisted:mob] ) {
+					//if (![[patherController blacklistController] isBlacklisted:mob] ) {
+					if (![patherController isBlacklisted:mob] ) {
 				
 						if ( [self isValidTargetName:mob] && [self isValidFaction:mob] && ![self isIgnored:mob] ) {
-						
+
+PGLog(@" +++++ past validTargetName ");
 							// if not too many adds
 							if (![self tooManyAdds:mob] ) {
+PGLog(@" +++++ past !tooManyAdds ");
 							
-								float currentDistance = [self myDistanceToMob:mob]; 
+								// if mob is on graph then
+//								if ([[patherController navigationController] doesGraphContainLocation: (MPLocation *) [mob position]]) {
 								
-								if (currentDistance < selectedDistance) {
-									selectedDistance = currentDistance;
-									self.selectedMob = mob;
-								}
+									float currentDistance = [self myDistanceToMob:mob]; 
+									
+									if (currentDistance < selectedDistance) {
+//PGLog(@" +++++ past currentDistance[%0.2f] < selectedDistance[%0.2f]", currentDistance, selectedDistance);
+										selectedDistance = currentDistance;
+										self.selectedMob = mob;
+									}
 								
+//} else {
+//PGLog(@" +++++ apparently mob is not on graph! ");
+//								} // end if
 							} // end if
 						 } 
 					} else {
@@ -584,8 +595,9 @@ PGLog( @"   state[Waiting]");
 	} else {
 	
 		for( NSString *mobName in names) {
-//PGLog (@"mobName[%@] vs mob->name[%@]", mobName, [mob name]);
+//PGLog(@" +++++ isValidTargetName: mobName[%@] vs mob[%@]", mobName, [mob name]);
 			if ([mobName isEqualToString:[mob name]] ) {
+PGLog(@" +++++ found valid target name: mobName[%@] -> mob[%@]", mobName, [mob name]);
 				return YES;
 			}
 		}

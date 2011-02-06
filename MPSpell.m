@@ -74,7 +74,7 @@
 }
 
 
--(BOOL) cast {
+-(int) cast {
 	
 	return [botController performAction:spellID];
 	
@@ -315,7 +315,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Healing Touch"];
 	[newSpell addID:  5185];  // Rank 1
-	[newSpell addID:  5186];  // Rank 2
+/*	[newSpell addID:  5186];  // Rank 2
 	[newSpell addID:  5187];  // Rank 3
 	[newSpell addID:  5188];  // Rank 4
 	[newSpell addID:  5189];  // Rank 5
@@ -329,6 +329,7 @@
 	[newSpell addID: 26979];  // Rank 13
 	[newSpell addID: 48377];  // Rank 14
 	[newSpell addID: 48378];  // Rank 15
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -341,13 +342,13 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Insect Swarm"];
 	[newSpell addID:  5570];  // Rank 1
-	[newSpell addID: 24974];  // Rank 2
+/*	[newSpell addID: 24974];  // Rank 2
 	[newSpell addID: 24975];  // Rank 3
 	[newSpell addID: 24976];  // Rank 4
 	[newSpell addID: 24977];  // Rank 5
 	[newSpell addID: 27013];  // Rank 6
 	[newSpell addID: 48468];  // Rank 7
-	
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -373,7 +374,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Moonfire"];
 	[newSpell addID:  8921];  // Rank 1
-	[newSpell addID:  8924];  // Rank 2
+/*	[newSpell addID:  8924];  // Rank 2
 	[newSpell addID:  8925];  // Rank 3
 	[newSpell addID:  8926];  // Rank 4
 	[newSpell addID:  8927];  // Rank 5
@@ -386,6 +387,7 @@
 	[newSpell addID: 26988];  // Rank 12
 	[newSpell addID: 48462];  // Rank 13
 	[newSpell addID: 48463];  // Rank 14
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -398,7 +400,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Mark of the Wild"];
 	[newSpell addID: 1126];  // Rank 1
-	[newSpell addID: 5232];  // Rank 2
+/*	[newSpell addID: 5232];  // Rank 2
 	[newSpell addID: 6756];  // Rank 3
 	[newSpell addID: 5234];  // Rank 4 (not a typo)
 	[newSpell addID: 8907];  // Rank 5
@@ -406,6 +408,7 @@
 	[newSpell addID: 9885];  // Rank 7
 	[newSpell addID:26990];  // Rank 8
 	[newSpell addID:48469];  // Rank 9
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -418,7 +421,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Regrowth"];
 	[newSpell addID:  8936];  // Rank 1
-	[newSpell addID:  8938];  // Rank 2
+/*	[newSpell addID:  8938];  // Rank 2
 	[newSpell addID:  8939];  // Rank 3
 	[newSpell addID:  8940];  // Rank 4
 	[newSpell addID:  8941];  // Rank 5
@@ -429,6 +432,7 @@
 	[newSpell addID: 26980];  // Rank 10
 	[newSpell addID: 48442];  // Rank 11
 	[newSpell addID: 48443];  // Rank 12
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -441,7 +445,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Rejuvenation"];
 	[newSpell addID:  774];  // Rank 1
-	[newSpell addID: 1058];  // Rank 2
+/*	[newSpell addID: 1058];  // Rank 2
 	[newSpell addID: 1430];  // Rank 3
 	[newSpell addID: 2090];  // Rank 4
 	[newSpell addID: 2091];  // Rank 5
@@ -455,6 +459,7 @@
 	[newSpell addID:26982];  // Rank 13
 	[newSpell addID:48440];  // Rank 14
 	[newSpell addID:48441];  // Rank 15
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -480,7 +485,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Starfire"];
 	[newSpell addID:  2912];  // Rank 1
-	[newSpell addID:  8949];  // Rank 2
+/*	[newSpell addID:  8949];  // Rank 2
 	[newSpell addID:  8950];  // Rank 3
 	[newSpell addID:  8951];  // Rank 4
 	[newSpell addID:  9875];  // Rank 5
@@ -489,6 +494,7 @@
 	[newSpell addID: 26986];  // Rank 8
 	[newSpell addID: 48464];  // Rank 9
 	[newSpell addID: 48465];  // Rank 10
+*/
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -501,13 +507,14 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Thorns"];
 	[newSpell addID:  467];  // Rank 1
-	[newSpell addID:  782];  // Rank 2
+/*	[newSpell addID:  782];  // Rank 2
 	[newSpell addID: 1075];  // Rank 3
 	[newSpell addID: 8914];  // Rank 4
 	[newSpell addID: 9756];  // Rank 5
 	[newSpell addID: 9910];  // Rank 6
 	[newSpell addID:26992];  // Rank 7
 	[newSpell addID:53307];  // Rank 8
+ */
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;
@@ -520,7 +527,7 @@
 	MPSpell *newSpell = [MPSpell spell];
 	[newSpell setName:@"Wrath"];
 	[newSpell addID: 5176];  // Rank 1
-	[newSpell addID: 5177];  // Rank 2
+/*	[newSpell addID: 5177];  // Rank 2
 	[newSpell addID: 5178];  // Rank 3
 	[newSpell addID: 5179];  // Rank 4
 	[newSpell addID: 5180];  // Rank 5
@@ -531,6 +538,7 @@
 	[newSpell addID:26985];  // Rank 10
 	[newSpell addID:48459];  // Rank 11
 	[newSpell addID:48461];  // Rank 12
+ */
 	[newSpell loadPlayerSettings];
 	
 	return newSpell;

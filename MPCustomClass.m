@@ -77,6 +77,14 @@
 	
 }
 
+
+
+- (void) updateTraining {
+	
+	// NOTE: this method is for responding to new skills being learned.
+}
+
+
 #pragma mark -
 #pragma mark Helper methods
 

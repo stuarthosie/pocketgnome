@@ -172,10 +172,12 @@
 			// once we are near the corpse, this state is for moving to a safe 
 			// location around us.
 			
-			// if really close to rez location 
-			//distance = [self myDistanceToPosition2D:(Position *)[self locationSafeToRez]];
+			if (safeLocation == nil) self.safeLocation = [self locationSafeToRez];
+			
 			distance = [self myDistanceToPosition2D:(Position *)safeLocation];
-			if (distance < 2) {
+			
+PGLog( @" +++++ moving safe:  distance to saveLoc[%0.2f] [%@]", distance, safeLocation);
+			if (distance < 2.0f) {
 				state = GhostwalkStateRezzing;
 				[self revive];
 				[timerRetry start];
@@ -400,7 +402,7 @@
 
 - (MPLocation *) locationSafeToRez {
 	
-	// TO DO:
+	// TODO:  implement a routine to pick a safe location to rez from
 	// Figure out a location near the corpse that is safe to Rez, so we don't keep 
 	// rezzing in the middle of the Gnoll Camp ... again!
 	

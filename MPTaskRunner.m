@@ -104,6 +104,7 @@
 
 - (BOOL) wantToDoSomething {
 		
+//PGLog(@" +++ Runner[%@] countLocations[%d]", self.name, [locations count]);
 	
 	// if listLocations is empty, then no
 	if ([locations count] < 1)  return NO;

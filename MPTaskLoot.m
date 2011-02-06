@@ -10,16 +10,19 @@
 #import "MPTask.h"
 #import "Mob.h"
 #import "PatherController.h"
+#import "PlayerDataController.h"
 #import "MobController.h"
 #import "BotController.h"
 #import "MPActivityApproach.h"
 #import "MPActivityLoot.h"
+#import "MPActivityWait.h"
 #import "MPMover.h"
 
 
 
 @interface MPTaskLoot (Internal)
 
+- (void) clearBackupActivity;
 - (void) clearLootActivity;
 - (void) clearApproachActivity;
 
@@ -29,7 +32,7 @@
 
 
 @implementation MPTaskLoot
-@synthesize distance, selectedMob, approachActivity, lootActivity;
+@synthesize distance, selectedMob, approachActivity, backupActivity, lootActivity;
 
 
 
@@ -43,9 +46,10 @@
 		self.selectedMob = nil;
 		
 		self.approachActivity = nil;
+		self.backupActivity = nil;
 		self.lootActivity = nil;
 		
-		state = LootStateApproaching;
+		state = LootStateWaiting;
 	}
 	return self;
 }
@@ -62,6 +66,7 @@
 {
     [selectedMob autorelease];
 	[approachActivity autorelease];
+	[backupActivity release];
 	[lootActivity autorelease];
 	
     [super dealloc];
@@ -87,7 +92,7 @@
 
 
 - (void) restart {
-	state = LootStateApproaching;
+	state = LootStateWaiting;
  }
  
  
@@ -99,6 +104,66 @@
 	if ([[patherController playerData] isInCombat]) return NO;
 	
 	
+	Mob *lootMob = [self mobToLoot];
+	
+	if (lootMob == nil) state = LootStateWaiting;   // <-- sanity check
+	float distanceToMob = 0;
+	
+	switch (state) {
+		default:
+		case LootStateWaiting:
+			if (lootMob != nil) {
+			
+				float distanceToMob = [self myDistanceToMob:lootMob];
+				if (distanceToMob > 4.5f) {
+					
+					state = LootStateApproaching;
+					
+				} else if(distanceToMob < 3.0f) {
+					
+					state = LootStateBackingUp;
+				} else {
+					
+					state = LootStateLooting;
+				}
+				return YES;
+			}
+			break;
+			
+			
+			
+		case LootStateApproaching:
+			
+			distanceToMob = [self myDistanceToMob:lootMob];
+			if (distanceToMob < 4.5f) {
+				state = LootStateLooting;
+			}
+			return YES;
+			break;
+			
+			
+		case LootStateBackingUp:
+			distanceToMob = [self myDistanceToMob:lootMob];
+			if (distanceToMob > 3.0f) {
+				state = LootStateLooting;
+			}
+			return YES;
+			break;
+			
+			
+		case LootStateLooting:
+			// let the ActivityDone method break us out to Waiting
+			if (lootMob == nil) state = LootStateWaiting;
+			return YES;
+			break;
+
+	}
+	
+	
+	return NO;
+	
+/*	
+	
 	// if we have a current lootActivity then we want to do something.
 //	if (lootActivity != nil) return YES;
 	
@@ -108,7 +173,7 @@
 	// if mob found
 	if (lootMob != nil) {
 
-		BOOL wantToApproach = [[MPMover sharedMPMover] shouldMoveTowards:(MPLocation *)[lootMob position] within:4.9f facing:(MPLocation *)[lootMob position]];
+		BOOL wantToApproach = [[MPMover sharedMPMover] shouldMoveTowards:(MPLocation *)[lootMob position] within:4.5f facing:(MPLocation *)[lootMob position]];
 		if (wantToApproach) {
 			
 			state = LootStateApproaching;
@@ -117,17 +182,17 @@
 			state = LootStateLooting;
 		}
 		
-		/*
-		currentDistance = [self myDistanceToMob:lootMob];
-		if (currentDistance > 4.90) {
+	
+//		currentDistance = [self myDistanceToMob:lootMob];
+//		if (currentDistance > 4.90) {
+//		
+//			state = LootStateApproaching;
+//			
+//		} else {
+//		
+//			state = LootStateLooting;
+//		}
 		
-			state = LootStateApproaching;
-			
-		} else {
-		
-			state = LootStateLooting;
-		}
-		 */
 	}
 	else {
 		PGLog( @"[TaskLoot] No lootMob Found!  wtds = false");	
@@ -136,6 +201,8 @@
 		
 	// if we found a mob then we want to do something.
 	return (lootMob != nil);
+ 
+	*/
 }
 
 
@@ -159,14 +226,51 @@
 				
 			} 
 			
+			if (backupActivity != nil) {
+				[self clearBackupActivity];
+			}
+			
 			// if approachTask not created then
 			if (approachActivity == nil) {
 			
 				// create approachTask
-				self.approachActivity = [MPActivityApproach approachUnit:lootMob withinDistance:4.9 forTask:self];
+				self.approachActivity = [MPActivityApproach approachUnit:lootMob withinDistance:4.2f forTask:self];
 				
 			}
-			return (MPActivity *)approachActivity;
+			return approachActivity;
+			break;
+			
+		case LootStateBackingUp:
+			
+			// if attackTask active then
+			if (lootActivity != nil) {
+				
+				[self clearLootActivity];
+				
+			} 
+			
+			// if approachActivity created then
+			if (approachActivity != nil) {
+				[self clearApproachActivity];
+			}
+			
+			if (backupActivity == nil) {
+			
+				// Hack Alert!!!  
+				// OK, I'm breaking the rules here and actually getting my task to do the work.
+				// This should really become an Activity:  MPActivityBackup  or something.
+				
+				
+				// return a wait activity to prevent us doing anything else:
+				backupActivity = [MPActivityWait waitIndefinatelyForTask:self];
+				
+			}
+			
+			// tell the mover to move backwards facing our lootMob:
+			MPLocation *newDest = [MPLocation locationBehindTarget:(Mob *)[[PlayerDataController sharedController] player] atDistance:4.5f];
+			[[MPMover sharedMPMover] moveTowards: newDest within:1.5f facing:(MPLocation *)[lootMob position] ];
+			
+			return backupActivity;
 			break;
 			
 			
@@ -175,6 +279,11 @@
 			// if approachActivity created then
 			if (approachActivity != nil) {
 				[self clearApproachActivity];
+			}
+			
+			
+			if (backupActivity != nil) {
+				[self clearBackupActivity];
 			}
 			
 			// if attackTask not created then
@@ -202,6 +311,11 @@
 	// that activity is done so release it 
 	if (activity == approachActivity) {
 		[self clearApproachActivity];
+		state = LootStateLooting; // switch to looting ... 
+	}
+	
+	if (activity == backupActivity) {
+		[self clearBackupActivity];
 	}
 	
 	if (activity == lootActivity) {
@@ -219,6 +333,14 @@
 	self.selectedMob = nil;
 	
 }
+
+
+- (void) clearBackupActivity {
+	[backupActivity stop];
+	[backupActivity autorelease];
+	self.backupActivity = nil;
+}
+
 
 
 - (void) clearLootActivity {
@@ -286,12 +408,20 @@
 		
 		switch (state){
 				
+			case LootStateWaiting:
+				[text appendString:@"  waiting for loot mob"];
+				break;
+				
 			case LootStateApproaching:
 				[text appendFormat:@"  approaching: (%0.2f) / 5.0", [self myDistanceToMob:selectedMob]];
 				break;
 				
+			case LootStateBackingUp:
+				[text appendFormat:@"  backing up: (%0.2f) / 3.0", [self myDistanceToMob:selectedMob]];
+				break;
+				
 			case LootStateLooting:
-				[text appendFormat:@"  looting!"];
+				[text appendFormat:@"  looting!\n  (%0.2f)", [self myDistanceToMob:selectedMob]];
 				break;
 		}
 		

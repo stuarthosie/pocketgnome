@@ -109,6 +109,18 @@ typedef enum CCCombatState {
  */
 - (void) setup;
 
+
+/*!
+ * @function updateTraining
+ * @abstract update your toon after new skills are learned. 
+ * @discussion 
+ * This method is called by the MPTaskTraining task once training at a class trainer is complete.
+ * The child object should implement whatever adjustment it needs to respond to new skills being 
+ * learned.
+ */
+- (void) updateTraining;
+
+
 + (id) classWithController: (PatherController *) controller;
 @end
 
