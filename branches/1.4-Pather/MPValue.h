@@ -23,9 +23,13 @@
  */
 @interface MPValue : NSObject {
 	BOOL isString;
+	BOOL requiresParameter;
+	NSString *parameter;
 	PatherController *patherController;
 }
 @property (readonly) BOOL isString;
+@property (readonly) BOOL requiresParameter;
+@property (readwrite, retain) NSString *parameter;
 @property (retain) PatherController* patherController;
 
 - (id) init;

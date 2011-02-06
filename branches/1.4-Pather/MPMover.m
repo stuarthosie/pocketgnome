@@ -42,6 +42,7 @@
 @synthesize destinationLocation, facingLocation, patherController;
 @synthesize timerStuckCheck, referencePosition;
 @synthesize lastFacingLocation;
+@synthesize lock;
 
 SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 
@@ -74,6 +75,9 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 		closeEnough = INFINITY;
 		angleTolerance = MP_PI_8;
 		
+		
+		self.lock = [[NSLock alloc] init];
+		
 	}
 	return self;
 }
@@ -88,6 +92,8 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 	[referencePosition release];
 	
 	[lastFacingLocation release];
+	
+	[lock release];
 	
     [super dealloc];
 }
@@ -197,9 +203,10 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 
 
 - (void) faceLocation: (MPLocation *) location {
-	
+	[lock lock];
 	self.facingLocation = nil;
 	self.facingLocation = location;
+	[lock unlock];
 //	PGLog (@" facingLocation: %@", facingLocation );
 	
 }
@@ -245,9 +252,10 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 	BOOL shouldMove = [self shouldMoveTowards:locDestination within:howClose facing:locFacing withinTolerance:toleranceAngle];
 	
 	if (shouldMove ) {
-		
+		[lock lock];
 		self.destinationLocation = locDestination;
 		self.facingLocation = locFacing;
+		[lock unlock];
 		closeEnough = howClose;
 		angleTolerance = toleranceAngle;
 		
@@ -310,7 +318,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(MPMover);
 	float cutoff = closeEnough;
 	if (cutoff < 1.0f) cutoff = 1.0f;
 	
-PGLog(@" distanceTo[%0.4f] / cutoff[%0.4f] ", distanceToLocation, cutoff);
+//PGLog(@" distanceTo[%0.4f] / cutoff[%0.4f] ", distanceToLocation, cutoff);
 	
 	if (distanceToLocation > cutoff) {
 		
@@ -473,8 +481,13 @@ PGLog(@" distanceTo[%0.4f] / cutoff[%0.4f] ", distanceToLocation, cutoff);
 	
 	// To Do:  make sure Pather is running, if not, return
 	//PGLog(@" -- Action -- " );
-	[self calculateMovementTowards:destinationLocation];
-	[self calculateFacingTowards:facingLocation];
+	[lock lock];
+	MPLocation *tempDestLoc = [destinationLocation copy];
+	MPLocation *tempFacingLoc = [facingLocation copy];
+	[lock unlock];
+	
+	[self calculateMovementTowards:tempDestLoc];
+	[self calculateFacingTowards:tempFacingLoc];
 	
 	if ([self stuck]) {
 		[self attemptUnstick];
@@ -717,13 +730,16 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 
 - (void) attemptUnstick  {
 	
-	if (facingLocation) {
-		if ([facingLocation zPosition] < [[[PlayerDataController sharedController] position] zPosition]) {
+	[lock lock];
+	MPLocation *tFacingLocation = [facingLocation copy];
+	[lock unlock];
+	if (tFacingLocation) {
+		if ([tFacingLocation zPosition] < [[[PlayerDataController sharedController] position] zPosition]) {
 			verticleAdj += 1.0f;
 			if (verticleAdj > 50.0f) verticleAdj = 50.0f;
 			
 			self.lastFacingLocation = nil;
-			PGLog(@"verticleAdj[%0.4f]  %@   %@", verticleAdj, facingLocation, [[PlayerDataController sharedController] position]);
+			PGLog(@"verticleAdj[%0.4f]  %@   %@", verticleAdj, tFacingLocation, [[PlayerDataController sharedController] position]);
 		}
 	}
 	
@@ -830,7 +846,9 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 		PGLog(@"Stop Rotate");
 	}
 	
+	[lock lock];
 	self.facingLocation = nil;
+	[lock unlock];
 	
 	[self rotateLeft:NO];
 	[self rotateRight:NO];
@@ -843,8 +861,10 @@ PGLog(@"+++ Facing Location +++  me:%@   floc:%@", [me position], facingLocation
 		PGLog(@"Stop Move");
 	}
 	
+	[lock lock];
 	self.destinationLocation = nil;
 //	self.facingLocation = nil;
+	[lock unlock];
 	
 	[self forwards:NO];
 	[self backwards:NO];

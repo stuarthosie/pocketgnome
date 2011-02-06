@@ -21,7 +21,8 @@
 	id theResult = nil;
 	if([self count])
 	{
-		theResult = [[[self lastObject] retain] autorelease];
+		//theResult = [[[self lastObject] retain] autorelease];
+		theResult = [self lastObject];
 		[self removeLastObject];
 	}
 	return theResult;

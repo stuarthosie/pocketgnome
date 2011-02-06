@@ -8,10 +8,15 @@
 
 
 #import "MPValueInt.h"
+#import "MPFreeBagSlotsValue.h"
+#import "MPItemCount.h"
+#import "MPKillCount.h"
 #import "MPMyLevelValue.h"
 #import "MPMyClassValue.h"
 #import "MPParser.h"
+#import "MPSkillLevel.h"
 #import "MPStack.h"
+#import "MPState.h"
 #import "MPValue.h"
 #import "MPOperation.h"
 #import "MPValueInt.h"
@@ -34,7 +39,8 @@
 
 
 @implementation MPValue
-@synthesize isString;
+@synthesize isString, requiresParameter;
+@synthesize parameter;
 @synthesize patherController;
 
 -(id) init {
@@ -45,8 +51,18 @@
 	if ((self = [super init])) {
 		self.patherController = controller;
 		isString = NO;
+		requiresParameter = NO;
+		self.parameter = nil;
 	}
 	return self;
+}
+
+
+- (void) dealloc
+{
+	[parameter release];
+	
+    [super dealloc];
 }
 
 #pragma mark -
@@ -63,6 +79,7 @@
 		
 		if ( currentValue != nil) {
 				
+
 			// push currentValue
 			[equationStack push:currentValue];
 			
@@ -99,6 +116,7 @@
 	
 	NSString *current;
 	NSString *name;
+	NSString *next;
 	MPValue *value;
 	
 	// curr = [nextToken]
@@ -106,75 +124,98 @@
 	
 	//if a valid value was returned
 	if (current != nil) {
+//PGLog(@" ++++ current[%@]", current);
 		
-//	if ([current isEqualToString:@"["]) {
-//		value = [MPValue parseArray:parser];
-//		return value;
-//	}
-	
-	// if curr == $
-	if ([current isEqualToString: @"$"]) {
+		//	if ([current isEqualToString:@"["]) {
+		//		value = [MPValue parseArray:parser];
+		//		return value;
+		//	}
 		
-		// name = [nextToken]
-		name = [[parser nextToken] stringValue];
+		// if curr == $
+		if ([current isEqualToString: @"$"]) {
+			
+			// name = [nextToken]
+			name = [[parser nextToken] stringValue];
+
+			
+			// value = [MPValue functionValueByKey: name]
+			value = [MPValue functionValueByKey:name withPather:controller];
+
+			// if value == nil  => error Message
+			if (value == nil) {
+				PGLog(@"Error: MPValue returned nil for key[%@]", name);
+			}
+			
+			
+			// if value.requiresParameter
+			if ([value requiresParameter]) {
+				
+				next = [[parser nextToken] stringValue];
+
+				// if next == "{"
+				if ([next isEqualToString:@"{"]) {
+					
+					next = [[parser nextToken] stringValue];  // this is the string parameter
+					[value setParameter:[next stringByReplacingOccurrencesOfString:@"\"" withString:@""]];
+
+//PGLog(@" ++++  name[%@].value[%@]  ++++", next, value.parameter );
+					
+					next = [[parser nextToken] stringValue];  // clear the final "}"
+				} else {
+					PGLog(@"Error: Expecting Parameter for %@", name);
+				}
+			}
+			
+			
+			// return value
+			return value;
+			
+		} // end if
 		
-		// value = [MPValue functionValueByKey: name]
-		value = [MPValue functionValueByKey:name withPather:controller];
 		
-		// if value == nil  => error Message
-		if (value == nil) {
-			PGLog(@"Error: MPValue:nextValueWithParser: functionValueByKey returned nil for key[%@]", name);
-		}
+		// if curr == "+", "-", "/", "*", "==", ">=", "<=", ">", "<", "!=", "&&", "||"
+		if ([current isEqualToString:@"+"]  || 
+			[current isEqualToString:@"-"]  ||
+			[current isEqualToString:@"/"]  ||
+			[current isEqualToString:@"*"]  ||
+			[current isEqualToString:@"="] ||
+			[current isEqualToString:@"=="] ||
+			[current isEqualToString:@">="] ||
+			[current isEqualToString:@"<="] ||
+			[current isEqualToString:@">"]  ||
+			[current isEqualToString:@"<"]  ||
+			[current isEqualToString:@"!="] ||
+			[current isEqualToString:@"&&"] ||
+			[current isEqualToString:@"||"]) {
+			
+			// value = [MPValue operationValueByKey:curr];		
+			// return value
+			return [MPValue operationValueByKey:current];
+			
+		} // end if
 		
-		// return value
-		return value;
 		
-	} // end if
-	
-	
-	// if curr == "+", "-", "/", "*", "==", ">=", "<=", ">", "<", "!=", "&&", "||"
-	if ([current isEqualToString:@"+"]  || 
-		[current isEqualToString:@"-"]  ||
-		[current isEqualToString:@"/"]  ||
-		[current isEqualToString:@"*"]  ||
-		[current isEqualToString:@"="] ||
-		[current isEqualToString:@"=="] ||
-		[current isEqualToString:@">="] ||
-		[current isEqualToString:@"<="] ||
-		[current isEqualToString:@">"]  ||
-		[current isEqualToString:@"<"]  ||
-		[current isEqualToString:@"!="] ||
-		[current isEqualToString:@"&&"] ||
-		[current isEqualToString:@"||"]) {
+		// if curr = "("
+		if ([current isEqualToString:@"("] ) {
+			
+			// return [MPValue parseEquation:parser];
+			return [MPValue parseEquation:parser withDesiredType:type withPather:controller];
+			
+		}// end if
 		
-		// value = [MPValue operationValueByKey:curr];		
-		// return value
-		return [MPValue operationValueByKey:current];
+		// if curr = ")" or ";"
+		if ([current isEqualToString:@")"] || [current isEqualToString:@";"]) {
+			
+			// return nil
+			return nil;
+			
+		} // end if
 		
-	} // end if
-	
-	
-	// if curr = "("
-	if ([current isEqualToString:@"("] ) {
+		// if we get to here ... it's a scalar
+		//return [MPValue scalarValue: curr byType:scalarType];
+		return [MPValue scalarValueFromData:current withDesiredType:type];
 		
-		// return [MPValue parseEquation:parser];
-		return [MPValue parseEquation:parser withDesiredType:type withPather:controller];
-		
-	}// end if
-	
-	// if curr = ")" or ";"
-	if ([current isEqualToString:@")"] || [current isEqualToString:@";"]) {
-		
-		// return nil
-		return nil;
-		
-	} // end if
-	
-	// if we get to here ... it's a scalar
-	//return [MPValue scalarValue: curr byType:scalarType];
-	return [MPValue scalarValueFromData:current withDesiredType:type];
-		
-	}
+	} // if current != nil
 	
 	// current was nil so return that
 	return nil;
@@ -216,7 +257,8 @@
 		
 	} while (![current isEqualToString:@"]"]); // while (current != ']')
 	
-	return [[newArray retain] autorelease];
+	//return [[newArray retain] autorelease];
+	return newArray;
 }
 
 
@@ -225,13 +267,39 @@
 	// prevent typos related to capitalization ... 
 	NSString *lcKey = [key lowercaseString];
 	
+	// if $FreeBagSlots
+	if ([lcKey isEqualToString:@"freebagslots"]) {
+		return [MPFreeBagSlotsValue initWithPather:controller];
+	}
+	
+	// if $ItemCount
+	if ([lcKey isEqualToString:@"itemcount"]) {
+		return [MPItemCount initWithPather:controller];
+	}
+	
+	// if $KillCount
+	if ([lcKey isEqualToString:@"killcount"]) {
+		return [MPKillCount initWithPather:controller];
+	}
+	
 	// if $MyLevel
 	if ([lcKey isEqualToString:@"mylevel"]) {
 		return [MPMyLevelValue initWithPather:controller];
 	}
 	
+	// $MyClass
 	if ([lcKey isEqualToString:@"myclass"]) {
 		return [MPMyClassValue initWithPather:controller];
+	}
+	
+	// $SkillLevel{key}
+	if ([lcKey isEqualToString:@"skilllevel"]) {
+		return [MPSkillLevel initWithPather:controller];
+	}
+	
+	// $State{Key}
+	if ([lcKey isEqualToString:@"state"]) {
+		return [MPState initWithPather:controller];
 	}
 	
 	

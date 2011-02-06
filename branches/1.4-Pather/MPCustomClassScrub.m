@@ -22,6 +22,16 @@
 #import "MPTimer.h"
 #import "Errors.h"
 
+
+@interface MPCustomClassScrub (Internal)
+
+- (void) markError:(int) errorID;
+- (BOOL) haveStone;
+- (BOOL) isCasting;
+
+@end
+
+
 @implementation MPCustomClassScrub
 @synthesize shootWand, meleeAttack;
 @synthesize dispellPoison, dispellCurse, dispellMagic, dispellDisease;
@@ -361,6 +371,21 @@
 
 
 
+
+
+
+- (void) updateTraining {
+	
+	// make sure all our spells are rescaned ... 
+	for( MPSpell *spell in listSpells) {
+		
+		[spell scanForSpell];
+	}
+	
+}
+
+
+
 #pragma mark -
 #pragma mark Cast Helpers
 
@@ -406,11 +431,7 @@
 			autoWand= NO;  // autoWand is turned off when a cast is successful 
 			return YES;
 		} else {
-			//			[self markError:error];
-			if (error == ErrTargetNotInLOS) {
-				PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
-				errorLOS = YES;
-			}
+			[self markError:error];
 		}
 		
 	} 
@@ -435,11 +456,7 @@
 				autoWand = NO;  // autoWand is turned off when a cast is successful
 				return YES;
 			} else {
-				//				[self markError:error];
-				if (error == ErrTargetNotInLOS) {
-					PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
-					errorLOS = YES;
-				}
+				[self markError:error];
 			}
 		}
 	} 
@@ -460,15 +477,14 @@
 			
 			error = [spell cast];
 			if (!error) {
+				
+PGLog(@" +++ castMyDot successful.  e[%d]", error);
 				[timerGCD start];
 				autoWand = NO;  // autoWand is turned off when a cast is successful
 				return YES;
 			} else {
-				//				[self markError:error];
-				if (error == ErrTargetNotInLOS) {
-					PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
-					errorLOS = YES;
-				}
+PGLog(@" +++ castMyDot failure.  e[%d]", error);
+				[self markError:error];
 			}
 		}
 	} 
@@ -493,11 +509,7 @@
 				autoWand = NO;
 				return YES;
 			} else {
-				//	[self markError:error];
-				if (error == ErrTargetNotInLOS) {
-					PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
-					errorLOS = YES;
-				}
+				[self markError:error];
 			}
 		}
 	} 
@@ -522,11 +534,7 @@
 				autoWand = NO;
 				return YES;
 			} else {
-				//	[self markError:error];
-				if (error == ErrTargetNotInLOS) {
-					PGLog(@" %@ error: Line Of Sight.  ", [spell name]);
-					errorLOS = YES;
-				}
+				[self markError:error];
 			}
 		}
 	} 
@@ -582,6 +590,28 @@
 	return NO;
 }
 
+
+- (BOOL) hasError {
+	
+	return errorLOS;
+}
+
+
+- (void) clearErrors {
+	
+	errorLOS = NO;
+}
+
+
+
+- (void) markError:(int) errorID {
+	
+	if (errorID == ErrTargetNotInLOS) {
+		PGLog(@" error: Line Of Sight.  ");
+		errorLOS = YES;
+	}
+	
+}
 
 
 - (BOOL) meleeUnit:(Unit *)unit {

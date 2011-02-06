@@ -238,6 +238,8 @@ typedef enum TaskStatus {
 - (NSArray *) locationsFromVariable: (NSString *) variableName;
 
 
+- (MPLocation *) locationFromVariable: (NSString *) variableName;
+
 
 /*!
  * @function arrayStringsFromVariable

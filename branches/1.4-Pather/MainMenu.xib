@@ -11344,6 +11344,14 @@
 					</object>
 					<int key="connectionID">4738</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">nodeController</string>
+						<reference key="source" ref="616357427"/>
+						<reference key="destination" ref="275065446"/>
+					</object>
+					<int key="connectionID">4739</int>
+				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<object class="NSArray" key="orderedObjects">
@@ -15952,9 +15960,9 @@
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
-					<string>{{263, 180}, {749, 200}}</string>
+					<string>{{346, 180}, {749, 200}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{263, 180}, {749, 200}}</string>
+					<string>{{346, 180}, {749, 200}}</string>
 					<integer value="1"/>
 					<string>{{49, 661}, {640, 200}}</string>
 					<integer value="1"/>
@@ -16710,7 +16718,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">4738</int>
+			<int key="maxID">4739</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -19989,6 +19997,7 @@
 							<string>navMeshLiveUpdating</string>
 							<string>navMeshView</string>
 							<string>navigationController</string>
+							<string>nodeController</string>
 							<string>pathDataFolderView</string>
 							<string>pathView</string>
 							<string>pauseBotButton</string>
@@ -20037,6 +20046,7 @@
 							<string>NSButton</string>
 							<string>MPNavMeshView</string>
 							<string>MPNavigationController</string>
+							<string>NodeController</string>
 							<string>NSTextField</string>
 							<string>NSTextField</string>
 							<string>NSButton</string>
@@ -20088,6 +20098,7 @@
 							<string>navMeshLiveUpdating</string>
 							<string>navMeshView</string>
 							<string>navigationController</string>
+							<string>nodeController</string>
 							<string>pathDataFolderView</string>
 							<string>pathView</string>
 							<string>pauseBotButton</string>
@@ -20222,6 +20233,10 @@
 							<object class="IBToOneOutletInfo">
 								<string key="name">navigationController</string>
 								<string key="candidateClassName">MPNavigationController</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">nodeController</string>
+								<string key="candidateClassName">NodeController</string>
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">pathDataFolderView</string>

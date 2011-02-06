@@ -32,7 +32,7 @@
 	NSMutableString* value = [NSMutableString stringWithString:@""];
 	
 	[value appendFormat:@"(%@)  %d/%d", [super showStatusText], currentIndex, [childTasks count]];
-	return [value retain];
+	return value;
 }
 
 

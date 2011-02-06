@@ -15,16 +15,34 @@
 #import "MPTestTask.h"
 #import "MPTaskAssist.h"
 #import "MPTaskDefend.h"
+#import "MPTaskEquip.h"
 #import "MPTaskFollow.h"
-#import "MPTaskRest.h"
-#import "MPTaskRoute.h"
-#import "MPTaskPartyWait.h"
-#import "MPTaskPull.h"
-#import "MPTaskLoot.h"
 #import "MPTaskGhostRoute.h"
 #import "MPTaskGhostwalk.h"
-#import "MPTaskWait.h"
+#import "MPTaskHarvest.h"
+#import "MPTaskHearth.h"
 #import "MPTaskHotspots.h"
+#import "MPTaskLearnFP.h"
+#import "MPTaskLogout.h"
+#import "MPTaskLoot.h"
+#import "MPTaskMail.h"
+#import "MPTaskPartyWait.h"
+#import "MPTaskPull.h"
+#import "MPTaskQuestPickup.h"
+#import "MPTaskQuestGoal.h"
+#import "MPTaskQuestHandin.h"
+#import "MPTaskRest.h"
+#import "MPTaskRepair.h"
+#import "MPTaskRoute.h"
+#import "MPTaskSetHearth.h"
+#import "MPTaskSetState.h"
+#import "MPTaskTaxi.h"
+#import "MPTaskTrain.h"
+#import "MPTaskVendor.h"
+#import "MPTaskWait.h"
+#import "MPTaskWalk.h"
+
+
 #import "MPParser.h"
 #import "MPValue.h"
 #import "MPValueInt.h"
@@ -147,6 +165,7 @@
 	// name = nextToken]
 	NSString* nameString = [parser nextToken];
 	
+//PGLog(@" +++ nameString[%@]", nameString);
 	// op = nextToken]
 	NSString* op = [parser nextToken];
 	
@@ -169,6 +188,8 @@
 		currentValue = [parser nextToken];
 	
 	} while ( ![currentValue isEqualToString:@";"]); // while( currentValue != ';');
+	
+//PGLog(@" ++++ value[%@]", value);
 	
 	// store lc(name) => value
 	[definedVariables setObject:value forKey:[nameString lowercaseString]];
@@ -204,7 +225,8 @@
 	NSMutableString* value = [NSMutableString stringWithString:@""];
 	
 	[value appendFormat:@"p[%d]", [self priority]];
-	return [value retain];
+	//return [value retain];
+	return value;
 }
 
 - (BOOL) isActive {
@@ -328,11 +350,27 @@
 	if ( varData != nil) {
 		// return it without any Quotes
 		NSString *returnData = [[varData stringByReplacingOccurrencesOfString:@"\"" withString:@""] stringByReplacingOccurrencesOfString:@"'" withString:@""];
-		return [returnData retain];
+		//return [returnData retain];
+		return returnData;
 		
 	} else {
 		return defaultValue;
 	}// end if
+}
+
+
+
+- (MPLocation *) locationFromVariable: (NSString *) variableName {
+	
+	NSString *givenLocation = [self stringFromVariable:variableName orReturnDefault:@""];
+	
+	NSString *cleanedPosition = [givenLocation stringByReplacingOccurrencesOfString:@"[" withString:@""];
+	NSString *cleanedPosition2 = [cleanedPosition stringByReplacingOccurrencesOfString:@"]" withString:@""];
+	NSArray *locations = [cleanedPosition2 componentsSeparatedByString:@","];
+	if ([locations count] > 2) {
+		return [MPLocation locationFromVariableData:locations];
+	} 
+	return nil;
 }
 
 
@@ -417,6 +455,7 @@
 	// the tempStrings might be in format: array[ "string1", "string2", ..., "stringN"]
 	// we need them without '"'
 	cleanedStrings = [NSMutableArray array];
+
 	for( NSString* unconverted in tempStrings) {
 		[cleanedStrings addObject:[unconverted stringByReplacingOccurrencesOfString:@"\"" withString:@""]];
 	}
@@ -667,6 +706,9 @@
 	if ([lcTaskName isEqualToString:@"defend"]) {
 		return [MPTaskDefend initWithPather:controller];
 	}
+	if ([lcTaskName isEqualToString:@"equip"]) {
+		return [MPTaskEquip initWithPather:controller];
+	}
 	if ([lcTaskName isEqualToString:@"follow"]) {
 		return [MPTaskFollow initWithPather:controller];
 	}
@@ -676,11 +718,26 @@
 	if ([lcTaskName isEqualToString:@"ghostwalk"]) {
 		return [MPTaskGhostwalk initWithPather:controller];
 	}
+	if ([lcTaskName isEqualToString:@"hearth"]) {
+		return [MPTaskHearth initWithPather:controller];
+	}
 	if ([lcTaskName isEqualToString:@"hotspots"]) {
 		return [MPTaskHotspots initWithPather:controller];
 	}
+	if ([lcTaskName isEqualToString:@"harvest"]) {
+		return [MPTaskHarvest initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"learnfp"]) {
+		return [MPTaskLearnFP initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"logout"]) {
+		return [MPTaskLogout initWithPather:controller];
+	}
 	if ([lcTaskName isEqualToString:@"loot"]) {
 		return [MPTaskLoot initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"mail"]) {
+		return [MPTaskMail initWithPather:controller];
 	}
 	if ([lcTaskName isEqualToString:@"partywait"]) {
 		return [MPTaskPartyWait initWithPather:controller];
@@ -688,14 +745,44 @@
 	if ([lcTaskName isEqualToString:@"pull"]) {
 		return [MPTaskPull initWithPather:controller];
 	}
+	if ([lcTaskName isEqualToString:@"questgoal"]) {
+		return [MPTaskQuestGoal initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"questhandin"]) {
+		return [MPTaskQuestHandin initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"questpickup"]) {
+		return [MPTaskQuestPickup initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"repair"]) {
+		return [MPTaskRepair initWithPather:controller];
+	}
 	if ([lcTaskName isEqualToString:@"rest"]) {
 		return [MPTaskRest initWithPather:controller];
 	}
 	if ([lcTaskName isEqualToString:@"route"]) {
 		return [MPTaskRoute initWithPather:controller];
 	}
+	if ([lcTaskName isEqualToString:@"sethearth"]) {
+		return [MPTaskSetHearth initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"setstate"]) {
+		return [MPTaskSetState initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"taxi"]) {
+		return [MPTaskTaxi initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"train"]) {
+		return [MPTaskTrain initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"vendor"]) {
+		return [MPTaskVendor initWithPather:controller];
+	}
 	if ([lcTaskName isEqualToString:@"wait"]) {
 		return [MPTaskWait initWithPather:controller];
+	}
+	if ([lcTaskName isEqualToString:@"walk"]) {
+		return [MPTaskWalk initWithPather:controller];
 	}
 	if ([lcTaskName isEqualToString:@"test"]) {
 		return [MPTestTask initWithPather:controller];

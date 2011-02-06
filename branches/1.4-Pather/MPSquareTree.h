@@ -25,6 +25,12 @@
 @property (retain) NSLock *lock;
 
 - (void) addSquare: (MPSquare *)aSquare;
+- (MPSquare *) closestSquareAtX: (float) xPos Y: (float) yPos Z:(float)zPos;
+- (MPSquare *) closestSquareAtLocation: (MPLocation *) aLocation;
+- (int) countSquaresAtX:(float)xPos Y:(float)yPos;
+- (int) countSquaresAtLocation: (MPLocation *) location;
+- (MPSquare *) smallestSquareAtX: (float) xPos Y: (float) yPos;
+- (MPSquare *) smallestSquareAtLocation: (MPLocation *) aLocation;
 - (MPSquare *) squareAtX: (float) xPos Y: (float) yPos Z:(float)zPos;
 - (MPSquare *) squareAtLocation: (MPLocation *) aLocation;
 - (MPSquare *) lowestSquareAtX: (float) xPos Y: (float) yPos;

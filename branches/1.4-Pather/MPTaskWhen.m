@@ -16,10 +16,19 @@
 		
 		name = @"When";
 		taskState = WhenTaskStateWaiting;
+		doRepeat = NO;
 	}
 	return self;
 }
 
+
+
+- (void) setup {
+		
+	doRepeat = [self boolFromVariable:@"repeat" orReturnDefault:NO];
+	
+	[super setup];
+}
 
 
 #pragma	mark -
@@ -56,11 +65,14 @@
 		if (![child wantToDoSomething]) {
 		
 			// if !repeat then
-			taskState = WhenTaskStateStopped;
-			// else
-				// taskState = Waiting
-				// reset child here
-			// end if
+			if (!doRepeat) {
+				
+				taskState = WhenTaskStateStopped;
+			} else {
+				
+				taskState = WhenTaskStateWaiting;
+				[self restart];
+			}
 		}
 	}
 	BOOL doI = (taskState == WhenTaskStateRunning);

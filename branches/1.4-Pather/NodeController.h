@@ -43,6 +43,9 @@ typedef enum {
 
 - (unsigned)nodeCount;
 
+// pather : made this public so Harvest task can use it too ... 
+- (int)nodeLevel: (Node*)node;
+
 - (NSArray*)nodesOfType:(UInt32)nodeType shouldLock:(BOOL)lock;
 - (NSArray*)allMiningNodes;
 - (NSArray*)allHerbalismNodes;

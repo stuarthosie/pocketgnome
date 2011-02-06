@@ -50,7 +50,7 @@
 
 - (void) dealloc
 {
-	[nextLocation dealloc];
+	[nextLocation release];
 	
     [super dealloc];
 }

@@ -13,6 +13,7 @@
 
 #import "MovementController.h"
 #import "MPCustomClass.h"
+#import "MPLocation.h"
 #import "MPMover.h"
 #import "MPNavigationController.h"
 #import "PlayerDataController.h"
@@ -418,11 +419,21 @@
 }
 
 - (void) doMoveAction {
+	MPLocation *myLocation = (MPLocation *)[task myPosition];
 	
 	// move to next location 
 	MPLocation *nextStep = (MPLocation *)[listLocations	objectAtIndex:currentIndex];
-	[mover moveTowards:nextStep within:howClose facing:nextStep];
+	MPLocation *facingStep = nextStep;
 	
+	if (currentIndex < ([listLocations count]-1)) {
+		float distance = [myLocation distanceToPosition2D:nextStep];
+		if (distance < 5.0f ) {
+			facingStep = [listLocations objectAtIndex:currentIndex +1];
+		}
+	}
+	
+		
+	[mover moveTowards:nextStep within:howClose facing:facingStep];
 	
 	[customClass runningAction]; // <--- spam running action here
 }

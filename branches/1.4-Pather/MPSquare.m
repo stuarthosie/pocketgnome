@@ -11,7 +11,7 @@
 #import "MPLocation.h"
 #import "Position.h"
 #import "MPLine.h"
-
+#import "PlayerDataController.h"
 
 //#import "QuickLite/QuickLiteGlobals.h"
 //#import "PlausibleDatabase/PlausibleDatabase.h"
@@ -31,6 +31,7 @@
 			costAdjustment,
 			zPos, 
 			dbID,
+			zoneID,
 			width, height;
 
 
@@ -56,6 +57,8 @@
 		dbID = 0;
 		width = 0;
 		height = 0;
+		
+		zoneID = [[PlayerDataController sharedController] zone];
 		
 	}
 	return self;
@@ -210,6 +213,38 @@
 }
 
 
+
+
+
+
+- (MPLocation *) locationOfMidPoint {
+	
+	MPPoint *point1, *point3;
+	
+	point1 = [points objectAtIndex:1];
+	point3 = [points objectAtIndex:3];
+	
+	float minX, maxX, minY, maxY;
+	
+	minX = [[point1 location] xPosition];
+	maxX = [[point3 location] xPosition];
+	
+	minY = [[point1 location] yPosition];
+	maxY = [[point3 location] yPosition];
+	
+	
+	float midX, midY;
+	
+	midX = minX + ((maxX - minX)/2);
+	midY = minY + ((maxY - minY)/2);
+	
+	return [MPLocation locationAtX:midX Y:midY Z:zPos];
+	
+}
+
+
+
+
 - (MPLocation *) topEdgeMidPointWithSquare: (MPSquare *)aSquare {
 
 	MPLocation *point0 = [(MPPoint *)[points objectAtIndex:0] location];
@@ -334,16 +369,17 @@
 
 
 - (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine  {
-	return [self hasClearPathFrom:startLocation to:endLocation usingLine:aLine ignoringSquare:nil];
+	return [self hasClearPathFrom:startLocation to:endLocation usingLine:aLine ignoringSquares:nil];
 }
 
 
-- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine ignoringSquare:(MPSquare *)ignoreSquare {
+- (BOOL) hasClearPathFrom: (MPLocation *)startLocation to:(MPLocation *)endLocation usingLine:(MPLine *) aLine ignoringSquares:(NSMutableArray *)listSquares {
 	
 	if ([self containsLocation:endLocation]) {
 		return YES;
 	}
 	
+	if (listSquares == nil) listSquares = [NSMutableArray array];
 
 	float selectedDist = INFINITY;
 	float currentDist = 0;
@@ -400,12 +436,13 @@
 		}
 		
 		for( MPSquare *square in exitBorderSquares) {
-			if (square != ignoreSquare) {
+			if (![listSquares containsObject:square]) {
 				if ([square isTraversible]) {
 					if ([square containsLocation:selectedLocation]) {
 					
 //	PGLog(@"---- %@  checking %@", self.name, square.name);
-						return [square hasClearPathFrom:startLocation to:endLocation usingLine:aLine ignoringSquare:self];
+						[listSquares addObject:self];
+						return [square hasClearPathFrom:startLocation to:endLocation usingLine:aLine ignoringSquares:listSquares];
 					}
 				}
 			}
@@ -425,7 +462,7 @@
 	
 	// ok, a square is reduceable if it :
 	//	- isn't near the edge (has any empty edges)
-	//	- is next to an intraversable square
+	//	- isn't next to an intraversable square
 	
 	// Abort on empty edges
 	if ([topBorderConnections count] == 0) return NO;
@@ -479,6 +516,10 @@
 #pragma mark -
 #pragma mark DB helper methods
 
+- (NSString *) stringDBFields {
+	
+	return @"name, zoneID, minX, maxX, minY, maxY, zPos, traversible, cost";
+}
 
 - (NSString *) stringDBValues {
 	
@@ -498,7 +539,30 @@
 	traversible = (self.isTraversible ? 1:0);
 	cost = self.costAdjustment;
 	
-	return [NSString stringWithFormat:@"'%@', %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %d, %0.2f", self.name, minX, maxX, minY, maxY, posZ, traversible, cost];
+	return [NSString stringWithFormat:@"'%@', %d, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %d, %0.2f", self.name, zoneID, minX, maxX, minY, maxY, posZ, traversible, cost];
+}
+
+
+
+- (NSString *) stringDBUpdateValues {
+	
+	// decode our points into minX, maxX, minY, maxY, zPos
+	float minX, maxX, minY, maxY, posZ, cost;
+	int traversible;
+	
+	MPLocation *loc1 = [(MPPoint *)[points objectAtIndex:1] location];
+	MPLocation *loc3 = [(MPPoint *)[points objectAtIndex:3] location];
+	
+	minX = [loc1 xPosition];
+	maxX = [loc3 xPosition];
+	minY = [loc1 yPosition];
+	maxY = [loc3 yPosition];
+	posZ = self.zPos;
+	
+	traversible = (self.isTraversible ? 1:0);
+	cost = self.costAdjustment;
+	
+	return [NSString stringWithFormat:@"name='%@', zoneID=%d, minX=%0.2f, maxX=%0.2f, minY=%0.2f, maxY=%0.2f, zPos=%0.2f, traversible=%d, cost=%0.2f", self.name, zoneID, minX, maxX, minY, maxY, posZ, traversible, cost];
 }
 
 
@@ -686,6 +750,52 @@
 }
 
 
+- (float) maxAmountZIncreaseForTolerance:(float)zTolernace {
+	// return the maximum amount we can increase our Z while remaining connected to our current
+	// connections.
+	
+	// we can increase only as much as (minAdjacentZ + zTolerance) - ourZ
+	
+	NSMutableArray *listSquares = [self adjacentSquares];
+	
+	float minAdjacentZ = INFINITY;
+	
+	// foreach adjacent square
+	for( MPSquare *square in listSquares) {
+		if (minAdjacentZ > [square zPos]) {
+			minAdjacentZ = [square zPos];
+		}
+	}
+	
+	return (minAdjacentZ + zTolernace) - zPos;
+	
+}
+
+
+
+- (float) maxAmountZDecreaseForTolerance:(float)zTolerance {
+	// return the maximum amount we can decrease our Z while remaining connected to our current
+	// connections.
+	
+	// we can decrease only as much as: ourZ - (maxAdjacentZ - zTolerance)
+	
+	NSMutableArray *listSquares = [self adjacentSquares];
+	
+	float maxAdjacentZ = -INFINITY;
+	
+	// foreach adjacent square
+	for( MPSquare *square in listSquares) {
+		if (maxAdjacentZ < [square zPos]) {
+			maxAdjacentZ = [square zPos];
+		}
+	}
+	
+	return zPos - (maxAdjacentZ - zTolerance);
+	
+}
+
+
+
 - (NSString *) describe {
 	
 	NSMutableString *description = [NSMutableString stringWithFormat:@"square [%@][", self.name];
@@ -729,6 +839,59 @@
 	
 	
 	return description;
+}
+
+
+- (NSString *) navViewDescription {
+	
+	NSMutableString *description = [NSMutableString stringWithFormat:@"%@\n", self.name];
+	
+	MPLocation *point1, *point3;
+	point1 = [(MPPoint *)[points objectAtIndex:1] location];
+	point3 = [(MPPoint *)[points objectAtIndex:3] location];
+	[description appendFormat:@" [%0.0f, %0.0f], [%0.0f, %0.0f]  z:%0.2f\n", [point1 xPosition], [point1 yPosition], [point3 xPosition], [point3 yPosition], zPos];
+	
+	
+	/*
+	 int indx=0;
+	 MPPoint *currentPoint;
+	 for( indx=0; indx < [points count]; indx++ ) {
+	 currentPoint = [points objectAtIndex:indx];
+	 [description appendString:[currentPoint describe]];
+	 }
+	 
+	 [description appendFormat:@" zPos:%0.2f  t%d:l%d:b%d:r%d]", self.zPos, [topBorderConnections count], [leftBorderConnections count], [bottomBorderConnections count], [rightBorderConnections count]];
+	 */
+	
+	[description appendFormat:@" t%d:l%d:b%d:r%d\n", [topBorderConnections count], [leftBorderConnections count], [bottomBorderConnections count], [rightBorderConnections count]];
+	[description appendFormat:@" t["];
+	for( MPSquare *square in topBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  \n"];
+	
+	
+	[description appendFormat:@" l["];
+	for( MPSquare *square in leftBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  \n"];
+	
+	[description appendFormat:@" b["];
+	for( MPSquare *square in bottomBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  \n"];
+	
+	[description appendFormat:@" r["];
+	for( MPSquare *square in rightBorderConnections) {
+		[description appendFormat:@" %@, ", square.name];
+	}
+	[description appendFormat:@"]  "];
+	
+	
+	return description;
+	
 }
 
 #pragma mark -

@@ -12,6 +12,7 @@
 #import "MPCustomClass.h"
 #import "MPTimer.h"
 #import "MPMover.h"
+#import "PatherController.h"
 
 
 @implementation MPActivityAttack
@@ -93,6 +94,8 @@ PGLog(@"   AttackStateAttacking");
 //					[customClass postCombat];
 					
 					// log kill
+					[[task patherController] addKill:[mob name]];
+					
 					state = AttackStateFinished;
 					[waitForLoot start];
 					
@@ -101,7 +104,10 @@ PGLog(@"   AttackStateAttacking");
 				// case SuccessWithAdd
 				case CombatStateSuccessWithAdd:
 					PGLog(@"    ccKillTarget result[%d]: Success With Add", result );	
+					
 					// log kill
+					[[task patherController] addKill:[mob name]];
+					
 					// mob = customClass.currentTarget()
 					mob = [customClass currentMob];
 					break;
@@ -124,6 +130,8 @@ PGLog(@"   AttackStateAttacking");
 					[taskController setInCombat:NO];
 					
 					// blackList(mob)
+					[[task patherController] blacklistUnit:mob];
+					//[[[task patherController] blacklistController] blacklistObject:mob];
 					
 					return YES;  // <-- done
 					break;
@@ -133,6 +141,7 @@ PGLog(@"   AttackStateAttacking");
 				case CombatStateBuggedWithAdd:
 					PGLog(@"    ccKillTarget result[%d]: Bugged With Add", result );	
 					// blackList(mob)
+					[[task patherController] blacklistUnit:mob];
 					
 					// mob = customClass.currentTarget()
 					

@@ -34,6 +34,8 @@ typedef enum NavRoutingState {
 	NSMutableArray *pointArray;
 	MPPointTree *allPoints;
 
+	UInt32 zone;
+	
 	MPSquare *previousSquare;
 	float squareWidth;
 	float toleranceZ; // the z tolerance for graph considerations
@@ -50,7 +52,7 @@ typedef enum NavRoutingState {
 	// non Blocking Routing Stuff:
 	MPNavRoutingState state;
 	MPTimer *timerWorkTime;
-	MPLocation *currentStartLocation, *currentDestLocation;
+	MPLocation *currentStartLocation, *currentDestLocation, *gridProblemStart, *gridProblemEnd;
 	MPSquare *currentStartSquare;
 	BOOL isCurrentRouteValid;
 	Route *completedRoute;
@@ -69,9 +71,12 @@ typedef enum NavRoutingState {
 @property (retain) MPPathNode *currentPath;
 @property (retain) NSLock *dbLock;
 
+@property (readwrite) UInt32 zone;
+
 // Non Blocking Properties
 @property (retain) MPTimer *timerWorkTime;
 @property (retain) MPLocation *currentStartLocation, *currentDestLocation;
+@property (retain) MPLocation *gridProblemStart, *gridProblemEnd;
 @property (retain) MPSquare *currentStartSquare;
 @property (retain) Route *completedRoute;
 @property (retain) NSMutableArray *currentOpenList, *currentClosedList;
@@ -113,6 +118,9 @@ typedef enum NavRoutingState {
  *  This method is used when trying to optimize the navigation graphs.
  */
 - (MPSquare *) lowestSquareContainingLocation: (MPLocation *) aLocation;
+- (MPSquare *) smallestSquareContainingLocation: (MPLocation *) aLocation;
+- (MPSquare *) closestSquareContainingLocation: (MPLocation *) aLocation;
+
 
 - (void) resetSquareDisplay;
 
@@ -135,11 +143,15 @@ typedef enum NavRoutingState {
  *  will be marked traversible.
  */
 - (void) updateMeshAtLocation: (MPLocation*)aLocation isTraversible:(BOOL)canTraverse;
-
-
+- (void) nudgeConnectionsAtLocation:(MPLocation *)curLocation;
+- (int) squareCountAtLocation:(MPLocation *)playerPosition;
 
 - (void) loadInitialGraphChunkAroundLocation:(MPLocation *) location;
 - (void) loadAllSquares;
+
+
+// remove all squares in the currently loaded graph
+- (void) flushGraph;
 
 #pragma mark -
 #pragma mark Navigation and Routing
@@ -163,6 +175,7 @@ typedef enum NavRoutingState {
 - (BOOL) isRouteValid;
 - (Route *) completedRoute;
 - (Route *) bestCurrentRoute;
+- (MPSquare *) recursiveSquareFinderAroundLocation:(MPLocation *)location atRadius:(int)currentRadius limitAttempts:(int)maxRadius;
 
 /*!
  * @function routeToLocation
@@ -189,6 +202,9 @@ typedef enum NavRoutingState {
 - (BOOL) optimizeGraphAtSquare:(MPSquare *)currentSquare;
 
 
+- (void) removeSquare: (MPSquare *) aSquare;
 
+
+- (BOOL) doesGraphContainLocation: (MPLocation *)aLocation;
 
 @end

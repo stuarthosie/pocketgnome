@@ -171,6 +171,8 @@
 	
 	PGLog(@"  Casting:");
 	
+	[self clearErrors];
+	
 	if (! [[SpellController sharedSpells] isGCDActive] ){
 //	if ([timerGCD ready]) {
 	
@@ -293,8 +295,14 @@
 			// if mobhealth >= 50% && myMana > 20%
 			if (([mob percentHealth] >= 50) && ([me percentMana] > 20)){
 				if ([self castMyDOT:mf on:mob]) {
+					
+PGLog(@"  +++++ casting MoonFire!  Success.");
 					return CombatStateInCombat;
 				} 
+else {
+PGLog(@"   +++++ casting MF: Failure!");
+}
+
 			}
 			
 			
@@ -333,6 +341,11 @@
 		
 	}
 
+	if ([self hasError]) {
+PGLog(@" +++++ had an Error while attacking ... report Bugged!");
+		return CombatStateBugged;
+	}
+	
 	return CombatStateInCombat;
 }
 

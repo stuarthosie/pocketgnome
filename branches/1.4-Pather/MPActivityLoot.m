@@ -84,8 +84,6 @@
 		
 			// face mob
 			[mover faceLocation:(MPLocation *)[lootMob position]];
-//			[movementController stopMovement];
-//			[movementController turnTowardObject:lootMob];
 			
 			// mouse click on mob
 			[self clickMob];
@@ -441,6 +439,7 @@
 - (void) stop{
 	
 	attemptCount = 0;
+	[mover stopAllMovement];
 	
 }
 
@@ -451,6 +450,32 @@
 	NSMutableString *text = [NSMutableString string];
 	
 	[text appendFormat:@"%@\n", self.name];
+	switch (state) {
+		case LootActivityNotStarted:
+			[text appendString:@"  not started"];
+			break;
+			
+		case LootActivityLooting:
+			[text appendFormat:@"  looting\n attempt[%d]", attemptCount];
+			break;
+			
+		case LootActivityWaitingForSkinningStart:
+			[text appendFormat:@"  wait for skinning\n attempt[%d]", attemptCount];
+			break;
+			
+		case LootActivitySkinning:
+			[text appendFormat:@"  skinning\n attempt[%d]", attemptCount];
+			break;
+			
+		case LootActivityFinished:
+			[text appendString:@"  Finished"];
+			break;
+			
+		default:
+			[text appendString:@"  unknown"];
+			break;
+			
+	}
 /*	if (unit != nil) {
 		
 		Position *playerPosition = [playerDataController position];

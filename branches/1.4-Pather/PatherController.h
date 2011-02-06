@@ -20,13 +20,14 @@
 @class PlayerDataController;
 @class MPCustomClass;
 @class LootController;
+@class NodeController;
 @class WoWObject;
 @class WaypointController;
 @class BlacklistController;
 @class MPLocation;
 @class Controller;
 @class MPMover;
-
+@class MPToonData;
 
 @interface PatherController : NSObject {
 	
@@ -43,6 +44,7 @@
 	IBOutlet LootController *lootController;
 	IBOutlet WaypointController *waypointController;
 	IBOutlet BlacklistController *blacklistController;
+	IBOutlet NodeController *nodeController;
 	IBOutlet id controller;
 	
 	
@@ -74,6 +76,7 @@
 	
 
 	IBOutlet MPNavigationController *navigationController;
+	IBOutlet MPToonData *toonData;
 	IBOutlet NSButton *enableGraphAdjustments;
 	IBOutlet NSButton *enableGraphOptimizations;
 	IBOutlet NSTextField *zToleranceText;
@@ -86,12 +89,14 @@
 	IBOutlet NSTextField *labelCurrentPosition;
 	
 	IBOutlet NSTextField *textboxDestLocation;
+	IBOutlet NSTextField *labelSquareDescription;
+	IBOutlet NSTextField *labelSquareDepthAtLocation;
 	
 	// Manual View Movement
 	IBOutlet NSButton *enableManualGraphMovement;
 	IBOutlet NSTextField *textboxManualLocation;
 	IBOutlet NSTextField *adjXValue; // the textual value for the location adjustments
-	
+	IBOutlet NSTextField *textBoxZoneID;
 	
 	// the patherPanel
 	IBOutlet NSView *view;  
@@ -104,7 +109,7 @@
 	NSTimer *timerProcessCurrentActivity;
 	NSTimer *timerUpdateUI;
 	NSTimer *timerPerformanceCycle;
-	NSTimer *timerMPMover;
+//	NSTimer *timerMPMover;
 	
 	NSTimer *timerGraphBuilder;
 	NSTimer *timerGraphOptimizations;
@@ -112,6 +117,9 @@
 	MPTimer *timerWorkTime;
 	
 	NSMutableArray *unitsLootBlacklisted;  // when looting mob failed, don't try again.
+	NSMutableArray *unitsBlacklisted;  // when attacking, these units reported attack errors
+	
+	NSMutableArray *listKillCountNames;  // list of Mob Names we are counting kills on
 	
 	// CustomClass 
 	NSMutableArray *listCustomClasses;
@@ -120,6 +128,9 @@
 	MPMover *combatMover;
 	
 	BOOL isThreadStartedNavMeshView, isThreadStartedNavMeshAdjustments;
+	
+	BOOL doMoverAction;
+	BOOL isMoverThreadCreated;
 	
 	MPLocation *deleteMeRouteDest;
 	
@@ -133,15 +144,17 @@
 @property (readonly) PlayerDataController *playerData;
 @property (readonly) CombatController *combatController;
 @property (readonly) LootController *lootController;
+@property (readonly) NodeController *nodeController;
 @property (readonly) WaypointController *waypointController;
 @property (readonly) BlacklistController *blacklistController;
 @property (readonly) Controller *controller;
 @property (readonly) MPNavigationController *navigationController;
+@property (readonly) MPToonData *toonData;
 
-@property (retain) NSTimer *timerCheckPatherStopConditions, *timerEvaluateTasks, *timerProcessCurrentActivity, *timerUpdateUI, *timerPerformanceCycle, *timerMPMover, *timerGraphBuilder, *timerGraphOptimizations;
+@property (retain) NSTimer *timerCheckPatherStopConditions, *timerEvaluateTasks, *timerProcessCurrentActivity, *timerUpdateUI, *timerPerformanceCycle, *timerGraphBuilder, *timerGraphOptimizations;
 @property (retain) MPTimer *timerWorkTime;
 
-@property (retain) NSMutableArray *unitsLootBlacklisted;
+@property (retain) NSMutableArray *unitsLootBlacklisted, *unitsBlacklisted;
 
 @property (readonly) NSView *view;
 @property (readonly) NSString *sectionTitle;
@@ -152,9 +165,10 @@
 @property (readonly) NSButton *enableManualGraphMovement, *enableGraphOptimizations;
 
 @property (retain) NSMutableArray *listCustomClasses;
-@property (retain) MPCustomClass *customClass;
+@property (readwrite, retain) MPCustomClass *customClass;
 @property (retain) MPMover *combatMover;
 
+@property (retain) NSMutableArray *listKillCountNames;
 
 @property (retain) MPLocation *deleteMeRouteDest;
 
@@ -185,7 +199,8 @@
 - (IBAction) loadDB: sender ;
 - (IBAction) testDB: sender ;
 - (IBAction) testStartOptimizationThread: sender;
-
+- (IBAction) deleteSquareAtCurrentPosition: sender;
+- (IBAction) testNudge: sender;  // delete this one after testing
 
 /*!
  * @function chooseClass
@@ -369,29 +384,32 @@
 
 
 
+- (void)blacklistUnit: (WoWObject*)unit;
+- (void)removeUnitFromBlacklist: (WoWObject*)unit;
+- (BOOL) isBlacklisted: (WoWObject *) unit;
+
+
+
+#pragma mark -
+#pragma mark KillCount
+
+//// These methods are for the KillCount mechanism  (There is probably a better way)
+//  Pather Controller controls the list of names we are counting kills on
+//  QuestPickup Task will tell PatherController new names to add to list
+//  $KillCount Value objects will ask PatherController for the value of a mob killcount
+//  ActivityAttack will tell pather of another kill for mob
+//  ... so far noone stops the counting of a mob for kill counts.  But a restart of Pather will reset the list
+
+
+- (void) addKillCountMob: (NSString *)mobName;
+- (void) resetKillCountMob: (NSString *) mobName;	// set count = 0;
+- (int) killCount: (NSString *)mobName;  // returns the curren # kills.  0 if not counting mobName
+- (void) addKill: (NSString *)mobName;   // increase the kill count for mobName. (only if already counting)
+
 
 #pragma mark -
 #pragma mark Value Functions
 
-
-/*!
- * @function getMyLevel
- * @abstract Returns the current level of the toon.
- * @discussion
- *	This method is called directly by the MPMyLevelValue object.  The PatherController object provides a single
- *  interface for our tasks/value objects to interface with PocketGnome's different controllers to gather data.
- */
-- (NSInteger) getMyLevel;
-
-
-/*!
- * @function getMyClass
- * @abstract Returns the current class name of the toon.
- * @discussion
- *	This method is called directly by the MPMyClassValue object.  The PatherController object provides a single
- *  interface for our tasks/value objects to interface with PocketGnome's different controllers to gather data.
- */
-- (NSString *) getMyClass;
 
 - (IBAction) testStuff: sender;
 - (IBAction) testRoute: sender;

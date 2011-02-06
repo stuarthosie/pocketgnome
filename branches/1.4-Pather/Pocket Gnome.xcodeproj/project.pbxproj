@@ -140,6 +140,99 @@
 		3416DA3412C1E84A007CE6EF /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */; };
 		3416DA3512C1E84A007CE6EF /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */; };
 		3416DA4712C1E850007CE6EF /* PlausibleDatabase.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */; };
+		3421854312E4392F0059B06C /* MPActivityMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421854212E4392F0059B06C /* MPActivityMail.m */; };
+		3421854412E4392F0059B06C /* MPActivityMail.h in Headers */ = {isa = PBXBuildFile; fileRef = 3421854112E4392F0059B06C /* MPActivityMail.h */; };
+		3421854512E4392F0059B06C /* MPActivityMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421854212E4392F0059B06C /* MPActivityMail.m */; };
+		3421862D12E6A9510059B06C /* MPTaskMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421862C12E6A9510059B06C /* MPTaskMail.m */; };
+		3421862E12E6A9510059B06C /* MPTaskMail.h in Headers */ = {isa = PBXBuildFile; fileRef = 3421862B12E6A9510059B06C /* MPTaskMail.h */; };
+		3421862F12E6A9510059B06C /* MPTaskMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421862C12E6A9510059B06C /* MPTaskMail.m */; };
+		3421867612E6CF6B0059B06C /* MPItemCount.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421867512E6CF6B0059B06C /* MPItemCount.m */; };
+		3421867712E6CF6B0059B06C /* MPItemCount.h in Headers */ = {isa = PBXBuildFile; fileRef = 3421867412E6CF6B0059B06C /* MPItemCount.h */; };
+		3421867812E6CF6B0059B06C /* MPItemCount.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421867512E6CF6B0059B06C /* MPItemCount.m */; };
+		342187C112E814DE0059B06C /* MPTaskTrain.m in Sources */ = {isa = PBXBuildFile; fileRef = 342187C012E814DE0059B06C /* MPTaskTrain.m */; };
+		342187C212E814DE0059B06C /* MPTaskTrain.h in Headers */ = {isa = PBXBuildFile; fileRef = 342187BF12E814DE0059B06C /* MPTaskTrain.h */; };
+		342187C312E814DE0059B06C /* MPTaskTrain.m in Sources */ = {isa = PBXBuildFile; fileRef = 342187C012E814DE0059B06C /* MPTaskTrain.m */; };
+		342187C612E8283A0059B06C /* MPTaskInteractNPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 342187C512E8283A0059B06C /* MPTaskInteractNPC.m */; };
+		342187C712E8283A0059B06C /* MPTaskInteractNPC.h in Headers */ = {isa = PBXBuildFile; fileRef = 342187C412E8283A0059B06C /* MPTaskInteractNPC.h */; };
+		342187C812E8283A0059B06C /* MPTaskInteractNPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 342187C512E8283A0059B06C /* MPTaskInteractNPC.m */; };
+		34218BCA12E892520059B06C /* MPActivityTrain.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218BC912E892520059B06C /* MPActivityTrain.m */; };
+		34218BCB12E892520059B06C /* MPActivityTrain.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218BC812E892520059B06C /* MPActivityTrain.h */; };
+		34218BCC12E892520059B06C /* MPActivityTrain.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218BC912E892520059B06C /* MPActivityTrain.m */; };
+		34218C3612E9B0F10059B06C /* MPActivitySetHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C3512E9B0F10059B06C /* MPActivitySetHearth.m */; };
+		34218C3712E9B0F10059B06C /* MPActivitySetHearth.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218C3412E9B0F10059B06C /* MPActivitySetHearth.h */; };
+		34218C3812E9B0F10059B06C /* MPActivitySetHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C3512E9B0F10059B06C /* MPActivitySetHearth.m */; };
+		34218C6012E9BB670059B06C /* MPTaskSetHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C5F12E9BB670059B06C /* MPTaskSetHearth.m */; };
+		34218C6112E9BB670059B06C /* MPTaskSetHearth.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218C5E12E9BB670059B06C /* MPTaskSetHearth.h */; };
+		34218C6212E9BB670059B06C /* MPTaskSetHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C5F12E9BB670059B06C /* MPTaskSetHearth.m */; };
+		34218C8012E9C25E0059B06C /* MPActivityClickUnit.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C7F12E9C25E0059B06C /* MPActivityClickUnit.m */; };
+		34218C8112E9C25E0059B06C /* MPActivityClickUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218C7E12E9C25E0059B06C /* MPActivityClickUnit.h */; };
+		34218C8212E9C25E0059B06C /* MPActivityClickUnit.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C7F12E9C25E0059B06C /* MPActivityClickUnit.m */; };
+		34218C8812E9C54F0059B06C /* MPTaskLearnFP.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C8712E9C54F0059B06C /* MPTaskLearnFP.m */; };
+		34218C8912E9C54F0059B06C /* MPTaskLearnFP.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218C8612E9C54F0059B06C /* MPTaskLearnFP.h */; };
+		34218C8A12E9C54F0059B06C /* MPTaskLearnFP.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218C8712E9C54F0059B06C /* MPTaskLearnFP.m */; };
+		34218CC512EAFA6E0059B06C /* MPActivityTaxi.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218CC412EAFA6E0059B06C /* MPActivityTaxi.m */; };
+		34218CC612EAFA6E0059B06C /* MPActivityTaxi.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218CC312EAFA6E0059B06C /* MPActivityTaxi.h */; };
+		34218CC712EAFA6E0059B06C /* MPActivityTaxi.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218CC412EAFA6E0059B06C /* MPActivityTaxi.m */; };
+		34218CEE12EBBCFD0059B06C /* MPTaskTaxi.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218CED12EBBCFD0059B06C /* MPTaskTaxi.m */; };
+		34218CEF12EBBCFD0059B06C /* MPTaskTaxi.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218CEC12EBBCFD0059B06C /* MPTaskTaxi.h */; };
+		34218CF012EBBCFD0059B06C /* MPTaskTaxi.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218CED12EBBCFD0059B06C /* MPTaskTaxi.m */; };
+		34218CFF12EBCAAA0059B06C /* MPToonData.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218CFE12EBCAAA0059B06C /* MPToonData.m */; };
+		34218D0012EBCAAA0059B06C /* MPToonData.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218CFD12EBCAAA0059B06C /* MPToonData.h */; };
+		34218D0112EBCAAA0059B06C /* MPToonData.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218CFE12EBCAAA0059B06C /* MPToonData.m */; };
+		34218DB412EC38270059B06C /* MPTaskSetState.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DB312EC38270059B06C /* MPTaskSetState.m */; };
+		34218DB512EC38270059B06C /* MPTaskSetState.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218DB212EC38270059B06C /* MPTaskSetState.h */; };
+		34218DB612EC38270059B06C /* MPTaskSetState.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DB312EC38270059B06C /* MPTaskSetState.m */; };
+		34218DC112EC43D70059B06C /* MPState.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DC012EC43D70059B06C /* MPState.m */; };
+		34218DC212EC43D70059B06C /* MPState.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218DBF12EC43D70059B06C /* MPState.h */; };
+		34218DC312EC43D70059B06C /* MPState.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DC012EC43D70059B06C /* MPState.m */; };
+		34218DD412ED0CC90059B06C /* MPActivityRepair.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DD312ED0CC90059B06C /* MPActivityRepair.m */; };
+		34218DD512ED0CC90059B06C /* MPActivityRepair.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218DD212ED0CC90059B06C /* MPActivityRepair.h */; };
+		34218DD612ED0CC90059B06C /* MPActivityRepair.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DD312ED0CC90059B06C /* MPActivityRepair.m */; };
+		34218DDF12ED0FBA0059B06C /* MPTaskRepair.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DDE12ED0FBA0059B06C /* MPTaskRepair.m */; };
+		34218DE012ED0FBA0059B06C /* MPTaskRepair.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218DDD12ED0FBA0059B06C /* MPTaskRepair.h */; };
+		34218DE112ED0FBA0059B06C /* MPTaskRepair.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218DDE12ED0FBA0059B06C /* MPTaskRepair.m */; };
+		34218E5812F678590059B06C /* MPTaskQuestPickup.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218E5712F678590059B06C /* MPTaskQuestPickup.m */; };
+		34218E5912F678590059B06C /* MPTaskQuestPickup.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218E5612F678590059B06C /* MPTaskQuestPickup.h */; };
+		34218E5A12F678590059B06C /* MPTaskQuestPickup.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218E5712F678590059B06C /* MPTaskQuestPickup.m */; };
+		34218E5F12F67B4B0059B06C /* MPActivityQuestPickup.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218E5E12F67B4B0059B06C /* MPActivityQuestPickup.m */; };
+		34218E6012F67B4B0059B06C /* MPActivityQuestPickup.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218E5D12F67B4B0059B06C /* MPActivityQuestPickup.h */; };
+		34218E6112F67B4B0059B06C /* MPActivityQuestPickup.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218E5E12F67B4B0059B06C /* MPActivityQuestPickup.m */; };
+		34218E9B12F6A1AD0059B06C /* MPTaskQuestGoal.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218E9A12F6A1AD0059B06C /* MPTaskQuestGoal.m */; };
+		34218E9C12F6A1AD0059B06C /* MPTaskQuestGoal.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218E9912F6A1AD0059B06C /* MPTaskQuestGoal.h */; };
+		34218E9D12F6A1AD0059B06C /* MPTaskQuestGoal.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218E9A12F6A1AD0059B06C /* MPTaskQuestGoal.m */; };
+		34218EB912F6B1330059B06C /* MPKillCount.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218EB812F6B1330059B06C /* MPKillCount.m */; };
+		34218EBA12F6B1330059B06C /* MPKillCount.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218EB712F6B1330059B06C /* MPKillCount.h */; };
+		34218EBB12F6B1330059B06C /* MPKillCount.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218EB812F6B1330059B06C /* MPKillCount.m */; };
+		34218F7112F6FE2E0059B06C /* MPActivityQuestHandin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218F7012F6FE2E0059B06C /* MPActivityQuestHandin.m */; };
+		34218F7212F6FE2E0059B06C /* MPActivityQuestHandin.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218F6F12F6FE2E0059B06C /* MPActivityQuestHandin.h */; };
+		34218F7312F6FE2E0059B06C /* MPActivityQuestHandin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218F7012F6FE2E0059B06C /* MPActivityQuestHandin.m */; };
+		34218F7712F706E90059B06C /* MPTaskQuestHandin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218F7612F706E90059B06C /* MPTaskQuestHandin.m */; };
+		34218F7812F706E90059B06C /* MPTaskQuestHandin.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218F7512F706E90059B06C /* MPTaskQuestHandin.h */; };
+		34218F7912F706E90059B06C /* MPTaskQuestHandin.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218F7612F706E90059B06C /* MPTaskQuestHandin.m */; };
+		34218F9312F7112D0059B06C /* MPTaskEquip.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218F9212F7112D0059B06C /* MPTaskEquip.m */; };
+		34218F9412F7112D0059B06C /* MPTaskEquip.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218F9112F7112D0059B06C /* MPTaskEquip.h */; };
+		34218F9512F7112D0059B06C /* MPTaskEquip.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218F9212F7112D0059B06C /* MPTaskEquip.m */; };
+		34218FC412F7BCC30059B06C /* MPActivityEquipItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218FC312F7BCC30059B06C /* MPActivityEquipItem.m */; };
+		34218FC512F7BCC30059B06C /* MPActivityEquipItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 34218FC212F7BCC30059B06C /* MPActivityEquipItem.h */; };
+		34218FC612F7BCC30059B06C /* MPActivityEquipItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 34218FC312F7BCC30059B06C /* MPActivityEquipItem.m */; };
+		342190CB12FB205C0059B06C /* MPTaskWalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 342190CA12FB205C0059B06C /* MPTaskWalk.m */; };
+		342190CC12FB205C0059B06C /* MPTaskWalk.h in Headers */ = {isa = PBXBuildFile; fileRef = 342190C912FB205C0059B06C /* MPTaskWalk.h */; };
+		342190CD12FB205C0059B06C /* MPTaskWalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 342190CA12FB205C0059B06C /* MPTaskWalk.m */; };
+		3421915812FE3F0E0059B06C /* MPSkillLevel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421915712FE3F0E0059B06C /* MPSkillLevel.m */; };
+		3421915912FE3F0E0059B06C /* MPSkillLevel.h in Headers */ = {isa = PBXBuildFile; fileRef = 3421915612FE3F0E0059B06C /* MPSkillLevel.h */; };
+		3421915A12FE3F0E0059B06C /* MPSkillLevel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421915712FE3F0E0059B06C /* MPSkillLevel.m */; };
+		3421916712FE46230059B06C /* MPTaskHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421916612FE46230059B06C /* MPTaskHearth.m */; };
+		3421916812FE46230059B06C /* MPTaskHearth.h in Headers */ = {isa = PBXBuildFile; fileRef = 3421916512FE46230059B06C /* MPTaskHearth.h */; };
+		3421916912FE46230059B06C /* MPTaskHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421916612FE46230059B06C /* MPTaskHearth.m */; };
+		3421916D12FE48C60059B06C /* MPActivityHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421916C12FE48C60059B06C /* MPActivityHearth.m */; };
+		3421916E12FE48C60059B06C /* MPActivityHearth.h in Headers */ = {isa = PBXBuildFile; fileRef = 3421916B12FE48C60059B06C /* MPActivityHearth.h */; };
+		3421916F12FE48C60059B06C /* MPActivityHearth.m in Sources */ = {isa = PBXBuildFile; fileRef = 3421916C12FE48C60059B06C /* MPActivityHearth.m */; };
+		342191C812FE60170059B06C /* MPTaskLogout.m in Sources */ = {isa = PBXBuildFile; fileRef = 342191C712FE60170059B06C /* MPTaskLogout.m */; };
+		342191C912FE60170059B06C /* MPTaskLogout.h in Headers */ = {isa = PBXBuildFile; fileRef = 342191C612FE60170059B06C /* MPTaskLogout.h */; };
+		342191CA12FE60170059B06C /* MPTaskLogout.m in Sources */ = {isa = PBXBuildFile; fileRef = 342191C712FE60170059B06C /* MPTaskLogout.m */; };
+		342191E512FE61040059B06C /* MPActivityLogout.m in Sources */ = {isa = PBXBuildFile; fileRef = 342191E412FE61040059B06C /* MPActivityLogout.m */; };
+		342191E612FE61040059B06C /* MPActivityLogout.h in Headers */ = {isa = PBXBuildFile; fileRef = 342191E312FE61040059B06C /* MPActivityLogout.h */; };
+		342191E712FE61040059B06C /* MPActivityLogout.m in Sources */ = {isa = PBXBuildFile; fileRef = 342191E412FE61040059B06C /* MPActivityLogout.m */; };
 		3429567D12C9C52600F6EABB /* MPTaskRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = 3429567C12C9C52600F6EABB /* MPTaskRunner.m */; };
 		3429567E12C9C52600F6EABB /* MPTaskRunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 3429567B12C9C52600F6EABB /* MPTaskRunner.h */; };
 		3429567F12C9C52600F6EABB /* MPTaskRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = 3429567C12C9C52600F6EABB /* MPTaskRunner.m */; };
@@ -294,6 +387,21 @@
 		3459B81912CB04CD00CC306D /* MPTaskGhostwalk.h in Headers */ = {isa = PBXBuildFile; fileRef = 3459B81712CB04CD00CC306D /* MPTaskGhostwalk.h */; };
 		3459B81A12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */; };
 		3459B81B12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */ = {isa = PBXBuildFile; fileRef = 3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */; };
+		34C5514E12D7107C00EFB223 /* MPTaskVendor.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C5514D12D7107C00EFB223 /* MPTaskVendor.m */; };
+		34C5514F12D7107C00EFB223 /* MPTaskVendor.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C5514C12D7107C00EFB223 /* MPTaskVendor.h */; };
+		34C5515012D7107C00EFB223 /* MPTaskVendor.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C5514D12D7107C00EFB223 /* MPTaskVendor.m */; };
+		34C5516F12DB01B400EFB223 /* MPActivitySell.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C5516E12DB01B400EFB223 /* MPActivitySell.m */; };
+		34C5517012DB01B400EFB223 /* MPActivitySell.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C5516D12DB01B400EFB223 /* MPActivitySell.h */; };
+		34C5517112DB01B400EFB223 /* MPActivitySell.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C5516E12DB01B400EFB223 /* MPActivitySell.m */; };
+		34C551EF12DC589800EFB223 /* MPFreeBagSlotsValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C551ED12DC589800EFB223 /* MPFreeBagSlotsValue.h */; };
+		34C551F012DC589800EFB223 /* MPFreeBagSlotsValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C551EE12DC589800EFB223 /* MPFreeBagSlotsValue.m */; };
+		34C551F112DC589800EFB223 /* MPFreeBagSlotsValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 34C551EE12DC589800EFB223 /* MPFreeBagSlotsValue.m */; };
+		34EEE67512CFE45F00B9FF7A /* MPTaskHarvest.m in Sources */ = {isa = PBXBuildFile; fileRef = 34EEE67412CFE45F00B9FF7A /* MPTaskHarvest.m */; };
+		34EEE67612CFE45F00B9FF7A /* MPTaskHarvest.h in Headers */ = {isa = PBXBuildFile; fileRef = 34EEE67312CFE45F00B9FF7A /* MPTaskHarvest.h */; };
+		34EEE67712CFE45F00B9FF7A /* MPTaskHarvest.m in Sources */ = {isa = PBXBuildFile; fileRef = 34EEE67412CFE45F00B9FF7A /* MPTaskHarvest.m */; };
+		34EEE6E112D0350100B9FF7A /* MPActivityPickup.m in Sources */ = {isa = PBXBuildFile; fileRef = 34EEE6E012D0350100B9FF7A /* MPActivityPickup.m */; };
+		34EEE6E212D0350100B9FF7A /* MPActivityPickup.h in Headers */ = {isa = PBXBuildFile; fileRef = 34EEE6DF12D0350100B9FF7A /* MPActivityPickup.h */; };
+		34EEE6E312D0350100B9FF7A /* MPActivityPickup.m in Sources */ = {isa = PBXBuildFile; fileRef = 34EEE6E012D0350100B9FF7A /* MPActivityPickup.m */; };
 		614CD78A1106182100BA1B2F /* Bot.xib in Resources */ = {isa = PBXBuildFile; fileRef = 614CD7891106182100BA1B2F /* Bot.xib */; };
 		7D06F0420D23058B00DA4E99 /* AuraController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D06F0410D23058B00DA4E99 /* AuraController.m */; };
 		7D0C43D10DF2089E005F3940 /* ScanGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C43D00DF2089E005F3940 /* ScanGridView.m */; };
@@ -777,6 +885,68 @@
 		3415C9B112B5E5EF0062DDD4 /* PatherCC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PatherCC.h; sourceTree = "<group>"; };
 		3415C9B212B5E5EF0062DDD4 /* PatherCC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PatherCC.m; sourceTree = "<group>"; };
 		3416DA3312C1E84A007CE6EF /* PlausibleDatabase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PlausibleDatabase.framework; sourceTree = "<group>"; };
+		3421854112E4392F0059B06C /* MPActivityMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityMail.h; sourceTree = "<group>"; };
+		3421854212E4392F0059B06C /* MPActivityMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityMail.m; sourceTree = "<group>"; };
+		3421862B12E6A9510059B06C /* MPTaskMail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskMail.h; sourceTree = "<group>"; };
+		3421862C12E6A9510059B06C /* MPTaskMail.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskMail.m; sourceTree = "<group>"; };
+		3421867412E6CF6B0059B06C /* MPItemCount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPItemCount.h; sourceTree = "<group>"; };
+		3421867512E6CF6B0059B06C /* MPItemCount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPItemCount.m; sourceTree = "<group>"; };
+		342187BF12E814DE0059B06C /* MPTaskTrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskTrain.h; sourceTree = "<group>"; };
+		342187C012E814DE0059B06C /* MPTaskTrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskTrain.m; sourceTree = "<group>"; };
+		342187C412E8283A0059B06C /* MPTaskInteractNPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskInteractNPC.h; sourceTree = "<group>"; };
+		342187C512E8283A0059B06C /* MPTaskInteractNPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskInteractNPC.m; sourceTree = "<group>"; };
+		34218BC812E892520059B06C /* MPActivityTrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityTrain.h; sourceTree = "<group>"; };
+		34218BC912E892520059B06C /* MPActivityTrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityTrain.m; sourceTree = "<group>"; };
+		34218C3412E9B0F10059B06C /* MPActivitySetHearth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivitySetHearth.h; sourceTree = "<group>"; };
+		34218C3512E9B0F10059B06C /* MPActivitySetHearth.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivitySetHearth.m; sourceTree = "<group>"; };
+		34218C5E12E9BB670059B06C /* MPTaskSetHearth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskSetHearth.h; sourceTree = "<group>"; };
+		34218C5F12E9BB670059B06C /* MPTaskSetHearth.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskSetHearth.m; sourceTree = "<group>"; };
+		34218C7E12E9C25E0059B06C /* MPActivityClickUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityClickUnit.h; sourceTree = "<group>"; };
+		34218C7F12E9C25E0059B06C /* MPActivityClickUnit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityClickUnit.m; sourceTree = "<group>"; };
+		34218C8612E9C54F0059B06C /* MPTaskLearnFP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskLearnFP.h; sourceTree = "<group>"; };
+		34218C8712E9C54F0059B06C /* MPTaskLearnFP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskLearnFP.m; sourceTree = "<group>"; };
+		34218CC312EAFA6E0059B06C /* MPActivityTaxi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityTaxi.h; sourceTree = "<group>"; };
+		34218CC412EAFA6E0059B06C /* MPActivityTaxi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityTaxi.m; sourceTree = "<group>"; };
+		34218CEC12EBBCFD0059B06C /* MPTaskTaxi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskTaxi.h; sourceTree = "<group>"; };
+		34218CED12EBBCFD0059B06C /* MPTaskTaxi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskTaxi.m; sourceTree = "<group>"; };
+		34218CFD12EBCAAA0059B06C /* MPToonData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPToonData.h; sourceTree = "<group>"; };
+		34218CFE12EBCAAA0059B06C /* MPToonData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPToonData.m; sourceTree = "<group>"; };
+		34218DB212EC38270059B06C /* MPTaskSetState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskSetState.h; sourceTree = "<group>"; };
+		34218DB312EC38270059B06C /* MPTaskSetState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskSetState.m; sourceTree = "<group>"; };
+		34218DBF12EC43D70059B06C /* MPState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPState.h; sourceTree = "<group>"; };
+		34218DC012EC43D70059B06C /* MPState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPState.m; sourceTree = "<group>"; };
+		34218DD212ED0CC90059B06C /* MPActivityRepair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityRepair.h; sourceTree = "<group>"; };
+		34218DD312ED0CC90059B06C /* MPActivityRepair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityRepair.m; sourceTree = "<group>"; };
+		34218DDD12ED0FBA0059B06C /* MPTaskRepair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskRepair.h; sourceTree = "<group>"; };
+		34218DDE12ED0FBA0059B06C /* MPTaskRepair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskRepair.m; sourceTree = "<group>"; };
+		34218E5612F678590059B06C /* MPTaskQuestPickup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskQuestPickup.h; sourceTree = "<group>"; };
+		34218E5712F678590059B06C /* MPTaskQuestPickup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskQuestPickup.m; sourceTree = "<group>"; };
+		34218E5D12F67B4B0059B06C /* MPActivityQuestPickup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityQuestPickup.h; sourceTree = "<group>"; };
+		34218E5E12F67B4B0059B06C /* MPActivityQuestPickup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityQuestPickup.m; sourceTree = "<group>"; };
+		34218E9912F6A1AD0059B06C /* MPTaskQuestGoal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskQuestGoal.h; sourceTree = "<group>"; };
+		34218E9A12F6A1AD0059B06C /* MPTaskQuestGoal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskQuestGoal.m; sourceTree = "<group>"; };
+		34218EB712F6B1330059B06C /* MPKillCount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPKillCount.h; sourceTree = "<group>"; };
+		34218EB812F6B1330059B06C /* MPKillCount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPKillCount.m; sourceTree = "<group>"; };
+		34218F6F12F6FE2E0059B06C /* MPActivityQuestHandin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityQuestHandin.h; sourceTree = "<group>"; };
+		34218F7012F6FE2E0059B06C /* MPActivityQuestHandin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityQuestHandin.m; sourceTree = "<group>"; };
+		34218F7512F706E90059B06C /* MPTaskQuestHandin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskQuestHandin.h; sourceTree = "<group>"; };
+		34218F7612F706E90059B06C /* MPTaskQuestHandin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskQuestHandin.m; sourceTree = "<group>"; };
+		34218F9112F7112D0059B06C /* MPTaskEquip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskEquip.h; sourceTree = "<group>"; };
+		34218F9212F7112D0059B06C /* MPTaskEquip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskEquip.m; sourceTree = "<group>"; };
+		34218FC212F7BCC30059B06C /* MPActivityEquipItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityEquipItem.h; sourceTree = "<group>"; };
+		34218FC312F7BCC30059B06C /* MPActivityEquipItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityEquipItem.m; sourceTree = "<group>"; };
+		342190C912FB205C0059B06C /* MPTaskWalk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskWalk.h; sourceTree = "<group>"; };
+		342190CA12FB205C0059B06C /* MPTaskWalk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskWalk.m; sourceTree = "<group>"; };
+		3421915612FE3F0E0059B06C /* MPSkillLevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPSkillLevel.h; sourceTree = "<group>"; };
+		3421915712FE3F0E0059B06C /* MPSkillLevel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPSkillLevel.m; sourceTree = "<group>"; };
+		3421916512FE46230059B06C /* MPTaskHearth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskHearth.h; sourceTree = "<group>"; };
+		3421916612FE46230059B06C /* MPTaskHearth.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskHearth.m; sourceTree = "<group>"; };
+		3421916B12FE48C60059B06C /* MPActivityHearth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityHearth.h; sourceTree = "<group>"; };
+		3421916C12FE48C60059B06C /* MPActivityHearth.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityHearth.m; sourceTree = "<group>"; };
+		342191C612FE60170059B06C /* MPTaskLogout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskLogout.h; sourceTree = "<group>"; };
+		342191C712FE60170059B06C /* MPTaskLogout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskLogout.m; sourceTree = "<group>"; };
+		342191E312FE61040059B06C /* MPActivityLogout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityLogout.h; sourceTree = "<group>"; };
+		342191E412FE61040059B06C /* MPActivityLogout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityLogout.m; sourceTree = "<group>"; };
 		3429567B12C9C52600F6EABB /* MPTaskRunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskRunner.h; sourceTree = "<group>"; };
 		3429567C12C9C52600F6EABB /* MPTaskRunner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskRunner.m; sourceTree = "<group>"; };
 		3438658712B4A55E00FD5387 /* NSData+ByteAtIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ByteAtIndex.h"; sourceTree = "<group>"; };
@@ -975,6 +1145,16 @@
 		3459B7B512CAD74100CC306D /* MPTaskHotspots.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskHotspots.m; sourceTree = "<group>"; };
 		3459B81712CB04CD00CC306D /* MPTaskGhostwalk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskGhostwalk.h; sourceTree = "<group>"; };
 		3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskGhostwalk.m; sourceTree = "<group>"; };
+		34C5514C12D7107C00EFB223 /* MPTaskVendor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskVendor.h; sourceTree = "<group>"; };
+		34C5514D12D7107C00EFB223 /* MPTaskVendor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskVendor.m; sourceTree = "<group>"; };
+		34C5516D12DB01B400EFB223 /* MPActivitySell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivitySell.h; sourceTree = "<group>"; };
+		34C5516E12DB01B400EFB223 /* MPActivitySell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivitySell.m; sourceTree = "<group>"; };
+		34C551ED12DC589800EFB223 /* MPFreeBagSlotsValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPFreeBagSlotsValue.h; sourceTree = "<group>"; };
+		34C551EE12DC589800EFB223 /* MPFreeBagSlotsValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPFreeBagSlotsValue.m; sourceTree = "<group>"; };
+		34EEE67312CFE45F00B9FF7A /* MPTaskHarvest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTaskHarvest.h; sourceTree = "<group>"; };
+		34EEE67412CFE45F00B9FF7A /* MPTaskHarvest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTaskHarvest.m; sourceTree = "<group>"; };
+		34EEE6DF12D0350100B9FF7A /* MPActivityPickup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPActivityPickup.h; sourceTree = "<group>"; };
+		34EEE6E012D0350100B9FF7A /* MPActivityPickup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPActivityPickup.m; sourceTree = "<group>"; };
 		614CD7891106182100BA1B2F /* Bot.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Bot.xib; sourceTree = "<group>"; };
 		7D06F0400D23058B00DA4E99 /* AuraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AuraController.h; sourceTree = "<group>"; };
 		7D06F0410D23058B00DA4E99 /* AuraController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuraController.m; sourceTree = "<group>"; };
@@ -1305,7 +1485,7 @@
 		7DF445520E241ABA0075B96B /* TotemConditionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TotemConditionController.m; sourceTree = "<group>"; };
 		7DF445540E241AE30075B96B /* TotemCondition.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TotemCondition.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* Pocket Gnome.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pocket Gnome.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* ggteabag.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ggteabag.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D02F3C541182C37E000F4037 /* DatabaseManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatabaseManager.h; sourceTree = "<group>"; };
 		D02F3C551182C37E000F4037 /* DatabaseManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DatabaseManager.m; sourceTree = "<group>"; };
 		D02F3C5B1182C497000F4037 /* MailActionProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MailActionProfile.h; sourceTree = "<group>"; };
@@ -1599,7 +1779,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* Pocket Gnome.app */,
+				8D1107320486CEB800E47090 /* ggteabag.app */,
 				3415C96912B5CD040062DDD4 /* PPatherCC.framework */,
 			);
 			name = Products;
@@ -1788,6 +1968,8 @@
 				3438665B12B4A56900FD5387 /* PatherController.m */,
 				3438665C12B4A56900FD5387 /* MPParser.h */,
 				3438665D12B4A56900FD5387 /* MPParser.m */,
+				34218CFD12EBCAAA0059B06C /* MPToonData.h */,
+				34218CFE12EBCAAA0059B06C /* MPToonData.m */,
 				3438665E12B4A56900FD5387 /* pather.xib */,
 				3438662D12B4A56900FD5387 /* Values */,
 				3438661812B4A56900FD5387 /* Utilities */,
@@ -1819,12 +2001,36 @@
 				343865BE12B4A56900FD5387 /* MPActivityAttack.m */,
 				343865BF12B4A56900FD5387 /* MPActivityApproach.h */,
 				343865C012B4A56900FD5387 /* MPActivityApproach.m */,
+				34218C7E12E9C25E0059B06C /* MPActivityClickUnit.h */,
+				34218C7F12E9C25E0059B06C /* MPActivityClickUnit.m */,
+				34218FC212F7BCC30059B06C /* MPActivityEquipItem.h */,
+				34218FC312F7BCC30059B06C /* MPActivityEquipItem.m */,
 				343865C112B4A56900FD5387 /* MPActivityFollow.h */,
 				343865C212B4A56900FD5387 /* MPActivityFollow.m */,
+				3421916B12FE48C60059B06C /* MPActivityHearth.h */,
+				3421916C12FE48C60059B06C /* MPActivityHearth.m */,
+				342191E312FE61040059B06C /* MPActivityLogout.h */,
+				342191E412FE61040059B06C /* MPActivityLogout.m */,
 				343865C312B4A56900FD5387 /* MPActivityLoot.h */,
 				343865C412B4A56900FD5387 /* MPActivityLoot.m */,
+				3421854112E4392F0059B06C /* MPActivityMail.h */,
+				3421854212E4392F0059B06C /* MPActivityMail.m */,
+				34EEE6DF12D0350100B9FF7A /* MPActivityPickup.h */,
+				34EEE6E012D0350100B9FF7A /* MPActivityPickup.m */,
+				34218E5D12F67B4B0059B06C /* MPActivityQuestPickup.h */,
+				34218E5E12F67B4B0059B06C /* MPActivityQuestPickup.m */,
+				34218DD212ED0CC90059B06C /* MPActivityRepair.h */,
+				34218DD312ED0CC90059B06C /* MPActivityRepair.m */,
 				343865C512B4A56900FD5387 /* MPActivityRest.h */,
 				343865C612B4A56900FD5387 /* MPActivityRest.m */,
+				34C5516D12DB01B400EFB223 /* MPActivitySell.h */,
+				34C5516E12DB01B400EFB223 /* MPActivitySell.m */,
+				34218C3412E9B0F10059B06C /* MPActivitySetHearth.h */,
+				34218C3512E9B0F10059B06C /* MPActivitySetHearth.m */,
+				34218CC312EAFA6E0059B06C /* MPActivityTaxi.h */,
+				34218CC412EAFA6E0059B06C /* MPActivityTaxi.m */,
+				34218BC812E892520059B06C /* MPActivityTrain.h */,
+				34218BC912E892520059B06C /* MPActivityTrain.m */,
 				343865C712B4A56900FD5387 /* MPActivityWait.h */,
 				343865C812B4A56900FD5387 /* MPActivityWait.m */,
 				343865C912B4A56900FD5387 /* MPActivityWalk.h */,
@@ -1833,6 +2039,8 @@
 				343865CC12B4A56900FD5387 /* TestActivity.m */,
 				343865CD12B4A56900FD5387 /* MPActivityTestPosition.h */,
 				343865CE12B4A56900FD5387 /* MPActivityTestPosition.m */,
+				34218F6F12F6FE2E0059B06C /* MPActivityQuestHandin.h */,
+				34218F7012F6FE2E0059B06C /* MPActivityQuestHandin.m */,
 			);
 			name = Activities;
 			sourceTree = "<group>";
@@ -1892,32 +2100,64 @@
 				343865F512B4A56900FD5387 /* MPTaskConditional.m */,
 				343865F612B4A56900FD5387 /* MPTaskDefend.h */,
 				343865F712B4A56900FD5387 /* MPTaskDefend.m */,
+				34218F9112F7112D0059B06C /* MPTaskEquip.h */,
+				34218F9212F7112D0059B06C /* MPTaskEquip.m */,
 				343865F812B4A56900FD5387 /* MPTaskFollow.h */,
 				343865F912B4A56900FD5387 /* MPTaskFollow.m */,
 				343865FA12B4A56900FD5387 /* MPTaskGhostRoute.h */,
 				343865FB12B4A56900FD5387 /* MPTaskGhostRoute.m */,
 				3459B81712CB04CD00CC306D /* MPTaskGhostwalk.h */,
 				3459B81812CB04CD00CC306D /* MPTaskGhostwalk.m */,
+				34EEE67312CFE45F00B9FF7A /* MPTaskHarvest.h */,
+				34EEE67412CFE45F00B9FF7A /* MPTaskHarvest.m */,
+				3421916512FE46230059B06C /* MPTaskHearth.h */,
+				3421916612FE46230059B06C /* MPTaskHearth.m */,
 				3459B7B412CAD74100CC306D /* MPTaskHotspots.h */,
 				3459B7B512CAD74100CC306D /* MPTaskHotspots.m */,
 				343865FC12B4A56900FD5387 /* MPTaskIf.h */,
 				343865FD12B4A56900FD5387 /* MPTaskIf.m */,
+				34218C8612E9C54F0059B06C /* MPTaskLearnFP.h */,
+				34218C8712E9C54F0059B06C /* MPTaskLearnFP.m */,
+				342191C612FE60170059B06C /* MPTaskLogout.h */,
+				342191C712FE60170059B06C /* MPTaskLogout.m */,
 				343865FE12B4A56900FD5387 /* MPTaskLoot.h */,
 				343865FF12B4A56900FD5387 /* MPTaskLoot.m */,
+				3421862B12E6A9510059B06C /* MPTaskMail.h */,
+				3421862C12E6A9510059B06C /* MPTaskMail.m */,
 				3438660012B4A56900FD5387 /* MPTaskPar.h */,
 				3438660112B4A56900FD5387 /* MPTaskPar.m */,
 				3438660212B4A56900FD5387 /* MPTaskPartyWait.h */,
 				3438660312B4A56900FD5387 /* MPTaskPartyWait.m */,
 				3438660412B4A56900FD5387 /* MPTaskPull.h */,
 				3438660512B4A56900FD5387 /* MPTaskPull.m */,
+				34218E9912F6A1AD0059B06C /* MPTaskQuestGoal.h */,
+				34218E9A12F6A1AD0059B06C /* MPTaskQuestGoal.m */,
+				34218E5612F678590059B06C /* MPTaskQuestPickup.h */,
+				34218E5712F678590059B06C /* MPTaskQuestPickup.m */,
+				34218DDD12ED0FBA0059B06C /* MPTaskRepair.h */,
+				34218DDE12ED0FBA0059B06C /* MPTaskRepair.m */,
 				3438660612B4A56900FD5387 /* MPTaskRest.h */,
 				3438660712B4A56900FD5387 /* MPTaskRest.m */,
 				3438660812B4A56900FD5387 /* MPTaskRoute.h */,
 				3438660912B4A56900FD5387 /* MPTaskRoute.m */,
+				3429567B12C9C52600F6EABB /* MPTaskRunner.h */,
+				3429567C12C9C52600F6EABB /* MPTaskRunner.m */,
+				34218C5E12E9BB670059B06C /* MPTaskSetHearth.h */,
+				34218C5F12E9BB670059B06C /* MPTaskSetHearth.m */,
+				34218DB212EC38270059B06C /* MPTaskSetState.h */,
+				34218DB312EC38270059B06C /* MPTaskSetState.m */,
 				3438660A12B4A56900FD5387 /* MPTaskSeq.h */,
 				3438660B12B4A56900FD5387 /* MPTaskSeq.m */,
+				34218CEC12EBBCFD0059B06C /* MPTaskTaxi.h */,
+				34218CED12EBBCFD0059B06C /* MPTaskTaxi.m */,
+				342187BF12E814DE0059B06C /* MPTaskTrain.h */,
+				342187C012E814DE0059B06C /* MPTaskTrain.m */,
 				3438660C12B4A56900FD5387 /* MPTaskUntil.h */,
 				3438660D12B4A56900FD5387 /* MPTaskUntil.m */,
+				34C5514C12D7107C00EFB223 /* MPTaskVendor.h */,
+				34C5514D12D7107C00EFB223 /* MPTaskVendor.m */,
+				3438661612B4A56900FD5387 /* MPTaskWait.h */,
+				3438661712B4A56900FD5387 /* MPTaskWait.m */,
 				3438660E12B4A56900FD5387 /* MPTaskWhen.h */,
 				3438660F12B4A56900FD5387 /* MPTaskWhen.m */,
 				3438661012B4A56900FD5387 /* MPTestTask.h */,
@@ -1926,10 +2166,12 @@
 				3438661312B4A56900FD5387 /* MPTaskController.m */,
 				3438661412B4A56900FD5387 /* MPTaskTreeDataSource.h */,
 				3438661512B4A56900FD5387 /* MPTaskTreeDataSource.m */,
-				3438661612B4A56900FD5387 /* MPTaskWait.h */,
-				3438661712B4A56900FD5387 /* MPTaskWait.m */,
-				3429567B12C9C52600F6EABB /* MPTaskRunner.h */,
-				3429567C12C9C52600F6EABB /* MPTaskRunner.m */,
+				342187C412E8283A0059B06C /* MPTaskInteractNPC.h */,
+				342187C512E8283A0059B06C /* MPTaskInteractNPC.m */,
+				34218F7512F706E90059B06C /* MPTaskQuestHandin.h */,
+				34218F7612F706E90059B06C /* MPTaskQuestHandin.m */,
+				342190C912FB205C0059B06C /* MPTaskWalk.h */,
+				342190CA12FB205C0059B06C /* MPTaskWalk.m */,
 			);
 			name = Tasks;
 			sourceTree = "<group>";
@@ -1992,10 +2234,20 @@
 		3438663A12B4A56900FD5387 /* ValueFunctions */ = {
 			isa = PBXGroup;
 			children = (
+				3421867412E6CF6B0059B06C /* MPItemCount.h */,
+				3421867512E6CF6B0059B06C /* MPItemCount.m */,
+				34218EB712F6B1330059B06C /* MPKillCount.h */,
+				34218EB812F6B1330059B06C /* MPKillCount.m */,
 				3438663B12B4A56900FD5387 /* MPMyLevelValue.h */,
 				3438663C12B4A56900FD5387 /* MPMyLevelValue.m */,
 				3438663D12B4A56900FD5387 /* MPMyClassValue.h */,
 				3438663E12B4A56900FD5387 /* MPMyClassValue.m */,
+				34C551ED12DC589800EFB223 /* MPFreeBagSlotsValue.h */,
+				34C551EE12DC589800EFB223 /* MPFreeBagSlotsValue.m */,
+				3421915612FE3F0E0059B06C /* MPSkillLevel.h */,
+				3421915712FE3F0E0059B06C /* MPSkillLevel.m */,
+				34218DBF12EC43D70059B06C /* MPState.h */,
+				34218DC012EC43D70059B06C /* MPState.m */,
 			);
 			name = ValueFunctions;
 			sourceTree = "<group>";
@@ -2582,6 +2834,42 @@
 				3429567E12C9C52600F6EABB /* MPTaskRunner.h in Headers */,
 				3459B7B612CAD74100CC306D /* MPTaskHotspots.h in Headers */,
 				3459B81912CB04CD00CC306D /* MPTaskGhostwalk.h in Headers */,
+				34EEE67612CFE45F00B9FF7A /* MPTaskHarvest.h in Headers */,
+				34EEE6E212D0350100B9FF7A /* MPActivityPickup.h in Headers */,
+				34C5514F12D7107C00EFB223 /* MPTaskVendor.h in Headers */,
+				34C5517012DB01B400EFB223 /* MPActivitySell.h in Headers */,
+				34C551EF12DC589800EFB223 /* MPFreeBagSlotsValue.h in Headers */,
+				3421854412E4392F0059B06C /* MPActivityMail.h in Headers */,
+				3421862E12E6A9510059B06C /* MPTaskMail.h in Headers */,
+				3421867712E6CF6B0059B06C /* MPItemCount.h in Headers */,
+				342187C212E814DE0059B06C /* MPTaskTrain.h in Headers */,
+				342187C712E8283A0059B06C /* MPTaskInteractNPC.h in Headers */,
+				34218BCB12E892520059B06C /* MPActivityTrain.h in Headers */,
+				34218C3712E9B0F10059B06C /* MPActivitySetHearth.h in Headers */,
+				34218C6112E9BB670059B06C /* MPTaskSetHearth.h in Headers */,
+				34218C8112E9C25E0059B06C /* MPActivityClickUnit.h in Headers */,
+				34218C8912E9C54F0059B06C /* MPTaskLearnFP.h in Headers */,
+				34218CC612EAFA6E0059B06C /* MPActivityTaxi.h in Headers */,
+				34218CEF12EBBCFD0059B06C /* MPTaskTaxi.h in Headers */,
+				34218D0012EBCAAA0059B06C /* MPToonData.h in Headers */,
+				34218DB512EC38270059B06C /* MPTaskSetState.h in Headers */,
+				34218DC212EC43D70059B06C /* MPState.h in Headers */,
+				34218DD512ED0CC90059B06C /* MPActivityRepair.h in Headers */,
+				34218DE012ED0FBA0059B06C /* MPTaskRepair.h in Headers */,
+				34218E5912F678590059B06C /* MPTaskQuestPickup.h in Headers */,
+				34218E6012F67B4B0059B06C /* MPActivityQuestPickup.h in Headers */,
+				34218E9C12F6A1AD0059B06C /* MPTaskQuestGoal.h in Headers */,
+				34218EBA12F6B1330059B06C /* MPKillCount.h in Headers */,
+				34218F7212F6FE2E0059B06C /* MPActivityQuestHandin.h in Headers */,
+				34218F7812F706E90059B06C /* MPTaskQuestHandin.h in Headers */,
+				34218F9412F7112D0059B06C /* MPTaskEquip.h in Headers */,
+				34218FC512F7BCC30059B06C /* MPActivityEquipItem.h in Headers */,
+				342190CC12FB205C0059B06C /* MPTaskWalk.h in Headers */,
+				3421915912FE3F0E0059B06C /* MPSkillLevel.h in Headers */,
+				3421916812FE46230059B06C /* MPTaskHearth.h in Headers */,
+				3421916E12FE48C60059B06C /* MPActivityHearth.h in Headers */,
+				342191C912FE60170059B06C /* MPTaskLogout.h in Headers */,
+				342191E612FE61040059B06C /* MPActivityLogout.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2625,7 +2913,7 @@
 			name = "Pocket Gnome";
 			productInstallPath = "$(HOME)/Applications";
 			productName = WoWWaypoint;
-			productReference = 8D1107320486CEB800E47090 /* Pocket Gnome.app */;
+			productReference = 8D1107320486CEB800E47090 /* ggteabag.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -2942,6 +3230,42 @@
 				3429567F12C9C52600F6EABB /* MPTaskRunner.m in Sources */,
 				3459B7B712CAD74100CC306D /* MPTaskHotspots.m in Sources */,
 				3459B81A12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */,
+				34EEE67712CFE45F00B9FF7A /* MPTaskHarvest.m in Sources */,
+				34EEE6E312D0350100B9FF7A /* MPActivityPickup.m in Sources */,
+				34C5515012D7107C00EFB223 /* MPTaskVendor.m in Sources */,
+				34C5517112DB01B400EFB223 /* MPActivitySell.m in Sources */,
+				34C551F012DC589800EFB223 /* MPFreeBagSlotsValue.m in Sources */,
+				3421854512E4392F0059B06C /* MPActivityMail.m in Sources */,
+				3421862F12E6A9510059B06C /* MPTaskMail.m in Sources */,
+				3421867812E6CF6B0059B06C /* MPItemCount.m in Sources */,
+				342187C312E814DE0059B06C /* MPTaskTrain.m in Sources */,
+				342187C812E8283A0059B06C /* MPTaskInteractNPC.m in Sources */,
+				34218BCC12E892520059B06C /* MPActivityTrain.m in Sources */,
+				34218C3812E9B0F10059B06C /* MPActivitySetHearth.m in Sources */,
+				34218C6212E9BB670059B06C /* MPTaskSetHearth.m in Sources */,
+				34218C8212E9C25E0059B06C /* MPActivityClickUnit.m in Sources */,
+				34218C8A12E9C54F0059B06C /* MPTaskLearnFP.m in Sources */,
+				34218CC712EAFA6E0059B06C /* MPActivityTaxi.m in Sources */,
+				34218CF012EBBCFD0059B06C /* MPTaskTaxi.m in Sources */,
+				34218D0112EBCAAA0059B06C /* MPToonData.m in Sources */,
+				34218DB612EC38270059B06C /* MPTaskSetState.m in Sources */,
+				34218DC312EC43D70059B06C /* MPState.m in Sources */,
+				34218DD612ED0CC90059B06C /* MPActivityRepair.m in Sources */,
+				34218DE112ED0FBA0059B06C /* MPTaskRepair.m in Sources */,
+				34218E5A12F678590059B06C /* MPTaskQuestPickup.m in Sources */,
+				34218E6112F67B4B0059B06C /* MPActivityQuestPickup.m in Sources */,
+				34218E9D12F6A1AD0059B06C /* MPTaskQuestGoal.m in Sources */,
+				34218EBB12F6B1330059B06C /* MPKillCount.m in Sources */,
+				34218F7312F6FE2E0059B06C /* MPActivityQuestHandin.m in Sources */,
+				34218F7912F706E90059B06C /* MPTaskQuestHandin.m in Sources */,
+				34218F9512F7112D0059B06C /* MPTaskEquip.m in Sources */,
+				34218FC612F7BCC30059B06C /* MPActivityEquipItem.m in Sources */,
+				342190CD12FB205C0059B06C /* MPTaskWalk.m in Sources */,
+				3421915A12FE3F0E0059B06C /* MPSkillLevel.m in Sources */,
+				3421916912FE46230059B06C /* MPTaskHearth.m in Sources */,
+				3421916F12FE48C60059B06C /* MPActivityHearth.m in Sources */,
+				342191CA12FE60170059B06C /* MPTaskLogout.m in Sources */,
+				342191E712FE61040059B06C /* MPActivityLogout.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3185,6 +3509,42 @@
 				3459B81B12CB04CD00CC306D /* MPTaskGhostwalk.m in Sources */,
 				03FCD2AC12CAC104000A199D /* WoWFaction.m in Sources */,
 				03FCD53012CBB264000A199D /* BlacklistItem.m in Sources */,
+				34EEE67512CFE45F00B9FF7A /* MPTaskHarvest.m in Sources */,
+				34EEE6E112D0350100B9FF7A /* MPActivityPickup.m in Sources */,
+				34C5514E12D7107C00EFB223 /* MPTaskVendor.m in Sources */,
+				34C5516F12DB01B400EFB223 /* MPActivitySell.m in Sources */,
+				34C551F112DC589800EFB223 /* MPFreeBagSlotsValue.m in Sources */,
+				3421854312E4392F0059B06C /* MPActivityMail.m in Sources */,
+				3421862D12E6A9510059B06C /* MPTaskMail.m in Sources */,
+				3421867612E6CF6B0059B06C /* MPItemCount.m in Sources */,
+				342187C112E814DE0059B06C /* MPTaskTrain.m in Sources */,
+				342187C612E8283A0059B06C /* MPTaskInteractNPC.m in Sources */,
+				34218BCA12E892520059B06C /* MPActivityTrain.m in Sources */,
+				34218C3612E9B0F10059B06C /* MPActivitySetHearth.m in Sources */,
+				34218C6012E9BB670059B06C /* MPTaskSetHearth.m in Sources */,
+				34218C8012E9C25E0059B06C /* MPActivityClickUnit.m in Sources */,
+				34218C8812E9C54F0059B06C /* MPTaskLearnFP.m in Sources */,
+				34218CC512EAFA6E0059B06C /* MPActivityTaxi.m in Sources */,
+				34218CEE12EBBCFD0059B06C /* MPTaskTaxi.m in Sources */,
+				34218CFF12EBCAAA0059B06C /* MPToonData.m in Sources */,
+				34218DB412EC38270059B06C /* MPTaskSetState.m in Sources */,
+				34218DC112EC43D70059B06C /* MPState.m in Sources */,
+				34218DD412ED0CC90059B06C /* MPActivityRepair.m in Sources */,
+				34218DDF12ED0FBA0059B06C /* MPTaskRepair.m in Sources */,
+				34218E5812F678590059B06C /* MPTaskQuestPickup.m in Sources */,
+				34218E5F12F67B4B0059B06C /* MPActivityQuestPickup.m in Sources */,
+				34218E9B12F6A1AD0059B06C /* MPTaskQuestGoal.m in Sources */,
+				34218EB912F6B1330059B06C /* MPKillCount.m in Sources */,
+				34218F7112F6FE2E0059B06C /* MPActivityQuestHandin.m in Sources */,
+				34218F7712F706E90059B06C /* MPTaskQuestHandin.m in Sources */,
+				34218F9312F7112D0059B06C /* MPTaskEquip.m in Sources */,
+				34218FC412F7BCC30059B06C /* MPActivityEquipItem.m in Sources */,
+				342190CB12FB205C0059B06C /* MPTaskWalk.m in Sources */,
+				3421915812FE3F0E0059B06C /* MPSkillLevel.m in Sources */,
+				3421916712FE46230059B06C /* MPTaskHearth.m in Sources */,
+				3421916D12FE48C60059B06C /* MPActivityHearth.m in Sources */,
+				342191C812FE60170059B06C /* MPTaskLogout.m in Sources */,
+				342191E512FE61040059B06C /* MPActivityLogout.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
