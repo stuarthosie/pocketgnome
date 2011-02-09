@@ -2490,7 +2490,7 @@ PGLog( @"   ---  optimizing route --- ");
 	
 	if (newYmax > loadedYmax) {
 		
-		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((minY >= %0.2f) AND (minY <= %0.2f)) AND zoneID=%d", loadedXmin, loadedXmax, loadedXmin, loadedXmax, loadedYmax, newYmax, zone ];
+		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((minY >= %0.2f) AND (minY <= %0.2f))", loadedXmin, loadedXmax, loadedXmin, loadedXmax, loadedYmax, newYmax ];
 		[self loadGraphChunkWithCondition: condition];
 		loadedYmax = newYmax;
 	}
@@ -2502,7 +2502,7 @@ PGLog( @"   ---  optimizing route --- ");
 	if (newYmin < loadedYmin) {
 		
 		//[self loadGraphChunkWithXmin: loadedXmin xMax:loadedXmax yMin:newYmin yMax:loadedYmin];
-		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((maxY >= %0.2f) AND (maxY <= %0.2f)) AND zoneID=%d", loadedXmin, loadedXmax, loadedXmin, loadedXmax, newYmin, loadedYmin, zone ];
+		NSString *condition = [NSString stringWithFormat:@"(((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f))) AND ((maxY >= %0.2f) AND (maxY <= %0.2f))", loadedXmin, loadedXmax, loadedXmin, loadedXmax, newYmin, loadedYmin ];
 		[self loadGraphChunkWithCondition: condition];
 		loadedYmin = newYmin;
 	}
@@ -2514,7 +2514,7 @@ PGLog( @"   ---  optimizing route --- ");
 	if (newXmax > loadedXmax) {
 		
 		//[self loadGraphChunkWithXmin: loadedXmax xMax:newXmax yMin:loadedYmin yMax:loadedYmax];
-		NSString *condition = [NSString stringWithFormat:@"((minX >= %0.2f) AND (minX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f))) AND zoneID=%d",loadedXmax, newXmax, loadedYmin, loadedYmax, loadedYmin, loadedYmax, zone  ];
+		NSString *condition = [NSString stringWithFormat:@"((minX >= %0.2f) AND (minX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f)))",loadedXmax, newXmax, loadedYmin, loadedYmax, loadedYmin, loadedYmax  ];
 		[self loadGraphChunkWithCondition: condition];
 		
 		
@@ -2528,7 +2528,7 @@ PGLog( @"   ---  optimizing route --- ");
 	if (newXmin < loadedXmin) {
 		
 		//[self loadGraphChunkWithXmin: loadedXmax xMax:newXmax yMin:loadedYmin yMax:loadedYmax];
-		NSString *condition = [NSString stringWithFormat:@"((maxX >= %0.2f) AND (maxX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f))) AND zoneID=%d",newXmin, loadedXmin, loadedYmin, loadedYmax, loadedYmin, loadedYmax, zone  ];
+		NSString *condition = [NSString stringWithFormat:@"((maxX >= %0.2f) AND (maxX <= %0.2f)) AND (((maxY >= %0.2f) AND (maxY <= %0.2f)) OR ((minY >= %0.2f) AND (minY <= %0.2f)))",newXmin, loadedXmin, loadedYmin, loadedYmax, loadedYmin, loadedYmax  ];
 		[self loadGraphChunkWithCondition: condition];
 		
 		loadedXmin = newXmin;
@@ -2548,7 +2548,7 @@ PGLog( @"   ---  optimizing route --- ");
 		minY = [location yPosition] - halfChunk;
 		maxY = [location yPosition] + halfChunk;
 		posZ = [location zPosition];
-		NSString *condition = [NSString stringWithFormat:@"( ((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f)) ) AND ( ((minY >= %0.2f) AND (minY <= %0.2f)) OR ((maxY >= %0.2f) AND (maxY <= %0.2f)) ) AND zoneID=%d", minX, maxX,minX,maxX, minY, maxY, minY, maxY, zone];
+		NSString *condition = [NSString stringWithFormat:@"( ((minX >= %0.2f) AND (minX <= %0.2f)) OR ((maxX >= %0.2f) AND (maxX <= %0.2f)) ) AND ( ((minY >= %0.2f) AND (minY <= %0.2f)) OR ((maxY >= %0.2f) AND (maxY <= %0.2f)) )", minX, maxX,minX,maxX, minY, maxY, minY, maxY];
 		
 		[self loadGraphChunkWithCondition:condition];
 		
@@ -2565,7 +2565,8 @@ PGLog( @"   ---  optimizing route --- ");
 	float minX, maxX, minY, maxY, avgZ;
 	MPSquare *square = nil;
 	
-	NSString *sql = [NSString stringWithFormat:@"SELECT * FROM squares WHERE zoneID=%d", zone];
+	//NSString *sql = [NSString stringWithFormat:@"SELECT * FROM squares WHERE zoneID=%d", zone];
+	NSString *sql = [NSString stringWithString:@"SELECT * FROM squares"];
 	
 	//	PGLog(@"---- loading squares with sql[%@] ---", sql);
 	NSError *error=nil;

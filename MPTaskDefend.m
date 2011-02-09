@@ -210,7 +210,7 @@
 				// phase = searching
 				state = PullStateSearching;
 				
-				return [self wantToDoSomething];  // reeval searching condi
+				return [self wantToDoSomething];  // reeval searching condition
 				
 			} // end if
 			break;

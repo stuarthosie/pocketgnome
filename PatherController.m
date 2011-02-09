@@ -420,7 +420,12 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(PatherController);
 		//// NOTE:  do this before you load your tasks, since some tasks will attemt to 
 		////        initialize their data from toonData.
 		[toonData openToonData:[pathDataFolderView stringValue]];
-		[toonData setToonName:[playerData playerName]];
+		//[toonData setToonName:[playerData playerName]];
+		// playerName returns ""  ... so grab it from playerHeader:
+		NSString *playerHeader = [playerData playerHeader];
+		NSRange commaRange = [playerHeader rangeOfString:@","];
+		toonData.toonName = [playerHeader substringToIndex:commaRange.location];
+PGLog(@" +++++ playerName at start:  td[%@]  pd.pn[%@]", toonData.toonName, [playerData playerHeader]);
 		[toonData loadToonData];
 		
 		

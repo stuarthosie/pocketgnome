@@ -2553,6 +2553,8 @@ int DistanceFromPositionCompare(id <UnitPosition> unit1, id <UnitPosition> unit2
 		errorFound = YES;
 	}
 
+	
+PGLog(@" ++++ lastErrorMsgString[%@]  lastErrorMessage[%d]  wsc[%d] errorFound[%d]", lastErrorMessageString, lastErrorMessage, wasSpellCast, errorFound);
 	// check for an error
 //	if ( ( wasSpellCast && [spellController lastAttemptedActionID] == actionID ) || errorFound ) {
 //	if ( errorFound ) {

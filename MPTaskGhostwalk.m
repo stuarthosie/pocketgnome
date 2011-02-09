@@ -176,7 +176,7 @@
 			
 			distance = [self myDistanceToPosition2D:(Position *)safeLocation];
 			
-PGLog( @" +++++ moving safe:  distance to saveLoc[%0.2f] [%@]", distance, safeLocation);
+//PGLog( @" +++++ moving safe:  distance to saveLoc[%0.2f] [%@]", distance, safeLocation);
 			if (distance < 2.0f) {
 				state = GhostwalkStateRezzing;
 				[self revive];
@@ -194,6 +194,13 @@ PGLog( @" +++++ moving safe:  distance to saveLoc[%0.2f] [%@]", distance, safeLo
 					[self revive];
 					[timerRetry start];
 					
+					// make sure my walk activities are closed out.
+					[self clearWalkToCorpse];
+					[self clearWalkToSafeLocation];
+					
+					// also clear out our saved locations:
+					self.corpseLocation = nil;
+					self.safeLocation = nil;
 					
 					// Question:  Should I put a counter here and abort if 
 					//		too many tries?
