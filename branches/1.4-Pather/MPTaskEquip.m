@@ -23,6 +23,7 @@
 #import "MPTimer.h"
 #import "MPValue.h"
 #import "PatherController.h"
+#import "MPToonData.h"
 #import "PlayerDataController.h"
 
 
@@ -32,6 +33,7 @@
 @interface MPTaskEquip (Internal)
 
 - (void) clearActivityEquip;
+- (NSString *) key;
 @end
 
 
@@ -97,6 +99,12 @@
 
 - (BOOL) wantToDoSomething {
 
+	NSString *value = [[patherController toonData] valueForKey:[self key]];
+	if (value != nil) {
+		if ([value isEqualToString:@"true"]) 
+			isDone = YES;
+	}
+	
 	return !isDone;
 }
 
@@ -143,6 +151,7 @@
 	if (activity == activityEquip) {
 		[self clearActivityEquip];
 		isDone = YES;
+		[[patherController toonData] setValue:@"true" forKey:[self key]]; // mark that we have equipped this item
 	}
 	return YES; // ??
 }
@@ -186,6 +195,11 @@
 	
 }
 
+
+- (NSString *) key {
+
+	return [NSString stringWithFormat:@"equip[%@]", itemName];
+}
 
 
 

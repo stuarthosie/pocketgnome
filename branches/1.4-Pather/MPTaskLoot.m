@@ -152,6 +152,12 @@
 			
 			
 		case LootStateLooting:
+			
+			// sanity Checks: 
+			distanceToMob = [self myDistanceToMob:lootMob];
+			if (distanceToMob > 4.5f) state = LootStateApproaching;
+			if (distanceToMob < 3.0f) state = LootStateBackingUp;
+			
 			// let the ActivityDone method break us out to Waiting
 			if (lootMob == nil) state = LootStateWaiting;
 			return YES;
@@ -320,6 +326,8 @@
 	
 	if (activity == lootActivity) {
 		[self clearLootActivity];
+		// if looting done, then clear our loot mob
+		self.selectedMob = nil;
 	}
 	
 	return YES; // ??

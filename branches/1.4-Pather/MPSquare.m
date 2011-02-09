@@ -701,46 +701,44 @@
 	
 	NSMutableArray *listSquares = [NSMutableArray array];
 	
+	//// TODO: tie into MPQ reading routines to dynamically create graph:
 	//// Note:
-	//// converting MPQ Data to Squares method:
-	////	- read in area chunk
-	////	- assume all area is traversible & create squares for that area (all traversible)
-	////	- for each triangle that is intraversible:
-	////		- start at point 1 of triangle & find square -> mark intraversible
-	////		- follow line from point 1 -> point 2 and mark all squares crossed intraversible
-	////		- follow line from point 2 -> point 3 and mark all squares crossed intraversilbe
-	////		- follow line from point 3 -> point 1 and ...
-	////		- then find any squares fully contained in triangle and mark intraversible
-	////	- next
+	//// method to create a missing square and decide if traversible:
+	////	- Create a New Square
+	////	- if ( ([MPQGraph isStandableAtLocation:[square midpoint]]) 
+	////		&& (![MPGraph isAreaTooSteep:square]) ) {
+	////		square.isTraversible = YES;
+	////	  } else {
+	////		square.isTraversible = NO;
+	////	  }
 	
 	
 	
 	
 	// check top connections:
 	//// TO DO: check to see if topBorderConnections is null, 
-	////		if null -> call routine to read MPQ files and fill out area to the TOP
-	////		(this way you only fill in the navmesh with squares as is needed)
+	////		if null -> perform above method and add square to topBorderConnections
 	for( MPSquare* square in topBorderConnections) {
 		[listSquares addObject:square];
 	}
 	
 	// check Left connections:
 	//// TO DO: check to see if leftBorderConnections is null, 
-	////		if null -> call routine to read MPQ files and fill out area to the TOP
+	////		if null -> perform above method and add square to leftBorderConnections
 	for( MPSquare* square in leftBorderConnections) {
 		[listSquares addObject:square];
 	}
 	
 	// check bottom connections:
 	//// TO DO: check to see if bottomBorderConnections is null, 
-	////		if null -> call routine to read MPQ files and fill out area to the TOP
+	////		if null -> perform above method and add square to bottomBorderConnections
 	for( MPSquare* square in bottomBorderConnections) {
 		[listSquares addObject:square];
 	}
 	
 	// check right connections:
 	//// TO DO: check to see if rightBorderConnections is null, 
-	////		if null -> call routine to read MPQ files and fill out area to the TOP
+	////		if null -> perform above method and add square to rightBorderConnections
 	for( MPSquare* square in rightBorderConnections) {
 		[listSquares addObject:square];
 	}

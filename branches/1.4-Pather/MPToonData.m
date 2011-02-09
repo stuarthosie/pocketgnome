@@ -8,10 +8,15 @@
 #import "MPToonData.h"
 
 #import "PlausibleDatabase/PlausibleDatabase.h"
+#import "PlayerDataController.h"
 
 
 
+@interface MPToonData (internal)
 
+- (void) verifyToonName;
+
+@end
 
 
 
@@ -147,7 +152,10 @@
 
 - (void) setValue:(NSString *)value forKey:(NSString *)key {
 	
-
+	//// make sure toonName is valid name:
+	[self verifyToonName];
+	
+	
 	NSString *currentValue = [toonData objectForKey:key];
 	BOOL isNew = NO;
 	
@@ -186,10 +194,23 @@ PGLog(@" ++++ sql[%@]", sql);
 
 - (NSString *) valueForKey:(NSString *)key {
 	
+	[self verifyToonName];
 	
 	return [toonData objectForKey:key];
 }
 
+
+- (void) verifyToonName {
+	
+	// if we don't have a valid name, try to load it from the PlayerDataController ...
+	if ([toonName isEqualToString:@""] || toonName == nil) {
+		self.toonName = [[PlayerDataController sharedController] playerName];
+		
+		
+		// load the data for this toon now:
+		[self loadToonData];
+	}
+}
 
 
 - (void)applicationWillTerminate: (NSNotification*)notification {
